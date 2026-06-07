@@ -56,6 +56,8 @@ import { PresetGeneratorFallback } from "./lib/_preset-generator";
 import { MathBlock } from "./lib/_math-block";
 import { CodeGroup } from "@/components/content/code-group";
 import { makeAdmonition } from "@/components/content/content-admonition";
+import CssPreview from "@/components/CssPreview";
+import TailwindPreview from "@/components/TailwindPreview";
 
 /**
  * MDX `<img>` override — rewrites root-relative src attributes to include the
@@ -352,14 +354,28 @@ export function createMdxComponents(lang: Locale | string = defaultLocale) {
     // form loads client-side via the SSR-skip placeholder inside
     // PresetGeneratorFallback (see pages/lib/_preset-generator.tsx).
     PresetGenerator: PresetGeneratorFallback,
-    // Pure showcase placeholders (Avatar/Button/Card/MyComponent/PageLayout
-    // appear only inside MDX prose as illustrative examples — never
-    // implemented as real components).
+    // zcss preview components — real implementations from S4a shims.
+    // CssPreview / TailwindPreview forward to HtmlPreviewWrapper so every
+    // article's interactive demo renders correctly in the zfb build.
+    CssPreview: CssPreview as unknown as (props: Record<string, unknown>) => unknown,
+    TailwindPreview: TailwindPreview as unknown as (props: Record<string, unknown>) => unknown,
+    // Pure showcase placeholders (Avatar/Badge/Button/Card/Content/Dialog/
+    // MDXRemote/MyComponent/PageLayout/ProductCard/Teleport appear only inside
+    // code fences or markdown table cells as illustrative examples — never
+    // implemented as real components). Stubbing them prevents the "MDX requires
+    // X to be passed via the components prop" 500 if the MDX compiler ever
+    // surfaces any of these as JSX identifiers.
     Avatar: MdxStub,
+    Badge: MdxStub,
     Button: MdxStub,
     Card: MdxStub,
+    Content: MdxStub,
+    Dialog: MdxStub,
+    MDXRemote: MdxStub,
     MyComponent: MdxStub,
     PageLayout: MdxStub,
+    ProductCard: MdxStub,
+    Teleport: MdxStub,
   };
 }
 
