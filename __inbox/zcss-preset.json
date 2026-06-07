@@ -17,9 +17,9 @@
     "docHistory",
     "llmsTxt",
     "skillSymlinker",
-    "tauri",
     "footerNavGroup",
-    "footerCopyright"
+    "footerCopyright",
+    "imageEnlarge"
   ],
   "cjkFriendly": true,
   "packageManager": "pnpm"

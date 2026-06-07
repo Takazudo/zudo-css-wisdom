@@ -1,23 +1,31 @@
 export type {
   HeaderNavChildItem,
   HeaderNavItem,
+  HeaderRightItem,
   ColorModeConfig,
   HtmlPreviewConfig,
+  FrontmatterPreviewConfig,
   LocaleConfig,
   VersionConfig,
   FooterConfig,
+  BodyFootUtilAreaConfig,
+  TagPlacement,
+  TagGovernanceMode,
+  TagVocabularyEntry,
 } from "./settings-types";
 import type {
   HeaderNavItem,
+  HeaderRightItem,
   ColorModeConfig,
   HtmlPreviewConfig,
+  FrontmatterPreviewConfig,
   LocaleConfig,
   VersionConfig,
   FooterConfig,
-  FrontmatterPreviewConfig,
+  BodyFootUtilAreaConfig,
   TagPlacement,
+  TagGovernanceMode,
 } from "./settings-types";
-import type { TagGovernanceMode } from "./tag-vocabulary-types";
 
 export const settings = {
   colorScheme: "Default Dark",
@@ -36,6 +44,7 @@ export const settings = {
   githubUrl: false as string | false,
   siteUrl: "https://takazudomodular.com/pj/zcss/" as string,
   docsDir: "src/content/docs",
+  defaultLocale: "en" as string,
   locales: {
     ja: { label: "JA", dir: "src/content/docs-ja" },
   } as Record<string, LocaleConfig>,
@@ -52,15 +61,29 @@ export const settings = {
   cjkFriendly: true as boolean,
   onBrokenMarkdownLinks: "warn" as "warn" | "error" | "ignore",
   aiAssistant: false as boolean,
+  aiChatDemoMode: false as boolean,
+  aiChatAllowedOrigins: [] as string[],
+  aiChatGlobalDailyLimit: false as number | false,
   docHistory: true,
-  colorTweakPanel: false as boolean,
+  bodyFootUtilArea: false as BodyFootUtilAreaConfig | false,
+  designTokenPanel: false as boolean,
+  tocMinDepth: 2 as number,
+  tocMaxDepth: 4 as number,
+  headingIdStrategy: "hierarchical" as "flat" | "hierarchical",
   sidebarResizer: true as boolean,
   sidebarToggle: true as boolean,
+  imageEnlarge: true as boolean,
   htmlPreview: undefined as HtmlPreviewConfig | undefined,
   versions: false as VersionConfig[] | false,
   claudeResources: {
     claudeDir: ".claude",
   } as { claudeDir: string; projectRoot?: string } | false,
+  defaultLocaleOnlyPrefixes: [
+    "/docs/claude-md/",
+    "/docs/claude-skills/",
+    "/docs/claude-agents/",
+    "/docs/claude-commands/",
+  ] as string[],
   footer: {
     links: [
       {
@@ -97,4 +120,9 @@ export const settings = {
     { label: "Interactive", path: "/docs/interactive", categoryMatch: "interactive" },
     { label: "Claude", path: "/docs/claude", categoryMatch: "claude" },
   ] as HeaderNavItem[],
+  headerRightItems: [
+    { type: "component", component: "theme-toggle" },
+    { type: "component", component: "language-switcher" },
+    { type: "component", component: "search" },
+  ] as HeaderRightItem[],
 };

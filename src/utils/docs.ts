@@ -41,6 +41,23 @@ interface BuildNode {
 const categoryMetaCache = new Map<string, Map<string, CategoryMeta>>();
 const navTreeCache = new Map<string, NavNode[]>();
 
+// Identity fast-path cache. Keyed on the docs-array reference: when nav-source
+// loaders hand back the SAME stable array instance across the build's many
+// `buildNavTree` calls (route paths() re-invoked per page, per-page sidebar +
+// header), this lets us skip recomputing the O(n log n) stringify+sort key
+// entirely. Anchored per (lang, categoryMeta) since the same array can be
+// rendered under different locales / category metadata.
+//
+// This is ADDITIVE: a miss falls through to `navTreeCacheKey` + `navTreeCache`,
+// which still catches content-equal arrays that lack reference identity (e.g.
+// any caller that hasn't been routed through the stable loaders). HMR intent
+// is preserved because a content edit produces a new snapshot → new stable
+// array identity → fresh entry here AND a different content key downstream.
+const navTreeByIdentity = new WeakMap<
+  DocsEntry[],
+  Array<{ lang: Locale; categoryMeta: Map<string, CategoryMeta> | undefined; tree: NavNode[] }>
+>();
+
 /** Build a cache key from docs array + locale + category meta.
  *  Includes nav-affecting frontmatter so HMR picks up changes. */
 function navTreeCacheKey(
@@ -83,9 +100,23 @@ export function buildNavTree(
   lang: Locale = defaultLocale,
   categoryMeta?: Map<string, CategoryMeta>,
 ): NavNode[] {
+  // Identity fast-path: stable array instance already seen for this
+  // (lang, categoryMeta)? Return its tree without recomputing the key.
+  const byIdentity = navTreeByIdentity.get(docs);
+  if (byIdentity) {
+    for (const slot of byIdentity) {
+      if (slot.lang === lang && slot.categoryMeta === categoryMeta) {
+        return slot.tree;
+      }
+    }
+  }
+
   const cacheKey = navTreeCacheKey(docs, lang, categoryMeta);
   const cached = navTreeCache.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    rememberIdentity(docs, lang, categoryMeta, cached);
+    return cached;
+  }
 
   const root: BuildNode = {
     segment: "",
@@ -98,8 +129,10 @@ export function buildNavTree(
     const parts = slug.split("/");
 
     if (parts.length <= 1) {
-      // Category index: Astro 5 stripped /index → single segment like "guides"
-      const segment = doc.id;
+      // Category index: Astro 5 stripped /index → single segment like "guides".
+      // Key by the route slug (honors a custom frontmatter `slug`), not the raw
+      // id — otherwise the sidebar/breadcrumb link diverges from the built route.
+      const segment = parts[0] || doc.id;
       if (!root.children.has(segment)) {
         root.children.set(segment, {
           segment,
@@ -112,7 +145,7 @@ export function buildNavTree(
       // Multi-segment: walk the tree creating intermediate nodes as needed
       let current = root;
       for (let i = 0; i < parts.length; i++) {
-        const segment = parts[i];
+        const segment = parts[i] ?? "";
         const fullPath = parts.slice(0, i + 1).join("/");
         if (!current.children.has(segment)) {
           current.children.set(segment, {
@@ -131,7 +164,26 @@ export function buildNavTree(
 
   const result = toNavNodes(root, lang, categoryMeta);
   navTreeCache.set(cacheKey, result);
+  rememberIdentity(docs, lang, categoryMeta, result);
   return result;
+}
+
+/** Record a (docs-array identity, lang, categoryMeta) → tree mapping for the
+ *  identity fast-path. No-op-safe to call multiple times for the same slot. */
+function rememberIdentity(
+  docs: DocsEntry[],
+  lang: Locale,
+  categoryMeta: Map<string, CategoryMeta> | undefined,
+  tree: NavNode[],
+): void {
+  let slots = navTreeByIdentity.get(docs);
+  if (!slots) {
+    slots = [];
+    navTreeByIdentity.set(docs, slots);
+  }
+  if (!slots.some((s) => s.lang === lang && s.categoryMeta === categoryMeta)) {
+    slots.push({ lang, categoryMeta, tree });
+  }
 }
 
 function toNavNodes(
@@ -188,16 +240,19 @@ export function groupSatelliteNodes(tree: NavNode[], prefixes: string[]): NavNod
     const primaryIdx = result.findIndex((n) => n.slug === prefix);
     if (primaryIdx < 0) continue;
     const primary = result[primaryIdx];
+    if (!primary) continue;
     const satelliteIdxs: number[] = [];
     for (let i = 0; i < result.length; i++) {
-      if (i !== primaryIdx && result[i].slug.startsWith(`${prefix}-`)) {
+      const node = result[i];
+      if (node && i !== primaryIdx && node.slug.startsWith(`${prefix}-`)) {
         satelliteIdxs.push(i);
       }
     }
     if (satelliteIdxs.length === 0) continue;
     const extraChildren: NavNode[] = [];
     for (const idx of satelliteIdxs) {
-      extraChildren.push(result[idx]);
+      const node = result[idx];
+      if (node) extraChildren.push(node);
     }
     result[primaryIdx] = {
       ...primary,
@@ -256,11 +311,20 @@ export interface BreadcrumbItem {
 
 /**
  * Build breadcrumb trail by walking the nav tree.
+ *
+ * Nav-node hrefs are always the LATEST `docsUrl(slug, lang)` values (see
+ * `toNavNodes`). On versioned routes that would make breadcrumbs link back to
+ * latest content (#1916 #1). Pass an optional `hrefFor(slug)` to remap each
+ * intermediate crumb's href to the route's own URL space (e.g.
+ * `versionedDocsUrl`-bound). The home crumb and the current/last crumb carry no
+ * remappable href and are left untouched. Omit `hrefFor` (latest routes) to
+ * keep the unversioned hrefs.
  */
 export function buildBreadcrumbs(
   tree: NavNode[],
   slug: string,
   lang: Locale = defaultLocale,
+  hrefFor?: (slug: string) => string,
 ): BreadcrumbItem[] {
   const parts = slug.split("/");
   const homeHref = lang === defaultLocale ? withBase("/") : withBase(`/${lang}/`);
@@ -273,9 +337,14 @@ export function buildBreadcrumbs(
     if (!node) break;
 
     const isLast = i === parts.length - 1;
+    const href = isLast
+      ? undefined
+      : hrefFor && node.href !== undefined
+        ? hrefFor(node.slug)
+        : node.href;
     crumbs.push({
       label: node.label,
-      href: isLast ? undefined : node.href,
+      href,
     });
     nodes = node.children;
   }

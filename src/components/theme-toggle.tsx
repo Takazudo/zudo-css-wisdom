@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "preact/compat";
 
 const STORAGE_KEY = "zudo-doc-theme";
 

@@ -101,18 +101,23 @@ function findClaudeMdFiles(dir: string, excludeDirs: string[]): string[] {
 
   for (const item of fs.readdirSync(dir)) {
     if (item === "node_modules") continue;
+    if (item.startsWith(".")) continue;
     const itemPath = path.join(dir, item);
     if (excludeDirs.some((d) => itemPath.startsWith(d))) continue;
 
+    // lstat (not stat) so symlinks aren't followed — a symlinked dir can point
+    // back into the project (e.g. e2e fixtures linking to packages/) or out to
+    // a slow mount (e.g. /mnt/c on WSL) and either turns the walk into a
+    // multi-minute hang.
     let stat: fs.Stats;
     try {
-      stat = fs.statSync(itemPath);
+      stat = fs.lstatSync(itemPath);
     } catch {
-      continue; // broken symlinks
+      continue;
     }
     if (stat.isDirectory()) {
       results.push(...findClaudeMdFiles(itemPath, excludeDirs));
-    } else if (item === "CLAUDE.md") {
+    } else if (stat.isFile() && item === "CLAUDE.md") {
       results.push(itemPath);
     }
   }
@@ -135,6 +140,12 @@ function generateClaudemdDocs(
     path.join(projectRoot, ".git"),
     path.join(projectRoot, "node_modules"),
     path.join(projectRoot, "worktrees"),
+    path.join(projectRoot, "dist"),
+    path.join(projectRoot, "out"),
+    path.join(projectRoot, "public"),
+    path.join(projectRoot, "__inbox"),
+    path.join(projectRoot, "test-results"),
+    path.join(projectRoot, "e2e", "fixtures"),
     path.join(config.docsDir),
   ];
 
@@ -145,35 +156,45 @@ function generateClaudemdDocs(
   const items: ClaudeMdItem[] = [];
 
   for (const filePath of files) {
-    const content = fs.readFileSync(filePath, "utf8");
     const relPath = path.relative(projectRoot, filePath);
     const displayPath = `/${relPath}`;
     const dirPart = path.dirname(relPath);
     const slug = dirPart === "." ? "root" : dirPart.replace(/\//g, "--");
-
     items.push({ displayPath, slug, relPath });
-
-    const pos = items.length + 1;
-    const mdx = `---
-title: "${escapeTitle(displayPath)}"
-description: "CLAUDE.md at ${escapeTitle(displayPath)}"
-sidebar_position: ${pos}
-sidebar_label: "${escapeTitle(relPath)}"
-generated: true
----
-
-**Path:** \`${relPath}\`
-
-${escapeForMdx(content.trim())}
-`;
-    fs.writeFileSync(path.join(outputDir, `${slug}.mdx`), mdx);
   }
 
-  // Sort: root first, then alphabetically
+  // Sort BEFORE writing: sidebar_position is baked into each generated .mdx,
+  // so the root-first/alphabetical order must be applied first — sorting after
+  // the write loop would leave positions in filesystem-walk order.
   items.sort((a, b) => {
     if (a.slug === "root") return -1;
     if (b.slug === "root") return 1;
     return a.displayPath.localeCompare(b.displayPath);
+  });
+
+  const emittedSlugs = new Map<string, string>();
+  items.forEach((item, index) => {
+    const previous = emittedSlugs.get(item.slug);
+    if (previous !== undefined) {
+      throw new Error(
+        `claude-resources: slug collision — "${item.slug}" is produced by both "${previous}" and "${item.relPath}". Rename one of the directories to resolve the conflict.`,
+      );
+    }
+    emittedSlugs.set(item.slug, item.relPath);
+    const content = fs.readFileSync(path.join(projectRoot, item.relPath), "utf8");
+    const mdx = `---
+title: "${escapeTitle(item.displayPath)}"
+description: "CLAUDE.md at ${escapeTitle(item.displayPath)}"
+sidebar_position: ${index + 1}
+sidebar_label: "${escapeTitle(item.relPath)}"
+generated: true
+---
+
+**Path:** \`${item.relPath}\`
+
+${escapeForMdx(content.trim())}
+`;
+    fs.writeFileSync(path.join(outputDir, `${item.slug}.mdx`), mdx);
   });
 
   writeCategoryMeta(outputDir, "CLAUDE.md", 900, "Project-specific instructions");
@@ -512,10 +533,30 @@ ${escapeForMdx(parsed.content.trim())}
 // Main
 // ---------------------------------------------------------------------------
 
-function generateOverviewIndex(config: ClaudeResourcesConfig) {
+function generateOverviewIndex(
+  config: ClaudeResourcesConfig,
+  {
+    hasCommands,
+    hasSkills,
+    hasAgents,
+    hasClaudemd,
+  }: { hasCommands: boolean; hasSkills: boolean; hasAgents: boolean; hasClaudemd: boolean },
+) {
   const outputDir = path.join(config.docsDir, "claude");
   cleanDir(outputDir);
   ensureDir(outputDir);
+
+  // Build the explicit slug list from whichever sub-categories were generated.
+  // CategoryNav with `categories` renders cards for each slug by resolving
+  // the node in the nav tree (including noPage auto-index categories) and
+  // falling back to docsUrl(slug, locale) for the href when noPage=true.
+  const categorySlugs: string[] = [];
+  if (hasClaudemd) categorySlugs.push("claude-md");
+  if (hasSkills) categorySlugs.push("claude-skills");
+  if (hasAgents) categorySlugs.push("claude-agents");
+  if (hasCommands) categorySlugs.push("claude-commands");
+
+  const categoriesAttr = JSON.stringify(categorySlugs);
 
   const index = `---
 title: "Claude"
@@ -528,7 +569,7 @@ Claude Code configuration reference.
 
 ## Resources
 
-<CategoryTreeNav category="claude" />
+<CategoryNav categories={${categoriesAttr}} />
 `;
   fs.writeFileSync(path.join(outputDir, "index.mdx"), index);
 }
@@ -539,7 +580,12 @@ export function generateClaudeResourcesDocs(config: ClaudeResourcesConfig) {
   const skills = generateSkillsDocs(config);
   const agents = generateAgentsDocs(config);
 
-  generateOverviewIndex(config);
+  generateOverviewIndex(config, {
+    hasClaudemd: claudemds.length > 0,
+    hasCommands: commands.length > 0,
+    hasSkills: skills.length > 0,
+    hasAgents: agents.length > 0,
+  });
 
   return {
     claudemd: claudemds.length,

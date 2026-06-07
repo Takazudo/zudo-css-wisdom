@@ -17,6 +17,7 @@ export const DEFAULT_FRONTMATTER_IGNORE_KEYS: string[] = [
   "unlisted",
   "hide_sidebar",
   "hide_toc",
+  "doc_history",
   "standalone",
   "slug",
   "generated",

@@ -56,19 +56,19 @@ Highlight roles are deliberately split across dedicated semantic tokens — do *
 
 **Rule**: when a new highlight role appears (new kind of mark, new pill, new callout), add a dedicated semantic token rather than bolting it onto `--color-warning` or another existing token. Each visible highlight color should map to exactly one panel swatch.
 
-### hover:underline on link-like elements
+### Hover-state underline for link-like elements
 
 Any element that navigates (rendered as `<a href>` or behaves as a link) MUST have `hover:underline focus-visible:underline`. Keyboard users need the same affordance as mouse users — never add `hover:underline` without the `focus-visible:underline` pair.
 
 - **Links (do underline)**: doc content links, sidebar items, header main-nav, header overflow menu items, color-tweak panel unselected tabs, search result rows, footer links, doc history entries, breadcrumb trails, mobile TOC entries.
 - **Controls (do NOT underline)**: buttons, toggles, sidebar resizer, palette selectors, color swatches, close icons. These use border/bg hover instead.
 
-Precedents to copy the pattern from: `src/components/header.astro`, `src/components/site-tree-nav.tsx`, `src/components/footer.astro`.
+Precedents to copy the pattern from: any current `.tsx` component in `src/components/` (e.g. `site-tree-nav.tsx`).
 
 See also: `/css-wisdom` for light-mode / dark-mode contrast rules and the broader three-tier token strategy.
 
-### Astro vs React
+### Server-rendered Preact vs client islands
 
-- Default to **Astro components** (`.astro`) — zero JS, server-rendered
-- Use **React islands** (`client:load`) only when client-side interactivity is needed
+- Default to **server-rendered Preact `.tsx`** (no `client:*` directive) — emits zero JS. See `src/CLAUDE.md` for the canonical rule: "All components are Preact `.tsx` — there are no `.astro` files."
+- Promote to a **client island** only when interactivity is needed
 - Both follow the same utility-class approach

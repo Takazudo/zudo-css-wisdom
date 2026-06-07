@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "preact/compat";
 import type { Heading } from "@/types/heading";
 
 const SCROLL_MARGIN_TOP = 80;
