@@ -55,7 +55,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       container-type: inline-size;
       padding: 1rem;
     }
-    
+
     .card {
       display: flex;
       flex-direction: column;
@@ -64,31 +64,31 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       background: #f8fafc;
       border: 1px solid #e2e8f0;
     }
-    
+
     .card__image {
       width: 100%;
       height: 120px;
       background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     }
-    
+
     .card__body {
       padding: 1rem;
     }
-    
+
     .card__title {
       font-size: 1.125rem;
       font-weight: 700;
       margin: 0 0 0.5rem;
       color: #1e293b;
     }
-    
+
     .card__text {
       font-size: 0.875rem;
       color: #64748b;
       margin: 0;
       line-height: 1.5;
     }
-    
+
     @container (min-width: 500px) {
     .card {
       flex-direction: row;
@@ -99,7 +99,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       min-height: 150px;
     }
     }
-    
+
     @container (min-width: 700px) {
     .card {
     gap: 1rem;
@@ -177,15 +177,15 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       gap: 1rem;
       padding: 1rem;
     }
-    
+
     .sidebar {
       container: sidebar / inline-size;
     }
-    
+
     .main-content {
       container: main / inline-size;
     }
-    
+
     .section-label {
       font-size: 0.6875rem;
       font-weight: 600;
@@ -194,7 +194,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       color: #94a3b8;
       margin: 0 0 0.5rem;
     }
-    
+
     .info-card {
       display: flex;
       flex-direction: column;
@@ -206,30 +206,30 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       border: 1px solid #e2e8f0;
       border-radius: 0.5rem;
     }
-    
+
     .info-card__icon {
       font-size: 1.5rem;
       color: #f59e0b;
       line-height: 1;
     }
-    
+
     .info-card__content {
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
     }
-    
+
     .info-card__title {
       font-size: 0.875rem;
       color: #1e293b;
     }
-    
+
     .info-card__text {
       font-size: 0.75rem;
       color: #64748b;
       line-height: 1.4;
     }
-    
+
     @container main (min-width: 300px) {
     .info-card {
       flex-direction: row;
@@ -283,28 +283,28 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       container-type: inline-size;
       padding: 1rem;
     }
-    
+
     .cqu-card {
       background: linear-gradient(135deg, #1e293b, #334155);
       color: white;
       padding: clamp(0.75rem, 4cqi, 2.5rem);
       border-radius: clamp(0.375rem, 1.5cqi, 1rem);
     }
-    
+
     .cqu-card__title {
       font-size: clamp(1rem, 5cqi, 2.25rem);
       font-weight: 700;
       margin: 0 0 clamp(0.25rem, 1.5cqi, 0.75rem);
       line-height: 1.2;
     }
-    
+
     .cqu-card__text {
       font-size: clamp(0.75rem, 2.5cqi, 1.125rem);
       color: #cbd5e1;
       margin: 0 0 clamp(0.5rem, 2cqi, 1rem);
       line-height: 1.5;
     }
-    
+
     .cqu-card__badge {
       display: inline-block;
       background: #3b82f6;
@@ -363,11 +363,11 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       gap: 1rem;
       padding: 1rem;
     }
-    
+
     .card-cell {
       container-type: inline-size;
     }
-    
+
     .adaptive-card {
       display: flex;
       flex-direction: column;
@@ -377,27 +377,27 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       border: 1px solid #e2e8f0;
       height: 100%;
     }
-    
+
     .adaptive-card__media {
       width: 100%;
       height: 100px;
       background: linear-gradient(135deg, #3b82f6, #6366f1);
     }
-    
+
     .adaptive-card__body {
       padding: 0.75rem;
       display: flex;
       flex-direction: column;
       flex: 1;
     }
-    
+
     .adaptive-card__title {
       font-size: 1rem;
       font-weight: 700;
       margin: 0 0 0.375rem;
       color: #1e293b;
     }
-    
+
     .adaptive-card__desc {
       font-size: 0.8125rem;
       color: #64748b;
@@ -405,13 +405,13 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       line-height: 1.4;
       flex: 1;
     }
-    
+
     .adaptive-card__price {
       font-size: 0.875rem;
       font-weight: 700;
       color: #059669;
     }
-    
+
     @container (min-width: 350px) {
     .adaptive-card {
       flex-direction: row;
@@ -456,7 +456,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
         </article>
       </div>
     </div>
-    
+
     <h4 class="demo-heading" style="margin-top: 1.5rem;">Using @media (both look the same)</h4>
     <div class="comparison-layout">
       <div class="narrow-container">
@@ -487,27 +487,27 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       margin: 0 0 0.5rem;
       padding: 0 0.75rem;
     }
-    
+
     .comparison-layout {
       display: grid;
       grid-template-columns: 180px 1fr;
       gap: 0.75rem;
       padding: 0 0.75rem;
     }
-    
+
     .narrow-container {
       min-width: 0;
     }
-    
+
     .wide-container {
       min-width: 0;
     }
-    
+
     /* ---- Container Query version ---- */
     .cq-container {
       container-type: inline-size;
     }
-    
+
     .cq-card {
       display: flex;
       flex-direction: column;
@@ -516,30 +516,30 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       overflow: hidden;
       background: #eff6ff;
     }
-    
+
     .cq-card__image {
       width: 100%;
       height: 48px;
       background: #3b82f6;
     }
-    
+
     .cq-card__body {
       padding: 0.5rem;
       display: flex;
       flex-direction: column;
       gap: 0.125rem;
     }
-    
+
     .cq-card__body strong {
       font-size: 0.75rem;
       color: #1e293b;
     }
-    
+
     .cq-card__body span {
       font-size: 0.6875rem;
       color: #64748b;
     }
-    
+
     @container (min-width: 300px) {
     .cq-card {
       flex-direction: row;
@@ -550,7 +550,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
       min-height: 60px;
     }
     }
-    
+
     /* ---- Media Query version ---- */
     .mq-card {
     display: flex;
@@ -560,30 +560,30 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
     overflow: hidden;
     background: #fef2f2;
     }
-    
+
     .mq-card__image {
     width: 100%;
     height: 48px;
     background: #ef4444;
     }
-    
+
     .mq-card__body {
     padding: 0.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
     }
-    
+
     .mq-card__body strong {
     font-size: 0.75rem;
     color: #1e293b;
     }
-    
+
     .mq-card__body span {
     font-size: 0.6875rem;
     color: #64748b;
     }
-    
+
     @media (min-width: 300px) {
     .mq-card {
     flex-direction: row;

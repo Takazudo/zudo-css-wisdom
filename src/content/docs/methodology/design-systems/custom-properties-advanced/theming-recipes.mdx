@@ -37,7 +37,7 @@ Define your entire color palette as custom properties, then swap them all with a
       --accent-text: hsl(0 0% 100%);
       --border: hsl(220 15% 88%);
     }
-    
+
     .dark-theme {
       --surface: hsl(225 25% 12%);
       --surface-raised: hsl(225 20% 18%);
@@ -48,34 +48,34 @@ Define your entire color palette as custom properties, then swap them all with a
       --accent-text: hsl(225 25% 12%);
       --border: hsl(225 15% 28%);
     }
-    
+
     .theme-comparison {
       font-family: system-ui, sans-serif;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
-    
+
     .theme-panel {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1.5rem;
     }
-    
+
     .theme-panel h3 {
       margin: 0 0 0.5rem;
       color: var(--text-primary);
       font-size: 1.05rem;
     }
-    
+
     .theme-panel p {
       margin: 0 0 1.25rem;
       color: var(--text-secondary);
       font-size: 0.85rem;
       line-height: 1.6;
     }
-    
+
     .theme-btn {
       background: var(--accent);
       color: var(--accent-text);
@@ -87,7 +87,7 @@ Define your entire color palette as custom properties, then swap them all with a
       cursor: pointer;
       transition: background 0.15s;
     }
-    
+
     .theme-btn:hover {
       background: var(--accent-hover);
     }
@@ -121,41 +121,41 @@ Start with a default theme, then override it by wrapping components in a brand-c
       --brand-text: hsl(220 25% 20%);
       --brand-muted: hsl(220 15% 55%);
     }
-    
+
     .brand-override {
       --brand-accent: hsl(280 70% 55%);
       --brand-accent-light: hsl(280 70% 95%);
       --brand-text: hsl(280 25% 20%);
       --brand-muted: hsl(280 15% 45%);
     }
-    
+
     .brand-demo {
       font-family: system-ui, sans-serif;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
-    
+
     .brand-card {
       background: var(--brand-accent-light);
       border: 2px solid var(--brand-accent);
       border-radius: 12px;
       padding: 1.5rem;
     }
-    
+
     .brand-card h3 {
       margin: 0 0 0.5rem;
       color: var(--brand-text);
       font-size: 1rem;
     }
-    
+
     .brand-card p {
       margin: 0 0 1rem;
       color: var(--brand-muted);
       font-size: 0.85rem;
       line-height: 1.5;
     }
-    
+
     .brand-badge {
       display: inline-block;
       background: var(--brand-accent);
@@ -193,14 +193,14 @@ Expose a set of custom properties as a component's public styling API. Consumers
       flex-wrap: wrap;
       align-items: center;
     }
-    
+
     .api-btn {
       /* Public API */
       --_bg: var(--btn-bg, hsl(220 75% 55%));
       --_color: var(--btn-color, white);
       --_padding: var(--btn-padding, 0.6rem 1.5rem);
       --_radius: var(--btn-radius, 8px);
-    
+
       background: var(--_bg);
       color: var(--_color);
       padding: var(--_padding);
@@ -211,22 +211,22 @@ Expose a set of custom properties as a component's public styling API. Consumers
       cursor: pointer;
       transition: filter 0.15s;
     }
-    
+
     .api-btn:hover {
       filter: brightness(0.9);
     }
-    
+
     .api-code {
       margin-top: 1rem;
     }
-    
+
     .api-code p {
       font-family: system-ui, sans-serif;
       font-size: 0.8rem;
       color: hsl(220 15% 55%);
       line-height: 1.5;
     }
-    
+
     .api-code code {
       background: hsl(220 20% 94%);
       padding: 0.1rem 0.4rem;
@@ -283,7 +283,7 @@ Define three logical layers — **surface** (backgrounds), **content** (text), a
       --accent-text: white;
       --border-subtle: hsl(220 15% 88%);
     }
-    
+
     .layer-page {
       font-family: system-ui, sans-serif;
       background: var(--surface-base);
@@ -291,7 +291,7 @@ Define three logical layers — **surface** (backgrounds), **content** (text), a
       overflow: hidden;
       border: 1px solid var(--border-subtle);
     }
-    
+
     .layer-header {
       background: var(--surface-raised);
       border-bottom: 1px solid var(--border-subtle);
@@ -300,39 +300,39 @@ Define three logical layers — **surface** (backgrounds), **content** (text), a
       align-items: center;
       justify-content: space-between;
     }
-    
+
     .layer-logo {
       font-weight: 700;
       color: var(--accent-base);
       font-size: 0.95rem;
     }
-    
+
     .layer-nav {
       display: flex;
       gap: 1rem;
     }
-    
+
     .layer-nav a {
       color: var(--content-secondary);
       text-decoration: none;
       font-size: 0.85rem;
     }
-    
+
     .layer-nav a:hover {
       color: var(--accent-base);
     }
-    
+
     .layer-body {
       display: grid;
       grid-template-columns: 10rem 1fr;
     }
-    
+
     .layer-sidebar {
       background: var(--surface-overlay);
       padding: 1rem;
       border-right: 1px solid var(--border-subtle);
     }
-    
+
     .layer-sidebar h4 {
       margin: 0 0 0.5rem;
       font-size: 0.8rem;
@@ -340,17 +340,17 @@ Define three logical layers — **surface** (backgrounds), **content** (text), a
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    
+
     .layer-sidebar ul {
       list-style: none;
       padding: 0;
       margin: 0;
     }
-    
+
     .layer-sidebar li {
       margin-bottom: 0.25rem;
     }
-    
+
     .layer-sidebar a {
       color: var(--content-primary);
       text-decoration: none;
@@ -359,30 +359,30 @@ Define three logical layers — **surface** (backgrounds), **content** (text), a
       padding: 0.3rem 0.5rem;
       border-radius: 6px;
     }
-    
+
     .layer-sidebar a:hover {
       background: var(--accent-subtle);
       color: var(--accent-base);
     }
-    
+
     .layer-content {
       padding: 1.5rem;
       background: var(--surface-raised);
     }
-    
+
     .layer-content h2 {
       margin: 0 0 0.5rem;
       color: var(--content-primary);
       font-size: 1.1rem;
     }
-    
+
     .layer-content p {
       margin: 0 0 1.25rem;
       color: var(--content-secondary);
       font-size: 0.85rem;
       line-height: 1.6;
     }
-    
+
     .layer-action {
       background: var(--accent-base);
       color: var(--accent-text);
@@ -394,7 +394,7 @@ Define three logical layers — **surface** (backgrounds), **content** (text), a
       cursor: pointer;
       transition: background 0.15s;
     }
-    
+
     .layer-action:hover {
       background: var(--accent-hover);
     }

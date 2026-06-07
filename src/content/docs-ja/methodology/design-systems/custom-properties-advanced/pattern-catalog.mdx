@@ -44,7 +44,7 @@ sidebar_position: 1
       --content-gap: 0.75rem;
       --content-font: 0.875rem;
     }
-    
+
     @media (min-width: 768px) {
     :root {
       --content-padding: 2rem;
@@ -52,11 +52,11 @@ sidebar_position: 1
       --content-font: 1rem;
     }
     }
-    
+
     .page {
     font-family: system-ui, sans-serif;
     }
-    
+
     .container {
     background: hsl(220 20% 97%);
     border: 1px solid hsl(220 15% 88%);
@@ -64,25 +64,25 @@ sidebar_position: 1
     padding: var(--content-padding);
     font-size: var(--content-font);
     }
-    
+
     .container h2 {
     margin: 0 0 0.5rem;
     font-size: 1.15em;
     color: hsl(220 30% 30%);
     }
-    
+
     .container p {
     margin: 0 0 1rem;
     color: hsl(220 15% 50%);
     line-height: 1.5;
     }
-    
+
     .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: var(--content-gap);
     }
-    
+
     .card {
     background: white;
     border: 1px solid hsl(220 15% 88%);
@@ -118,14 +118,14 @@ CSSカウンターは自動番号付けを生成します。カスタムプロ�
       --counter-color: white;
       --counter-size: 2rem;
     }
-    
+
     .steps {
       list-style: none;
       padding: 0;
       margin: 0;
       counter-reset: step-counter;
     }
-    
+
     .step {
       counter-increment: step-counter;
       display: flex;
@@ -136,11 +136,11 @@ CSSカウンターは自動番号付けを生成します。カスタムプロ�
       color: hsl(250 20% 30%);
       line-height: 1.5;
     }
-    
+
     .step:last-child {
       border-bottom: none;
     }
-    
+
     .step::before {
       content: counter(step-counter);
       display: flex;
@@ -191,7 +191,7 @@ CSSカウンターは自動番号付けを生成します。カスタムプロ�
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
-    
+
     .themed-card {
       --_accent: var(--card-accent, hsl(220 70% 55%));
       background: white;
@@ -199,26 +199,26 @@ CSSカウンターは自動番号付けを生成します。カスタムプロ�
       border-radius: 12px;
       padding: 1.25rem;
     }
-    
+
     .themed-card-title {
       margin: 0 0 0.5rem;
       font-size: 1rem;
       color: var(--_accent);
     }
-    
+
     .themed-card-body {
       margin: 0 0 1rem;
       font-size: 0.85rem;
       color: hsl(220 15% 45%);
       line-height: 1.5;
     }
-    
+
     .themed-card-footer {
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
     }
-    
+
     /* Tags inherit --_accent from the card ancestor */
     .tag {
       background: var(--_accent);
@@ -292,24 +292,24 @@ CSSカウンターは自動番号付けを生成します。カスタムプロ�
       --space-lg: calc(var(--space-unit) * 3);
       --space-xl: calc(var(--space-unit) * 5);
     }
-    
+
     .spacing-demo {
       font-family: system-ui, sans-serif;
     }
-    
+
     .spacing-title {
       margin: 0 0 1rem;
       font-size: 1rem;
       color: hsl(220 30% 30%);
     }
-    
+
     .scale-row {
       display: flex;
       align-items: center;
       gap: 0.75rem;
       margin-bottom: 0.5rem;
     }
-    
+
     .scale-label {
       font-size: 0.8rem;
       color: hsl(220 15% 50%);
@@ -317,39 +317,39 @@ CSSカウンターは自動番号付けを生成します。カスタムプロ�
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
-    
+
     .scale-bar {
       height: 1.25rem;
       background: hsl(220 80% 60%);
       border-radius: 4px;
     }
-    
+
     .scale-xs { width: var(--space-xs); }
     .scale-sm { width: var(--space-sm); }
     .scale-md { width: var(--space-md); }
     .scale-lg { width: var(--space-lg); }
     .scale-xl { width: var(--space-xl); }
-    
+
     .card-demo {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--space-sm);
       margin-top: var(--space-lg);
     }
-    
+
     .space-card {
       background: hsl(220 30% 96%);
       border: 1px solid hsl(220 20% 88%);
       border-radius: 8px;
       padding: var(--space-md);
     }
-    
+
     .space-card h4 {
       margin: 0 0 var(--space-xs);
       font-size: 0.9rem;
       color: hsl(220 30% 30%);
     }
-    
+
     .space-card p {
       margin: 0;
       font-size: 0.8rem;
@@ -393,26 +393,26 @@ HSLコンポーネントを個別のカスタムプロパティに分離する�
       --primary-h: 220;
       --primary-s: 80%;
       --primary-l: 50%;
-    
+
       --secondary-h: 160;
       --secondary-s: 60%;
       --secondary-l: 42%;
-    
+
       --accent-h: 340;
       --accent-s: 75%;
       --accent-l: 55%;
     }
-    
+
     .color-demo {
       font-family: system-ui, sans-serif;
     }
-    
+
     .button-row {
       display: flex;
       gap: 0.75rem;
       flex-wrap: wrap;
     }
-    
+
     .btn {
       border: none;
       padding: 0.65rem 1.5rem;
@@ -423,31 +423,31 @@ HSLコンポーネントを個別のカスタムプロパティに分離する�
       cursor: pointer;
       transition: background 0.15s;
     }
-    
+
     .btn-primary {
       background: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
     }
-    
+
     .btn-primary:hover {
       background: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) - 10%));
     }
-    
+
     .btn-secondary {
       background: hsl(var(--secondary-h) var(--secondary-s) var(--secondary-l));
     }
-    
+
     .btn-secondary:hover {
       background: hsl(var(--secondary-h) var(--secondary-s) calc(var(--secondary-l) - 10%));
     }
-    
+
     .btn-accent {
       background: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
     }
-    
+
     .btn-accent:hover {
       background: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 10%));
     }
-    
+
     .color-hint {
       font-size: 0.8rem;
       color: hsl(220 15% 55%);

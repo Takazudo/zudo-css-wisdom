@@ -49,30 +49,30 @@ sidebar_position: 1
     .accent-demo {
       padding: 1.5rem;
     }
-    
+
     .accent-heading {
       font-size: 0.8125rem;
       font-weight: 700;
       margin: 0 0 0.75rem;
       color: hsl(215 15% 45%);
     }
-    
+
     .branded-heading {
       margin-top: 1.25rem;
       color: hsl(262 80% 50%);
     }
-    
+
     .accent-row {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
       align-items: center;
     }
-    
+
     .branded-row {
       accent-color: hsl(262 80% 50%);
     }
-    
+
     .accent-label {
       display: flex;
       align-items: center;
@@ -81,11 +81,11 @@ sidebar_position: 1
       color: hsl(215 15% 30%);
       cursor: pointer;
     }
-    
+
     input[type="range"] {
       width: 80px;
     }
-    
+
     progress {
       height: 0.5rem;
       width: 80px;
@@ -120,7 +120,7 @@ sidebar_position: 1
       gap: 0.875rem;
       padding: 1.5rem;
     }
-    
+
     .custom-check {
       display: flex;
       align-items: center;
@@ -129,7 +129,7 @@ sidebar_position: 1
       font-size: 0.875rem;
       color: hsl(215 15% 25%);
     }
-    
+
     .custom-check-input {
       appearance: none;
       width: 1.25rem;
@@ -143,7 +143,7 @@ sidebar_position: 1
       transition: background-color 0.15s ease, border-color 0.15s ease;
       flex-shrink: 0;
     }
-    
+
     .custom-check-input::before {
       content: "";
       width: 0.65rem;
@@ -153,25 +153,25 @@ sidebar_position: 1
       clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
       background: hsl(0 0% 100%);
     }
-    
+
     .custom-check-input:checked {
       background: hsl(262 80% 50%);
       border-color: hsl(262 80% 50%);
     }
-    
+
     .custom-check-input:checked::before {
       transform: scale(1);
     }
-    
+
     .custom-check-input:focus-visible {
       outline: 2px solid hsl(262 80% 50%);
       outline-offset: 2px;
     }
-    
+
     .custom-check-input:hover {
       border-color: hsl(262 60% 60%);
     }
-    
+
     @media (forced-colors: active) {
     .custom-check-input {
       appearance: auto;
@@ -210,14 +210,14 @@ sidebar_position: 1
       flex-direction: column;
       gap: 0.75rem;
     }
-    
+
     .custom-radio-legend {
       font-size: 0.8125rem;
       font-weight: 700;
       color: hsl(215 15% 35%);
       margin-bottom: 0.25rem;
     }
-    
+
     .custom-radio {
       display: flex;
       align-items: center;
@@ -226,7 +226,7 @@ sidebar_position: 1
       font-size: 0.875rem;
       color: hsl(215 15% 25%);
     }
-    
+
     .custom-radio-input {
       appearance: none;
       width: 1.25rem;
@@ -240,7 +240,7 @@ sidebar_position: 1
       transition: border-color 0.15s ease;
       flex-shrink: 0;
     }
-    
+
     .custom-radio-input::before {
       content: "";
       width: 0.5rem;
@@ -250,24 +250,24 @@ sidebar_position: 1
       transform: scale(0);
       transition: transform 0.15s ease-in-out;
     }
-    
+
     .custom-radio-input:checked {
       border-color: hsl(262 80% 50%);
     }
-    
+
     .custom-radio-input:checked::before {
       transform: scale(1);
     }
-    
+
     .custom-radio-input:focus-visible {
       outline: 2px solid hsl(262 80% 50%);
       outline-offset: 2px;
     }
-    
+
     .custom-radio-input:hover {
       border-color: hsl(262 60% 60%);
     }
-    
+
     @media (forced-colors: active) {
     .custom-radio-input {
       appearance: auto;
@@ -299,23 +299,23 @@ sidebar_position: 1
       gap: 1.25rem;
       padding: 1.5rem;
     }
-    
+
     .field-sizing-col {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
     }
-    
+
     .field-sizing-label {
       font-size: 0.75rem;
       font-weight: 700;
       color: hsl(215 15% 45%);
     }
-    
+
     .field-sizing-label-new {
       color: hsl(150 60% 35%);
     }
-    
+
     .field-sizing-textarea {
       font-family: inherit;
       font-size: 0.8125rem;
@@ -328,17 +328,17 @@ sidebar_position: 1
       resize: vertical;
       transition: border-color 0.15s ease;
     }
-    
+
     .field-sizing-textarea:focus {
       border-color: hsl(262 80% 50%);
       outline: 2px solid transparent;
       box-shadow: 0 0 0 3px hsl(262 80% 50% / 0.15);
     }
-    
+
     .fixed-textarea {
       height: 5rem;
     }
-    
+
     .auto-textarea {
       field-sizing: content;
       min-height: 3rem;
@@ -389,33 +389,33 @@ sidebar_position: 1
       --form-border: hsl(215 20% 82%);
       --form-text: hsl(215 15% 20%);
       --form-text-muted: hsl(215 15% 50%);
-    
+
       padding: 1.5rem;
       display: flex;
       flex-direction: column;
       gap: 1rem;
       max-width: 360px;
     }
-    
+
     .themed-form-title {
       font-size: 1.125rem;
       font-weight: 700;
       color: var(--form-text);
       margin: 0 0 0.25rem;
     }
-    
+
     .themed-field {
       display: flex;
       flex-direction: column;
       gap: 0.375rem;
     }
-    
+
     .themed-label {
       font-size: 0.8125rem;
       font-weight: 600;
       color: var(--form-text);
     }
-    
+
     .themed-input {
       font-family: inherit;
       font-size: 0.875rem;
@@ -427,29 +427,29 @@ sidebar_position: 1
       caret-color: var(--form-accent);
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    
+
     .themed-input::placeholder {
       color: var(--form-text-muted);
     }
-    
+
     .themed-input:focus {
       border-color: var(--form-accent);
       outline: 2px solid transparent;
       box-shadow: 0 0 0 3px var(--form-accent-light);
     }
-    
+
     .themed-textarea {
       resize: vertical;
       min-height: 4rem;
     }
-    
+
     .themed-checks {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
       accent-color: var(--form-accent);
     }
-    
+
     .themed-check {
       display: flex;
       align-items: center;
@@ -458,7 +458,7 @@ sidebar_position: 1
       color: var(--form-text);
       cursor: pointer;
     }
-    
+
     .themed-submit {
       background: var(--form-accent);
       color: hsl(0 0% 100%);
@@ -471,16 +471,16 @@ sidebar_position: 1
       cursor: pointer;
       transition: background-color 0.15s ease;
     }
-    
+
     .themed-submit:hover {
       background: var(--form-accent-hover);
     }
-    
+
     .themed-submit:focus-visible {
       outline: 2px solid var(--form-accent);
       outline-offset: 2px;
     }
-    
+
     .themed-submit:active {
       transform: scale(0.98);
     }

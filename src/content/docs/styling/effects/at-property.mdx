@@ -221,13 +221,13 @@ Global support exceeds 93%. Firefox added support in mid-2024, making `@property
       inherits: false;
       initial-value: #3b82f6;
     }
-    
+
     @property --gradient-end {
       syntax: "<color>";
       inherits: false;
       initial-value: #8b5cf6;
     }
-    
+
     .gradient-box {
       font-family: system-ui, sans-serif;
       background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
@@ -239,19 +239,19 @@ Global support exceeds 93%. Firefox added support in mid-2024, making `@property
       justify-content: center;
       cursor: pointer;
     }
-    
+
     .gradient-box:hover {
       --gradient-start: #ec4899;
       --gradient-end: #f59e0b;
     }
-    
+
     .gradient-box span {
       color: white;
       font-size: 1.5rem;
       font-weight: 700;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
-    
+
     .hint {
       font-family: system-ui, sans-serif;
       font-size: 0.8rem;
@@ -273,7 +273,7 @@ Global support exceeds 93%. Firefox added support in mid-2024, making `@property
       inherits: false;
       initial-value: 0deg;
     }
-    
+
     .rotating-gradient {
       width: 200px;
       height: 200px;
@@ -283,13 +283,13 @@ Global support exceeds 93%. Firefox added support in mid-2024, making `@property
       animation: rotate-gradient 3s linear infinite;
       box-shadow: 0 4px 24px rgba(59, 130, 246, 0.3);
     }
-    
+
     @keyframes rotate-gradient {
     to {
       --angle: 360deg;
     }
     }
-    
+
     .hint {
       font-family: system-ui, sans-serif;
       font-size: 0.8rem;

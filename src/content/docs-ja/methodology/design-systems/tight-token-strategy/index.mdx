@@ -18,7 +18,6 @@ Tailwind CSS はデフォルトで膨大なトークンセットを提供して�
 この戦略には2つの重要なアイデアがあります：
 
 1. **すべてをリセットする** — `--spacing-*: initial;`、`--color-*: initial;` などのワイルドカードを使ってすべてのデフォルト値を削除します。この後、`p-4` や `bg-gray-500` のようなユーティリティはもう存在しません。使おうとするとビルドエラーになります。まさにそれが狙いです — 無効なトークンはコードレビューではなくビルド時に検出されます。
-
 2. **セマンティックな軸を定義する** — 単一の数値スペーシングスケールの代わりに、目的ごとに異なるスケールを定義します。プロダクション向けのアプローチとして、スペーシングを2つの軸に分割します：
 - **hsp**（horizontal spacing）：インラインのギャップ、水平方向のパディング、水平方向のマージン用
 - **vsp**（vertical spacing）：セクション間の垂直ギャップ、垂直方向のパディング、ブロックレベルのマージン用
@@ -243,7 +242,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
       color: #64748b;
       margin-bottom: 8px;
     }
-    
+
     /* ── Semantic token card ── */
     .card-semantic {
       border: 1px solid #e2e8f0;
@@ -276,7 +275,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
       border-radius: 4px;
       font-size: 12px;
     }
-    
+
     /* ── Arbitrary value card ── */
     .card-arbitrary {
       border: 1px solid #e2e8f0;
@@ -359,7 +358,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
       font-size: 14px;
       color: #1e293b;
     }
-    
+
     /* ── Header ── */
     .page-header {
       display: flex;
@@ -383,7 +382,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
       font-size: 13px;
     }
     .nav a:hover { color: #fff; }
-    
+
     /* ── Main ── */
     .page-main {
       padding: 35px 20px;        /* vsp-md / hsp-sm */
@@ -399,7 +398,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
       margin: 0 0 35px 0;        /* pb: vsp-md */
       max-width: 600px;
     }
-    
+
     /* ── Card grid ── */
     .card-grid {
       display: flex;

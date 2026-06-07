@@ -18,7 +18,6 @@ Replace **all** Tailwind defaults with a small, intentional set of semantic toke
 The strategy has two key ideas:
 
 1. **Reset everything** — Use `--spacing-*: initial;`, `--color-*: initial;`, and similar wildcards to remove all default values. After this, utilities like `p-4` or `bg-gray-500` no longer exist. Attempting to use them causes a build error, which is exactly the point: invalid tokens are caught at build time, not in code review.
-
 2. **Define semantic axes** — Instead of a single numeric spacing scale, define separate scales for different purposes. A production approach is to split spacing into two axes:
 - **hsp** (horizontal spacing): for inline gaps, horizontal padding, and horizontal margins
 - **vsp** (vertical spacing): for vertical gaps between sections, vertical padding, and block-level margins
@@ -243,7 +242,7 @@ The following demo shows the same card layout built two ways. The left card uses
       color: #64748b;
       margin-bottom: 8px;
     }
-    
+
     /* ── Semantic token card ── */
     .card-semantic {
       border: 1px solid #e2e8f0;
@@ -276,7 +275,7 @@ The following demo shows the same card layout built two ways. The left card uses
       border-radius: 4px;
       font-size: 12px;
     }
-    
+
     /* ── Arbitrary value card ── */
     .card-arbitrary {
       border: 1px solid #e2e8f0;
@@ -359,7 +358,7 @@ In the "Arbitrary values" card, three different developers each picked slightly 
       font-size: 14px;
       color: #1e293b;
     }
-    
+
     /* ── Header ── */
     .page-header {
       display: flex;
@@ -383,7 +382,7 @@ In the "Arbitrary values" card, three different developers each picked slightly 
       font-size: 13px;
     }
     .nav a:hover { color: #fff; }
-    
+
     /* ── Main ── */
     .page-main {
       padding: 35px 20px;        /* vsp-md / hsp-sm */
@@ -399,7 +398,7 @@ In the "Arbitrary values" card, three different developers each picked slightly 
       margin: 0 0 35px 0;        /* pb: vsp-md */
       max-width: 600px;
     }
-    
+
     /* ── Card grid ── */
     .card-grid {
       display: flex;
