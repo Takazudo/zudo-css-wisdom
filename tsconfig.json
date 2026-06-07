@@ -25,6 +25,8 @@
     "alwaysStrict": true,
     "baseUrl": ".",
     "paths": {
+      "@/components/CssPreview": ["src/components/CssPreview/index.tsx"],
+      "@/components/TailwindPreview": ["src/components/TailwindPreview/index.tsx"],
       "@/*": ["src/*"],
       "#doc-history-meta": [".zfb/doc-history-meta.json"],
       "react": ["./node_modules/preact/compat/"],
