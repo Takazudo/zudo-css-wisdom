@@ -241,17 +241,26 @@ jobs:
             --preview-alias "$ALIAS" \
             2>&1 | tee "$DEPLOY_LOG"
           DEPLOY_URL=$(grep -oE "https://${ALIAS}-[a-z0-9.-]+\.workers\.dev" "$DEPLOY_LOG" | head -1)
+          # Fallback to any *.workers.dev URL wrangler printed (alias format
+          # varies; some accounts emit only a version URL).
+          [ -z "$DEPLOY_URL" ] && DEPLOY_URL=$(grep -oE "https://[a-z0-9.-]+\.workers\.dev" "$DEPLOY_LOG" | head -1)
           if [ -z "$DEPLOY_URL" ]; then
-            echo "::error::Failed to parse alias preview URL for '$ALIAS' from wrangler output"
-            exit 1
+            # The upload itself succeeded (asserted by the wrangler exit code
+            # above); only the preview-URL alias is unavailable — e.g. the
+            # worker has no workers.dev subdomain enabled on the account. The
+            # PR preview-URL comment is best-effort, so warn and continue
+            # rather than failing the whole check on a cosmetic gap.
+            echo "::warning::No *.workers.dev preview URL parsed from wrangler output; skipping PR preview-URL comment (deploy succeeded)."
+          else
+            echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+            echo "Preview URL: $DEPLOY_URL"
           fi
-          echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-          echo "Preview URL: $DEPLOY_URL"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Comment preview URL on PR
+        if: steps.cf-deploy.outputs.deploy_url != ''
         uses: actions/github-script@v8
         env:
           DEPLOY_URL: ${{ steps.cf-deploy.outputs.deploy_url }}

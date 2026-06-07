@@ -157,12 +157,17 @@ jobs:
             2>&1 | tee "$DEPLOY_LOG"
 
           DEPLOY_URL=$(grep -oE "https://${SLUG}-[a-z0-9.-]+\.workers\.dev" "$DEPLOY_LOG" | head -1)
+          [ -z "$DEPLOY_URL" ] && DEPLOY_URL=$(grep -oE "https://[a-z0-9.-]+\.workers\.dev" "$DEPLOY_LOG" | head -1)
           if [ -z "$DEPLOY_URL" ]; then
-            echo "::error::Failed to parse alias preview URL for slug '$SLUG' from wrangler output"
-            exit 1
+            # Upload succeeded; only the preview-URL alias is unavailable (e.g.
+            # no workers.dev subdomain on the account). The URL is best-effort
+            # (the commit-status step below is already guarded on it), so warn
+            # and continue rather than failing the deploy job.
+            echo "::warning::No *.workers.dev preview URL parsed from wrangler output; skipping preview-URL status (deploy succeeded)."
+          else
+            echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+            echo "Preview URL: $DEPLOY_URL"
           fi
-          echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-          echo "Preview URL: $DEPLOY_URL"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
