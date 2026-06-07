@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@shikijs/transformers": "^4.0.0",
+    "@takazudo/zdtp": "0.2.0-next.2",
     "@takazudo/zfb": "0.1.0-next.35",
     "@takazudo/zfb-adapter-cloudflare": "0.1.0-next.35",
     "@takazudo/zfb-runtime": "0.1.0-next.35",

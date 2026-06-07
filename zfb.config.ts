@@ -126,6 +126,8 @@ const integrationPlugins = [
 export default defineConfig({
   framework: "preact",
   tailwind: { enabled: true },
+  // syntect-based code highlighting; base16-ocean.dark is the built-in default theme
+  codeHighlight: { theme: "base16-ocean.dark" },
   collections,
   stripMdExt: true,
   resolveMarkdownLinks: {

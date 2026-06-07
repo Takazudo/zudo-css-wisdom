@@ -11,6 +11,9 @@ importers:
       '@shikijs/transformers':
         specifier: ^4.0.0
         version: 4.0.2
+      '@takazudo/zdtp':
+        specifier: 0.2.0-next.2
+        version: 0.2.0-next.2(preact@10.29.1)
       '@takazudo/zfb':
         specifier: 0.1.0-next.35
         version: 0.1.0-next.35
@@ -22,7 +25,7 @@ importers:
         version: 0.1.0-next.35(@takazudo/zfb@0.1.0-next.35)
       '@takazudo/zudo-doc':
         specifier: ^0.2.0-next.7
-        version: 0.2.0-next.7(@takazudo/zfb-runtime@0.1.0-next.35(@takazudo/zfb@0.1.0-next.35))(@takazudo/zfb@0.1.0-next.35)(@takazudo/zudo-doc-history-server@0.2.0-next.7)(preact@10.29.1)
+        version: 0.2.0-next.7(@takazudo/zdtp@0.2.0-next.2(preact@10.29.1))(@takazudo/zfb-runtime@0.1.0-next.35(@takazudo/zfb@0.1.0-next.35))(@takazudo/zfb@0.1.0-next.35)(@takazudo/zudo-doc-history-server@0.2.0-next.7)(preact@10.29.1)
       '@takazudo/zudo-doc-history-server':
         specifier: ^0.2.0-next.7
         version: 0.2.0-next.7
@@ -772,6 +775,13 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
+  '@takazudo/zdtp@0.2.0-next.2':
+    resolution: {integrity: sha512-NK37TXU+UvLG6SHKwSZOXj+2Nx9knrkVoZsaWL4tUsJMo9XbHVsh5qPVthbaO+M94aCeAD5mSNIhpM5pf2tniw==}
+    engines: {node: '>=22.0.0', pnpm: '>=10.0.0'}
+    hasBin: true
+    peerDependencies:
+      preact: ^10.29.1
+
   '@takazudo/zfb-adapter-cloudflare@0.1.0-next.35':
     resolution: {integrity: sha512-7Tl63UQ50aHnXoO+h5x7m1hGSCte7Fzj7mlTl8RbxsvHyLl1RPgV0vp2h1WGmwQMOmGjYkvLkJZmo4SbhnayVg==}
     engines: {node: '>=22.0.0', pnpm: '>=10.0.0'}
@@ -1035,6 +1045,10 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+
+  culori@4.0.2:
+    resolution: {integrity: sha512-1+BhOB8ahCn4O0cep0Sh2l9KCOfOdY+BXJnKMHFFzDEouSr/el18QwXEMRlOj9UY5nCeA8UN3a/82rUWRBeyBw==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   cytoscape-cose-bilkent@4.1.0:
     resolution: {integrity: sha512-wgQlVIUJF13Quxiv5e1gstZ08rnZj2XaLHGoFMYXz7SkNfCDOOteKBE6SYRfA9WxxI/iBc3ajfDoc6hb/MRAHQ==}
@@ -2334,6 +2348,11 @@ snapshots:
       tailwindcss: 4.2.2
       vite: 6.4.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.8.3)
 
+  '@takazudo/zdtp@0.2.0-next.2(preact@10.29.1)':
+    dependencies:
+      culori: 4.0.2
+      preact: 10.29.1
+
   '@takazudo/zfb-adapter-cloudflare@0.1.0-next.35': {}
 
   '@takazudo/zfb-darwin-arm64@0.1.0-next.35':
@@ -2366,13 +2385,14 @@ snapshots:
 
   '@takazudo/zudo-doc-history-server@0.2.0-next.7': {}
 
-  '@takazudo/zudo-doc@0.2.0-next.7(@takazudo/zfb-runtime@0.1.0-next.35(@takazudo/zfb@0.1.0-next.35))(@takazudo/zfb@0.1.0-next.35)(@takazudo/zudo-doc-history-server@0.2.0-next.7)(preact@10.29.1)':
+  '@takazudo/zudo-doc@0.2.0-next.7(@takazudo/zdtp@0.2.0-next.2(preact@10.29.1))(@takazudo/zfb-runtime@0.1.0-next.35(@takazudo/zfb@0.1.0-next.35))(@takazudo/zfb@0.1.0-next.35)(@takazudo/zudo-doc-history-server@0.2.0-next.7)(preact@10.29.1)':
     dependencies:
       '@takazudo/zfb': 0.1.0-next.35
       '@takazudo/zfb-runtime': 0.1.0-next.35(@takazudo/zfb@0.1.0-next.35)
       gray-matter: 4.0.3
       preact: 10.29.1
     optionalDependencies:
+      '@takazudo/zdtp': 0.2.0-next.2(preact@10.29.1)
       '@takazudo/zudo-doc-history-server': 0.2.0-next.7
 
   '@types/d3-array@3.2.2': {}
@@ -2595,6 +2615,8 @@ snapshots:
       layout-base: 2.0.1
 
   csstype@3.2.3: {}
+
+  culori@4.0.2: {}
 
   cytoscape-cose-bilkent@4.1.0(cytoscape@3.33.2):
     dependencies:
