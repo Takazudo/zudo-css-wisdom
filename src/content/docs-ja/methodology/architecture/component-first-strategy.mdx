@@ -348,7 +348,7 @@ body { font-family: system-ui, sans-serif; }
 
 ## コンポーネント階層の変数は不要
 
-階層型デザイントークン戦略 — [3階層カラー戦略](/ja/docs/styling/color/three-tier-color-strategy)や[3階層フォントサイズ戦略](/ja/docs/typography/font-sizing/three-tier-font-size-strategy)など — において、最も具体的なレベルは**コンポーネント階層**です。特定のコンポーネントにスコープされた CSS カスタムプロパティ、たとえば `--_dialog-side-spacing`、`--_card-shadow`、`--_nav-font-size`（`--_` プレフィックスはローカルスコープを示す）のようなものです。これらの変数により、コンポーネントは自身のデザイン上の判断を CSS ファイル内でカプセル化できます。
+階層型デザイントークン戦略 — [3階層カラー戦略](/ja/docs/styling/color/three-tier-color-strategy/)や[3階層フォントサイズ戦略](/ja/docs/typography/font-sizing/three-tier-font-size-strategy/)など — において、最も具体的なレベルは**コンポーネント階層**です。特定のコンポーネントにスコープされた CSS カスタムプロパティ、たとえば `--_dialog-side-spacing`、`--_card-shadow`、`--_nav-font-size`（`--_` プレフィックスはローカルスコープを示す）のようなものです。これらの変数により、コンポーネントは自身のデザイン上の判断を CSS ファイル内でカプセル化できます。
 
 コンポーネントファーストのアプローチでは、この階層は不要です。スコープ付きカスタムプロパティを定義するようなコンポーネントごとの CSS ファイルがないからです。スタイリングはコンポーネントのマークアップ内でユーティリティクラスとして直接表現され、コンポーネントフレームワーク自体（React、Vue、Svelte、Astro）がスコープの境界を提供します。
 
