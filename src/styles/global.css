@@ -1,5 +1,11 @@
 @import "tailwindcss/preflight";
 @import "tailwindcss/utilities";
+/* Design token panel chrome — the panel package's bundled stylesheet defines
+   the panel shell and modal chrome. Imported here so the rules land in the
+   main page CSS bundle (not a deferred chunk), ensuring the panel renders
+   correctly on first click. The panel is a no-op stub in this project; the
+   import is a safe no-content-change when the panel is not wired. */
+@import "@takazudo/zdtp/styles.css";
 
 /* ========================================
  * Tailwind v4 content sources
@@ -47,6 +53,11 @@
  * ======================================== */
 
 @theme {
+  /* Tight-token reset: wipe every Tailwind default color token so no leaked
+   * defaults (--color-blue-500, --color-gray-300, etc.) survive into dist CSS.
+   * Only the tokens explicitly defined below are available. */
+  --color-*: initial;
+
   /* ========================================
    * Colors — Three-tier token system
    * ======================================== */
@@ -97,6 +108,10 @@
   --color-mermaid-note-bg: var(--zd-mermaid-note-bg);
   --color-matched-keyword-bg: var(--zd-matched-keyword-bg);
   --color-matched-keyword-fg: var(--zd-matched-keyword-fg);
+  --color-chat-user-bg: var(--zd-chat-user-bg);
+  --color-chat-user-text: var(--zd-chat-user-text);
+  --color-chat-assistant-bg: var(--zd-chat-assistant-bg);
+  --color-chat-assistant-text: var(--zd-chat-assistant-text);
 
   /* ========================================
    * Spacing — hsp (horizontal) + vsp (vertical)
@@ -142,12 +157,20 @@
   --text-caption:    var(--text-scale-xs);   /* labels, timestamps */
   --text-small:      var(--text-scale-sm);   /* secondary text, nav items */
   --text-body:       var(--text-scale-md);   /* paragraphs, default */
-  --text-title: var(--text-scale-lg);   /* card titles, section labels */
+  --text-title:      var(--text-scale-lg);   /* card titles, section labels */
+  --text-subheading: var(--text-scale-lg);   /* alias of --text-title — used by heading-h2 component */
   --text-heading:    var(--text-scale-xl);   /* page headings */
   --text-display:    var(--text-scale-2xl);  /* hero text */
 
-  /* Font families */
-  --font-sans: system-ui, sans-serif;
+  /* Font families — zcss customizations for Japanese/Futura support */
+  --font-noto:
+    'Noto Sans', 'Noto Sans JP', ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic Pro',
+    'Yu Gothic', Meiryo, sans-serif;
+  --font-futura:
+    Futura, Jost, 'Century Gothic', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Noto Sans', 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  --font-sans: var(--font-noto);
   --font-mono: ui-monospace, monospace;
 
   /* Font weights (4 steps) */
@@ -190,6 +213,8 @@
   --text-scale-lg:  1.4rem;     /* 22.4px */
   --text-scale-xl:  3rem;       /* 48px */
   --text-scale-2xl: 3.75rem;    /* 60px */
+
+  --default-transition-duration: 150ms;
 }
 
 /* ========================================
@@ -203,6 +228,7 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-fg);
+  font-family: var(--font-sans);
 }
 
 ::selection {
@@ -242,8 +268,9 @@ body {
 /* ── Headings ── */
 
 .zd-content :where(h2) {
+  font-family: var(--font-futura);
   font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-normal);
   line-height: var(--leading-tight);
   margin-top: var(--spacing-vsp-2xl);
   margin-bottom: var(--spacing-vsp-xs);
@@ -253,8 +280,9 @@ body {
 }
 
 .zd-content :where(h3) {
+  font-family: var(--font-futura);
   font-size: var(--text-body);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-normal);
   line-height: var(--leading-snug);
   margin-top: var(--spacing-vsp-xl);
   margin-bottom: var(--spacing-vsp-xs);
@@ -264,8 +292,9 @@ body {
 }
 
 .zd-content :where(h4) {
+  font-family: var(--font-futura);
   font-size: var(--text-body);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-normal);
   line-height: var(--leading-snug);
   margin-top: var(--spacing-vsp-lg);
   margin-bottom: var(--spacing-vsp-xs);
@@ -275,8 +304,9 @@ body {
 }
 
 .zd-content :where(h5, h6) {
+  font-family: var(--font-futura);
   font-size: var(--text-small);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-normal);
   line-height: var(--leading-snug);
   margin-top: var(--spacing-vsp-md);
   margin-bottom: var(--spacing-vsp-2xs);
@@ -392,6 +422,7 @@ body {
 /* ── Code blocks (pre) ── */
 
 .zd-content :where(pre) {
+  font-family: var(--font-mono);
   font-size: var(--text-small);
   line-height: var(--leading-relaxed);
   border: 1px solid var(--color-muted);
