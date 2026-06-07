@@ -1,8 +1,10 @@
+"use client";
 /** @jsxRuntime automatic */
 /** @jsxImportSource preact */
 
 import type { VNode } from "preact";
-import { HtmlPreviewWrapper } from "@takazudo/zudo-doc/html-preview-wrapper";
+import { Island } from "@takazudo/zfb";
+import { HtmlPreviewWrapperInner } from "@takazudo/zudo-doc/html-preview-wrapper";
 
 export interface CssPreviewProps {
   html: string;
@@ -20,21 +22,15 @@ export interface CssPreviewProps {
 const CSS_PREVIEW_HEAD = "<style>html, body { height: 100%; }</style>";
 
 /**
- * Alias shim: zcss `<CssPreview>` → upstream `HtmlPreviewWrapper`.
+ * Bare hydration target for the `<CssPreview>` island.
  *
- * Plain prop-transforming forwarder — it does NOT call `Island()` and has no
- * bare `…Inner` of its own. `HtmlPreviewWrapper` already owns the
- * `Island({ when: "visible" })` boundary and the no-double-wrap invariant
- * (see @takazudo/zudo-doc html-preview-wrapper.tsx). Wrapping again here would
- * emit a second `data-zfb-island` marker and reparent the preview into the
- * title bar (the zudo-doc#1925 / #1355 regression). Same pattern as
- * `CodeGroup → Tabs`.
- *
- * `css` is forwarded as the per-usage `css` prop, so HtmlPreview both injects
- * it as a `<style>` and renders it as the CSS code block. sandbox resolves to
- * `allow-same-origin` and syncDelay to 0 because no scripts are present.
+ * Renders the package's BARE `HtmlPreviewWrapperInner` (which does NOT call
+ * `Island()` itself), so the public `CssPreview` below provides exactly ONE
+ * `Island()` boundary — no double-wrap, no #1925/#1355 reparenting. Its
+ * `displayName` MUST equal the export name (the zfb island-marker contract),
+ * and it MUST NOT render `<Island>` of its own.
  */
-export default function CssPreview({
+export function CssPreviewInner({
   html,
   css,
   title,
@@ -42,7 +38,7 @@ export default function CssPreview({
   defaultOpen,
 }: CssPreviewProps): VNode {
   return (
-    <HtmlPreviewWrapper
+    <HtmlPreviewWrapperInner
       globalConfig={{ head: CSS_PREVIEW_HEAD }}
       html={html}
       css={css}
@@ -51,4 +47,27 @@ export default function CssPreview({
       defaultOpen={defaultOpen}
     />
   );
+}
+CssPreviewInner.displayName = "CssPreviewInner";
+
+/**
+ * zcss `<CssPreview>` → a real zfb island.
+ *
+ * The `Island()` call lives HERE, in project source, so zfb's island scanner
+ * discovers it and includes `CssPreviewInner` in the client island bundle.
+ * Forwarding to the package's `HtmlPreviewWrapper` instead hides the
+ * `Island()` call inside node_modules, which the scanner does NOT follow
+ * through a plain forwarder shim — the preview then SSRs correctly but never
+ * hydrates (dead viewport buttons / code panel). Caught by the S6 gate.
+ *
+ * Single wrap: this `Island()` wraps `CssPreviewInner`, which renders the
+ * BARE `HtmlPreviewWrapperInner`. `css` is forwarded as the per-usage `css`
+ * prop so it is injected as a `<style>` AND shown as the CSS code block;
+ * sandbox resolves to `allow-same-origin`, syncDelay 0 (no scripts).
+ */
+export default function CssPreview(props: CssPreviewProps): VNode {
+  return Island({
+    when: "visible",
+    children: <CssPreviewInner {...props} />,
+  }) as VNode;
 }
