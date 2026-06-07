@@ -4,20 +4,21 @@ set -euo pipefail
 # b4push — local quality gate run before pushing.
 #
 # Step order (cheap → expensive):
-#   1. Pin parity check    (pure-Node, reads package.json only)
-#   2. Template drift check (needs node_modules — create-zudo-doc devDep)
-#   3. Type checking       (zfb check)
-#   4. Build               (zfb build)
-#   5. HTML validation     (html-validate dist/**/*.html)
-#   6. Link check          (check:links --strict-broken --strict-absolute)
+#   1. Format check (mdx)  (mdx-formatter --check; config in .mdx-formatter.json)
+#   2. Pin parity check    (pure-Node, reads package.json only)
+#   3. Template drift check (needs node_modules — create-zudo-doc devDep)
+#   4. Type checking       (zfb check)
+#   5. Build               (zfb build)
+#   6. HTML validation     (html-validate dist/**/*.html)
+#   7. Link check          (check:links --strict-broken --strict-absolute)
 #
 # Env overrides for non-interactive use:
-#   B4PUSH_SKIP_HTML_VALIDATE=1  — skip HTML validation (step 5)
-#   B4PUSH_SKIP_LINK_CHECK=1     — skip link check (step 6)
+#   B4PUSH_SKIP_HTML_VALIDATE=1  — skip HTML validation (step 6)
+#   B4PUSH_SKIP_LINK_CHECK=1     — skip link check (step 7)
 
 START_TIME=$(date +%s)
 FAILURES=()
-TOTAL_STEPS=6
+TOTAL_STEPS=7
 CURRENT_STEP=0
 
 step() {
@@ -34,7 +35,18 @@ skip() { echo "⏭  $1 (skipped)"; }
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-# ── Step 1: Pin parity check ──────────────────────────
+# ── Step 1: Format check (mdx) ────────────────────────
+# mdx-formatter --check; config (.mdx-formatter.json) ignores CssPreview /
+# TailwindPreview demo blocks and excludes the generated claude* docs.
+# Run `pnpm format:md` to auto-fix.
+step "Format check (format:md:check)"
+if (cd "$ROOT_DIR" && pnpm format:md:check); then
+  pass "Format check passed"
+else
+  fail "Format check (run 'pnpm format:md' to fix)"
+fi
+
+# ── Step 2: Pin parity check ──────────────────────────
 # Pure-Node: reads package.json only, no install needed. Catches the zfb /
 # zudo-doc package groups drifting out of lockstep on a `pnpm up`.
 step "Pin parity check (check:pin-parity)"
@@ -44,7 +56,7 @@ else
   fail "Pin parity check"
 fi
 
-# ── Step 2: Template drift check ──────────────────────
+# ── Step 3: Template drift check ──────────────────────
 # Requires node_modules (reads create-zudo-doc devDep templates). Run
 # `pnpm install` first if this fails with "not found". Intentional
 # divergences are listed in .template-drift-allowlist.
@@ -55,7 +67,7 @@ else
   fail "Template drift check"
 fi
 
-# ── Step 3: Type checking ─────────────────────────────
+# ── Step 4: Type checking ─────────────────────────────
 step "Type checking (zfb check)"
 if (cd "$ROOT_DIR" && pnpm check); then
   pass "Type checking passed"
@@ -63,7 +75,7 @@ else
   fail "Type checking"
 fi
 
-# ── Step 4: Build ─────────────────────────────────────
+# ── Step 5: Build ─────────────────────────────────────
 step "Build (zfb build)"
 if (cd "$ROOT_DIR" && pnpm build); then
   pass "Build passed"
@@ -71,7 +83,7 @@ else
   fail "Build"
 fi
 
-# ── Step 5: HTML validation ───────────────────────────
+# ── Step 6: HTML validation ───────────────────────────
 step "HTML validation (html-validate)"
 if [[ "${B4PUSH_SKIP_HTML_VALIDATE:-}" == "1" ]]; then
   skip "HTML validation (B4PUSH_SKIP_HTML_VALIDATE=1)"
@@ -83,7 +95,7 @@ else
   fi
 fi
 
-# ── Step 6: Link check ────────────────────────────────
+# ── Step 7: Link check ────────────────────────────────
 #
 # Strict on broken links + absolute MDX-source warnings.
 # Allowlist file at `.check-links-allowlist` carries known exceptions.

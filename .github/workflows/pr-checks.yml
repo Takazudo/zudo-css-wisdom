@@ -34,6 +34,35 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Job 0: MDX format check
+  # ---------------------------------------------------------------------------
+  # mdx-formatter --check (pinned devDep binary, NOT dlx — dlx would pull the
+  # stale `latest`). Config (.mdx-formatter.json) ignores CssPreview /
+  # TailwindPreview demo blocks and excludes the generated claude* docs.
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check MDX formatting
+        run: pnpm format:md:check
+
+  # ---------------------------------------------------------------------------
   # Job 0a: Pin parity check
   # ---------------------------------------------------------------------------
   # Pure-Node script — reads package.json only, no pnpm install needed.

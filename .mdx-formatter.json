@@ -1,4 +1,10 @@
 {
+  "exclude": [
+    "src/content/docs/claude/**",
+    "src/content/docs/claude-agents/**",
+    "src/content/docs/claude-md/**",
+    "src/content/docs/claude-skills/**"
+  ],
   "formatMultiLineJsx": {
     "ignoreComponents": ["CssPreview", "TailwindPreview"]
   }
