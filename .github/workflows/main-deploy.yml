@@ -1,12 +1,18 @@
-# Production deployment workflow for the Astro docs site.
+# Production deployment workflow for the zudo-css site.
 #
 # Triggered on every push to `main`. The pipeline:
-#   1. Builds the Astro static site
-#   2. Deploys to Cloudflare Pages (production)
-#   3. Sends IFTTT notification with deploy status
+#   1. Builds the zfb static site (full clone — needed for SSG meta dates)
+#   2. HTML validates the built dist/
+#   3. Checks links (strict-broken + strict-absolute)
+#   4. Deploys to Cloudflare Workers static assets
+#   5. Sends IFTTT notification with deploy status
 #
-# Build and deploy run in a single job so the build output stays on the
-# runner filesystem -- no artifacts, no cache transfers, no storage usage.
+# zcss is a pure-static site (no prerender=false routes, no _worker.js).
+# The deploy is assets-only: `wrangler deploy` uploads dist/ directly.
+#
+# Inter-job data sharing uses actions/cache (not upload-artifact) to avoid
+# Actions storage accumulation. Cache keys are scoped to github.run_id so
+# each run gets a fresh, unique cache that won't be reused by other runs.
 #
 # Concurrency: only one production deploy runs at a time.
 # We do NOT cancel in-progress runs -- the earlier deploy should finish.
@@ -26,58 +32,171 @@ permissions:
   contents: read
 
 jobs:
-  # ─── Build and Deploy ─────────────────────────────────────────────────
-
-  build-and-deploy:
-    name: Build and Deploy
+  # ---------------------------------------------------------------------------
+  # Job 1: Build the zfb docs site (full clone — needed for SSG meta dates)
+  # ---------------------------------------------------------------------------
+  # fetch-depth: 0 is required so the doc-history preBuild step can call
+  # `git log --follow` on each content file and populate
+  # `.zfb/doc-history-meta.json` with real author/date values.
+  build-site:
+    name: Build Site
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 22
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Build site
-        run: pnpm build
-      - name: Prepare deploy directory
+        run: CI=true pnpm exec zfb build
+
+      - name: Cache site build output
+        uses: actions/cache/save@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+
+  # ---------------------------------------------------------------------------
+  # Job 2: HTML validate (block-in-inline guard)
+  # ---------------------------------------------------------------------------
+  html-validate:
+    name: HTML Validate
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install deps (no scripts)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Restore dist cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Run html-validate
+        run: pnpm check:html
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Link check
+  # ---------------------------------------------------------------------------
+  check-links:
+    name: Check Links
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore dist cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Check links (strict)
+        run: node scripts/check-links.js --strict-broken --strict-absolute --allowlist=.check-links-allowlist
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Deploy to Cloudflare Workers (production)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy to Cloudflare Workers
+    needs: [build-site, html-validate, check-links]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Restore site build cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      # Guard: assert the built HTML has root-relative asset URLs.
+      # base="/" → href="/assets/..." and src="/assets/...".
+      # If zfb silently drops the base threading in a future version,
+      # this step goes red before a broken production deploy reaches users.
+      - name: Assert root asset URLs in built HTML
         run: |
-          mkdir -p deploy/pj/zcss
-          cp -r dist/. deploy/pj/zcss/
-          echo '/ /pj/zcss/ 302' > deploy/_redirects
-      - name: Deploy to Cloudflare Pages (production)
-        run: |
-          npx wrangler@4 pages deploy deploy \
-            --project-name=zudo-css \
-            --branch=main \
-            --commit-hash="${GITHUB_SHA}" \
-            --commit-message="Production deploy: ${GITHUB_SHA}"
+          set -euo pipefail
+          HTML_FILE="dist/index.html"
+          grep -qE 'href="/assets/' "$HTML_FILE" \
+            || { echo "::error::Built HTML missing root stylesheet href (expected href=\"/assets/...)"; exit 1; }
+          grep -qE 'src="/assets/' "$HTML_FILE" \
+            || { echo "::error::Built HTML missing root islands script src (expected src=\"/assets/...)"; exit 1; }
+          echo "OK: built HTML has root asset URLs"
+
+      - name: Deploy to Cloudflare Workers (production)
+        run: npx wrangler@4 deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-  # ─── Notify ───────────────────────────────────────────────────────────
-
+  # ---------------------------------------------------------------------------
+  # Job 5: Send IFTTT notification with deploy status
+  # ---------------------------------------------------------------------------
   notify:
     name: Deploy Notification
-    needs: build-and-deploy
+    needs: [build-site, html-validate, check-links, deploy]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
+
     steps:
       - name: Notify via IFTTT
         if: env.IFTTT_PROD_NOTIFY != ''
         env:
           IFTTT_PROD_NOTIFY: ${{ secrets.IFTTT_PROD_NOTIFY }}
           RAW_COMMIT_MSG: ${{ github.event.head_commit.message }}
-          DEPLOY_RESULT: ${{ needs.build-and-deploy.result }}
+          BUILD_SITE_RESULT: ${{ needs.build-site.result }}
+          HTML_VALIDATE_RESULT: ${{ needs.html-validate.result }}
+          CHECK_LINKS_RESULT: ${{ needs.check-links.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
           GITHUB_SHA_VAL: ${{ github.sha }}
           SERVER_URL: ${{ github.server_url }}
           REPO: ${{ github.repository }}
@@ -85,8 +204,14 @@ jobs:
         run: |
           if [ "$DEPLOY_RESULT" = "success" ]; then
             STATUS="zudo-css deploy succeeded!"
+          elif [ "$BUILD_SITE_RESULT" = "failure" ]; then
+            STATUS="zudo-css deploy failed (site build)"
+          elif [ "$HTML_VALIDATE_RESULT" = "failure" ]; then
+            STATUS="zudo-css deploy failed (html-validate)"
+          elif [ "$CHECK_LINKS_RESULT" = "failure" ]; then
+            STATUS="zudo-css deploy failed (check-links)"
           elif [ "$DEPLOY_RESULT" = "failure" ]; then
-            STATUS="zudo-css deploy failed"
+            STATUS="zudo-css deploy failed (deploy)"
           else
             STATUS="zudo-css deploy cancelled"
           fi

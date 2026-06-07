@@ -14,7 +14,9 @@
     "check:html": "html-validate \"dist/**/*.html\"",
     "b4push": "bash scripts/run-b4push.sh",
     "setup:doc-skill": "bash scripts/setup-doc-skill.sh",
-    "generate:css-wisdom": "node scripts/generate-css-wisdom.js"
+    "generate:css-wisdom": "node scripts/generate-css-wisdom.js",
+    "test:e2e": "vitest run e2e/",
+    "deploy": "wrangler deploy"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -56,6 +58,7 @@
     "html-validate": "^10.0.0",
     "tailwindcss": "^4.2.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.8"
   }
 }

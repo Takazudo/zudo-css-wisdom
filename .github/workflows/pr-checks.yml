@@ -1,9 +1,28 @@
+# Pull request quality checks and preview deployment.
+#
+# Triggered on PRs targeting `main` or any `base/**` branch.
+#
+# CI jobs:
+#   Type Check    — pnpm install; pnpm check
+#   Build Site    — full clone, pnpm install; CI=true zfb build
+#   HTML Validate — needs build-site; pnpm check:html
+#   Check Links   — needs build-site; check-links.js --strict-broken --strict-absolute
+#   E2E Tests     — needs build-site; pnpm test:e2e (vitest reads dist/)
+#   Preview Deploy — needs build-site; wrangler versions upload + PR comment
+#
+# zcss is a pure-static site (no _worker.js). Preview uses
+# `wrangler versions upload --preview-alias` with `preview_urls = true` in
+# wrangler.toml to generate a stable *.workers.dev alias URL.
+#
+# Concurrency: cancel in-progress runs for the same PR to save resources.
+
 name: PR Checks
 
 on:
   pull_request:
     branches:
       - main
+      - 'base/**'
 
 concurrency:
   group: pr-checks-${{ github.event.pull_request.number }}
@@ -14,74 +33,224 @@ permissions:
   pull-requests: write
 
 jobs:
-  # ─── Type Check ───────────────────────────────────────────────────────
-
+  # ---------------------------------------------------------------------------
+  # Job 1: Type checking
+  # ---------------------------------------------------------------------------
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 22
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Run type checking
         run: pnpm check
 
-  # ─── Build + Link Check + Preview Deploy ──────────────────────────────
-  #
-  # Build, link check, and preview deploy run in a single job so the build
-  # output stays on the runner filesystem -- no artifacts, no cache transfers,
-  # no storage usage. Link check runs before preview deploy so broken links
-  # prevent a preview from being published.
-
-  build-preview:
-    name: Build, Link Check, and Preview Deploy
+  # ---------------------------------------------------------------------------
+  # Job 2: Build site (full clone — needed for SSG meta dates)
+  # ---------------------------------------------------------------------------
+  build-site:
+    name: Build Site
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 22
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Build site
-        run: pnpm build
-      - name: Check links
-        run: node scripts/check-links.js
-      - name: Prepare deploy directory
+        run: CI=true pnpm exec zfb build
+
+      - name: Cache site build output
+        uses: actions/cache/save@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+
+  # ---------------------------------------------------------------------------
+  # Job 3: HTML validate (block-in-inline guard)
+  # ---------------------------------------------------------------------------
+  html-validate:
+    name: HTML Validate
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install deps (no scripts)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Restore dist cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Run html-validate
+        run: pnpm check:html
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Link check
+  # ---------------------------------------------------------------------------
+  check-links:
+    name: Check Links
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore dist cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Check links (strict)
+        run: node scripts/check-links.js --strict-broken --strict-absolute --allowlist=.check-links-allowlist
+
+  # ---------------------------------------------------------------------------
+  # Job 5: E2E tests (vitest reads dist/ HTML — no browser needed)
+  # ---------------------------------------------------------------------------
+  e2e:
+    name: E2E Tests
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore dist cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+  # ---------------------------------------------------------------------------
+  # Job 6: Preview deploy and comment on PR
+  # ---------------------------------------------------------------------------
+  preview:
+    name: Preview Deploy
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Restore site build cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      # Guard: assert the built HTML has root-relative asset URLs.
+      # base="/" → href="/assets/..." and src="/assets/...".
+      - name: Assert root asset URLs in built HTML
         run: |
-          mkdir -p deploy/pj/zcss
-          cp -r dist/. deploy/pj/zcss/
-          echo '/ /pj/zcss/ 302' > deploy/_redirects
-      - name: Deploy preview to Cloudflare Pages
+          set -euo pipefail
+          HTML_FILE="dist/index.html"
+          grep -qE 'href="/assets/' "$HTML_FILE" \
+            || { echo "::error::Built HTML missing root stylesheet href (expected href=\"/assets/...)"; exit 1; }
+          grep -qE 'src="/assets/' "$HTML_FILE" \
+            || { echo "::error::Built HTML missing root islands script src (expected src=\"/assets/...)"; exit 1; }
+          echo "OK: built HTML has root asset URLs"
+
+      - name: Deploy PR preview to Cloudflare Workers
         id: cf-deploy
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
-          npx wrangler@4 pages deploy deploy \
-            --project-name=zudo-css \
-            --branch="pr-${PR_NUMBER}" \
-            --commit-hash="${GITHUB_SHA}" \
-            --commit-message="Preview: PR #${PR_NUMBER}"
-          DEPLOY_URL="https://pr-${PR_NUMBER}.zudo-css.pages.dev"
+          ALIAS="pr-${PR_NUMBER}"
+          # `wrangler versions upload --preview-alias` creates a stable
+          # *.workers.dev preview URL (requires preview_urls = true in wrangler.toml).
+          # Capture output and parse the stable alias URL (subdomain starts with
+          # the alias) — not the per-version hash URL — for a stable PR comment.
+          DEPLOY_LOG=$(mktemp)
+          npx wrangler@4 versions upload \
+            --preview-alias "$ALIAS" \
+            2>&1 | tee "$DEPLOY_LOG"
+          DEPLOY_URL=$(grep -oE "https://${ALIAS}-[a-z0-9.-]+\.workers\.dev" "$DEPLOY_LOG" | head -1)
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "::error::Failed to parse alias preview URL for '$ALIAS' from wrangler output"
+            exit 1
+          fi
           echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
           echo "Preview URL: $DEPLOY_URL"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Comment preview URL on PR
         uses: actions/github-script@v8
         env:
@@ -94,7 +263,7 @@ jobs:
 
             const body = [
               marker,
-              `## Cloudflare Pages Preview`,
+              `## Cloudflare Workers Preview`,
               '',
               `Preview deployment is ready.`,
               '',
@@ -105,6 +274,7 @@ jobs:
               `Built from commit: \`${context.sha.substring(0, 7)}\``,
             ].join('\n');
 
+            // Upsert: update existing comment or create new one
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,

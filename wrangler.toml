@@ -1,0 +1,28 @@
+# Cloudflare Workers Static Assets configuration
+# Deploys zudo-css as a pure-static site (no SSR routes, no _worker.js).
+# Target: https://zudo-css.takazudomodular.com/
+
+name = "zudo-css"
+compatibility_date = "2024-12-01"
+
+# preview_urls enables *.workers.dev version-preview URLs used by
+# `wrangler versions upload --preview-alias` in PR/preview deploys.
+preview_urls = true
+
+# ---------------------------------------------------------------------------
+# Static asset serving
+#
+# not_found_handling = "404-page" serves dist/404.html for unmatched GETs.
+# No `main` worker entry is needed — zcss has no `prerender = false` routes
+# and zfb build emits no dist/_worker.js (pure-static output).
+# ---------------------------------------------------------------------------
+[assets]
+directory = "./dist"
+not_found_handling = "404-page"
+
+# ---------------------------------------------------------------------------
+# Custom domain routing
+# ---------------------------------------------------------------------------
+[[routes]]
+pattern = "zudo-css.takazudomodular.com"
+custom_domain = true
