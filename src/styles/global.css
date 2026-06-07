@@ -84,6 +84,14 @@
 @source inline("w-[280px]");
 @source inline("w-[var(--zd-sidebar-w)]");
 
+/* Plain responsive/state utilities from the package dist that the node_modules
+ * @source scan also drops non-deterministically (e.g. `lg:block` — the desktop
+ * sidebar reveal). Safelisted explicitly so the doc layout is stable. */
+@source inline("{lg,xl}:{block,flex,hidden}");
+@source inline("group-hover:block");
+@source inline("lg:{pt-vsp-2xl,px-hsp-2xl,py-vsp-2xl}");
+@source inline("sm:{flex-row,grid-cols-2,items-center,justify-between}");
+
 /* ========================================
  * Design Token System
  *
