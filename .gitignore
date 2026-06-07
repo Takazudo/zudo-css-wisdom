@@ -43,3 +43,6 @@ pnpm-debug.log*
 
 # Cloudflare Wrangler
 .wrangler/
+
+# Build-time mirror of the @takazudo/zudo-doc dist (see scripts/sync-zudo-doc-classes.mjs)
+zudo-doc-tw-sources/

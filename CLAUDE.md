@@ -171,6 +171,13 @@ Uses a 16-color palette with OKLCH orange accent (`oklch(55.5% 0.163 48.998)`).
 - Light: **ZCSS Light** (warm light theme with orange accents)
 - Configured in `src/config/settings.ts` and `src/config/color-schemes.ts`
 
+### Consumed package CSS classes (zudo-doc)
+
+`@takazudo/zudo-doc` ships **no precompiled CSS** — its header/sidebar/doclayout/admonition styles are static Tailwind class literals inside its compiled `dist/**/*.js`, so this consumer must generate them itself. Tailwind v4's scanner is unreliable over `node_modules` (it silently dropped ~28% of the package's classes), so a **`preBuild` zfb plugin** (`plugins/sync-zudo-doc-classes-plugin.mjs` → `scripts/sync-zudo-doc-classes.mjs`) mirrors the package `dist` out of `node_modules` into `zudo-doc-tw-sources/` (gitignored, re-derived every build/dev) and `src/styles/global.css` `@source`s that mirror. Tailwind's own scanner stays the source of truth — no hand-maintained safelist to drift, and it is dep-bump-safe.
+
+- The `@source` path must be **root-relative** (`@source "zudo-doc-tw-sources/**"`, not `../../...`) — Tailwind v4 resolves `@source` from the project root, so a `../../` prefix points above the repo and scans nothing.
+- A handful of package utilities (`shadow-lg`, bare `rounded`, `tracking-wider`, `mt-vsp-3xs`) intentionally do **not** generate: the tight-token theme (preflight + utilities, no default theme) defines no `--shadow-lg` / bare `--radius` / `--tracking-*` / `--spacing-vsp-3xs`, so those utilities are unbuildable regardless of source. Add the theme tokens if those styles are ever needed.
+
 ## Doc Skill (css-wisdom)
 
 The `css-wisdom` skill (`.claude/skills/css-wisdom/SKILL.md`) is **generated** by `pnpm generate:css-wisdom` (runs `scripts/generate-css-wisdom.js`). It is gitignored -- do NOT track it in git or edit it directly. To update the skill content, edit the generator script and re-run `pnpm generate:css-wisdom`. Add descriptions for new articles to `.claude/skills/css-wisdom/descriptions.json`.
