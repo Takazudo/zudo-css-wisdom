@@ -37,12 +37,12 @@ export const settings = {
   } satisfies ColorModeConfig,
   siteName: "zudo-css-wisdom",
   siteDescription: "Pragmatic CSS knowledge for AI" as string,
-  base: "/pj/zcss/",
+  base: "/",
   trailingSlash: true as boolean,
   noindex: false as boolean,
   editUrl: false as string | false,
   githubUrl: false as string | false,
-  siteUrl: "https://takazudomodular.com/pj/zcss/" as string,
+  siteUrl: "https://zudo-css.takazudomodular.com/" as string,
   docsDir: "src/content/docs",
   defaultLocale: "en" as string,
   locales: {
@@ -69,7 +69,7 @@ export const settings = {
   designTokenPanel: false as boolean,
   tocMinDepth: 2 as number,
   tocMaxDepth: 4 as number,
-  headingIdStrategy: "hierarchical" as "flat" | "hierarchical",
+  headingIdStrategy: "flat" as "flat" | "hierarchical",
   sidebarResizer: true as boolean,
   sidebarToggle: true as boolean,
   imageEnlarge: true as boolean,
@@ -78,12 +78,7 @@ export const settings = {
   claudeResources: {
     claudeDir: ".claude",
   } as { claudeDir: string; projectRoot?: string } | false,
-  defaultLocaleOnlyPrefixes: [
-    "/docs/claude-md/",
-    "/docs/claude-skills/",
-    "/docs/claude-agents/",
-    "/docs/claude-commands/",
-  ] as string[],
+  defaultLocaleOnlyPrefixes: [] as string[],
   footer: {
     links: [
       {
@@ -108,7 +103,7 @@ export const settings = {
         ],
       },
     ],
-    copyright: `Copyright © ${new Date().getFullYear()} <a href="https://x.com/Takazudo">Takazudo</a>. Built with <a href="https://takazudomodular.com/pj/zudo-doc">zudo-doc</a>. Enjoy synth on <a href="https://takazudomodular.com/">Takazudo Modular</a>.`,
+    copyright: `Copyright © ${new Date().getFullYear()} <a href="https://x.com/Takazudo">Takazudo</a>. Built with <a href="https://zudo-doc.takazudomodular.com/">zudo-doc</a>. Enjoy synth on <a href="https://takazudomodular.com/">Takazudo Modular</a>.`,
   } satisfies FooterConfig as FooterConfig | false,
   headerNav: [
     { label: "Overview", path: "/docs/overview", categoryMatch: "overview" },
