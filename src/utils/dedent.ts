@@ -9,7 +9,7 @@ export function dedent(text: string): string {
   let minIndent = Infinity;
   for (const line of lines) {
     if (line.trim().length === 0) continue;
-    const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
+    const indent = line.match(/^(\s*)/)?.[1]?.length ?? 0;
     if (indent < minIndent) minIndent = indent;
   }
 

@@ -1,5 +1,7 @@
-import type { ComponentType } from "preact/compat";
-import type { Locale } from "@/config/i18n";
+import type {
+  FrontmatterCellRenderer,
+  FrontmatterCellRendererProps,
+} from "@takazudo/zudo-doc/metainfo";
 
 /**
  * Props passed to every custom frontmatter renderer component.
@@ -20,12 +22,11 @@ import type { Locale } from "@/config/i18n";
  * Null/undefined skipping: values of `null` or `undefined` are filtered out
  * before renderer lookup. Renderers can assume `value` is defined.
  */
-export interface FrontmatterRendererProps {
-  value: NonNullable<unknown>;
-  entryKey: string;
-  data: Record<string, unknown>;
-  locale?: Locale;
-}
+// Re-export the canonical props type from the package so project code has a
+// single import path. The locale field is typed as string (the package uses
+// string rather than the project-specific Locale union to avoid a circular
+// dependency); the runtime values are identical.
+export type { FrontmatterCellRendererProps as FrontmatterRendererProps };
 
 /**
  * Per-key custom renderer map for the frontmatter-preview component.
@@ -33,12 +34,13 @@ export interface FrontmatterRendererProps {
  * Add entries here to override how specific frontmatter fields are displayed.
  * Keys must match frontmatter field names exactly (case-sensitive).
  *
+ * Each renderer is a function `(props: FrontmatterCellRendererProps) => ComponentChildren`.
+ * Return `null` or `undefined` to fall through to the built-in `renderValue()`
+ * plain-text path.
+ *
  * Example (add a renderer for a `status` field):
  * ```tsx
  * status: ({ value }) => <strong>{String(value)}</strong>,
  * ```
  */
-export const frontmatterRenderers: Record<
-  string,
-  ComponentType<FrontmatterRendererProps>
-> = {};
+export const frontmatterRenderers: Record<string, FrontmatterCellRenderer> = {};

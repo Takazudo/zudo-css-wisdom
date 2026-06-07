@@ -13,7 +13,8 @@ export type HeaderRightComponentName =
   | "theme-toggle"
   | "language-switcher"
   | "version-switcher"
-  | "github-link";
+  | "github-link"
+  | "search";
 
 export type HeaderRightTriggerName = "design-token-panel" | "ai-chat";
 

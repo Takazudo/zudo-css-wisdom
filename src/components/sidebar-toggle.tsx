@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "preact/compat";
+import type { ComponentChildren } from "preact";
 
 interface SidebarToggleProps {
-  children: React.ReactNode;
+  children: ComponentChildren;
 }
 
 export default function SidebarToggle({ children }: SidebarToggleProps) {
@@ -23,8 +24,10 @@ export default function SidebarToggle({ children }: SidebarToggleProps) {
     function handleSwap() {
       setOpen(false);
     }
-    document.addEventListener("astro:after-swap", handleSwap);
-    return () => document.removeEventListener("astro:after-swap", handleSwap);
+    // zfb's `<ViewTransitions />` does a real page load on every
+    // navigation, so `DOMContentLoaded` is the post-navigate signal.
+    document.addEventListener("DOMContentLoaded", handleSwap);
+    return () => document.removeEventListener("DOMContentLoaded", handleSwap);
   }, []);
 
   return (

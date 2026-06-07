@@ -1,8 +1,12 @@
-import type { CollectionKey } from "astro:content";
 import { settings } from "./settings";
 
-/** Default locale code (always "en", served from docsDir). */
-export const defaultLocale = "en" as const;
+// Collection name string used by zfb's content engine (`getCollection(...)`).
+// Kept as a structural string-literal alias so callers don't have to redeclare
+// it; it's a structural type so the underlying engine is interchangeable.
+type CollectionKey = string;
+
+/** Default locale code, served from docsDir. */
+export const defaultLocale = settings.defaultLocale;
 
 /** All supported locale codes, derived from settings. */
 export const locales = [
@@ -11,11 +15,9 @@ export const locales = [
 ] as const;
 export type Locale = (typeof locales)[number];
 
-type LocaleKey = keyof typeof settings.locales;
-
 /** Safely look up a locale in settings.locales. */
 function getLocaleConfig(locale: string) {
-  return (settings.locales as Record<string, (typeof settings.locales)[LocaleKey]>)[locale];
+  return settings.locales[locale];
 }
 
 /** Get the content directory for a locale. */
@@ -37,7 +39,7 @@ export function getCollectionName(locale: Locale | string): CollectionKey {
 
 /** Get the display label for a locale. */
 export function getLocaleLabel(locale: Locale | string): string {
-  if (locale === defaultLocale) return "EN";
+  if (locale === defaultLocale) return defaultLocale.toUpperCase();
   return getLocaleConfig(locale)?.label ?? locale.toUpperCase();
 }
 
@@ -64,6 +66,7 @@ const translations: Record<string, Record<string, string>> = {
     "nav.develop": "Develop",
     "nav.previous": "Previous",
     "nav.next": "Next",
+    "nav.overview": "Overview",
     "toc.title": "On this page",
     "docs.browseAll": "Browse all documentation sections.",
     "search.label": "Search",
@@ -121,6 +124,7 @@ const translations: Record<string, Record<string, string>> = {
     "nav.develop": "開発",
     "nav.previous": "前へ",
     "nav.next": "次へ",
+    "nav.overview": "概要",
     "toc.title": "目次",
     "docs.browseAll": "すべてのドキュメントセクションを閲覧",
     "search.label": "検索",
@@ -178,6 +182,7 @@ const translations: Record<string, Record<string, string>> = {
     "nav.develop": "Entwicklung",
     "nav.previous": "Zurück",
     "nav.next": "Weiter",
+    "nav.overview": "Überblick",
     "toc.title": "Auf dieser Seite",
     "docs.browseAll": "Alle Dokumentationsabschnitte durchsuchen.",
     "search.label": "Suche",

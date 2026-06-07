@@ -53,7 +53,7 @@ export function escapeForMdx(content: string): string {
       let escaped = withInlinePlaceholders
         // Escape opening tags: <Name>, <Name attr="val">
         .replace(
-          /<([A-Za-z][A-Za-z0-9_-]*)(\s[^>]*)?>(?!\/)/g,
+          /<([A-Za-z][A-Za-z0-9_-]*)(\s[^>]*)?>/g,
           (match, name: string) => {
             if (htmlTags.has(name.toLowerCase())) return match;
             return match.replace(/</g, "&lt;").replace(/>/g, "&gt;");

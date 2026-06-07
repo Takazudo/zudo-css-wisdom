@@ -172,9 +172,11 @@ export function generateLightDarkCssProperties(): string {
 
   const lines = [":root {", "  color-scheme: light dark;"];
   for (let i = 0; i < lightPairs.length; i++) {
-    const prop = lightPairs[i][0];
-    const lightVal = lightPairs[i][1];
-    const darkVal = darkPairs[i][1];
+    const lightPair = lightPairs[i];
+    const darkPair = darkPairs[i];
+    if (!lightPair || !darkPair) continue;
+    const [prop, lightVal] = lightPair;
+    const darkVal = darkPair[1];
     lines.push(`  ${prop}: light-dark(${lightVal}, ${darkVal});`);
   }
   lines.push("}");

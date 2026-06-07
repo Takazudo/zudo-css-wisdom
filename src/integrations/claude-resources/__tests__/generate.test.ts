@@ -128,7 +128,7 @@ describe("generateClaudeResourcesDocs", () => {
   // ---------------------------------------------------------------------------
 
   describe("content", () => {
-    it("generates overview page with CategoryTreeNav", () => {
+    it("generates overview page with CategoryNav", () => {
       generateClaudeResourcesDocs({
         claudeDir,
         projectRoot: tmpDir,
@@ -139,7 +139,7 @@ describe("generateClaudeResourcesDocs", () => {
         path.join(docsDir, "claude", "index.mdx"),
         "utf8",
       );
-      expect(overview).toContain('<CategoryTreeNav category="claude" />');
+      expect(overview).toContain('<CategoryNav categories={');
     });
 
     it("skill page has correct frontmatter", () => {

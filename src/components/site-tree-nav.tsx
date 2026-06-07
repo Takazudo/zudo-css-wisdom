@@ -1,6 +1,12 @@
-import { useState } from "react";
+"use client";
+
+// Use preact hook entrypoints directly — the "react" → "preact/compat" alias
+// lets us consume React-typed components in this Preact app (configured
+// project-wide). Same pattern as src/components/sidebar-tree.tsx.
+import { useState } from "preact/hooks";
 import type { NavNode } from "@/utils/docs";
 import { INDENT, connectorLeft, ConnectorLines, CategoryLinkIcon } from "./tree-nav-shared";
+import { ChevronRight } from "@takazudo/zudo-doc/icons";
 
 // site-tree-nav uses wider padding than the narrow sidebar
 const SITE_BASE_PAD = "clamp(0.5rem, 0.8vw, 1rem)";
@@ -121,7 +127,12 @@ function CategoryNode({
         />
       )}
       <div className="relative">
-        <ConnectorLines depth={depth} isLast={isLast} widthScale={2} />
+        <ConnectorLines
+          depth={depth}
+          isLast={isLast}
+          widthScale={2}
+          topPad="calc(0.15rem + var(--spacing-vsp-xs))"
+        />
         <div
           className="flex w-full items-center justify-between text-small font-semibold pt-[0.15rem] text-fg"
           style={{ paddingLeft }}
@@ -129,9 +140,13 @@ function CategoryNode({
           {node.href ? (
             <a
               href={node.href}
-              className="flex-1 flex items-center gap-hsp-xs py-vsp-xs text-fg hover:text-accent hover:underline focus:underline"
+              className="flex-1 flex items-start gap-hsp-xs py-vsp-xs text-fg hover:text-accent hover:underline focus:underline"
             >
-              {depth === 0 && <CategoryLinkIcon className="w-[18px] 2xl:w-[24px]" />}
+              {depth === 0 && (
+                <span className="flex h-[1lh] items-center">
+                  <CategoryLinkIcon className="w-[18px] 2xl:w-[24px]" />
+                </span>
+              )}
               {node.label}
             </a>
           ) : (
@@ -150,20 +165,7 @@ function CategoryNode({
             aria-expanded={open}
             aria-label={open ? `Collapse ${node.label}` : `Expand ${node.label}`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-icon-xs w-icon-xs transition-transform duration-150 ${open ? "rotate-90" : ""} text-muted`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <ChevronRight className={`h-icon-xs w-icon-xs transition-transform duration-150 ${open ? "rotate-90" : ""} text-muted`} />
           </button>
         </div>
       </div>
@@ -189,19 +191,27 @@ function LeafNode({
   const isRoot = depth === 0;
   const paddingLeft = padLeft(depth);
 
+  const topPad = isRoot
+    ? "calc(var(--spacing-vsp-xs) + 0.15rem)"
+    : "var(--spacing-vsp-2xs)";
+
   return (
     <div>
       <div className="relative">
-        <ConnectorLines depth={depth} isLast={isLast} widthScale={2} />
+        <ConnectorLines depth={depth} isLast={isLast} widthScale={2} topPad={topPad} />
         <a
           href={node.href}
           className={isRoot
-            ? "flex items-center gap-hsp-xs py-[calc(var(--spacing-vsp-xs)+0.15rem)] text-small font-semibold text-fg hover:text-accent hover:underline focus:underline"
+            ? "flex items-start gap-hsp-xs py-[calc(var(--spacing-vsp-xs)+0.15rem)] text-small font-semibold text-fg hover:text-accent hover:underline focus:underline"
             : `block py-vsp-2xs ${isLast ? "pb-vsp-xs" : ""} text-small text-fg hover:text-accent hover:underline focus:underline`
           }
           style={{ paddingLeft }}
         >
-          {isRoot && <CategoryLinkIcon className="w-[18px] 2xl:w-[24px]" />}
+          {isRoot && (
+            <span className="flex h-[1lh] items-center">
+              <CategoryLinkIcon className="w-[18px] 2xl:w-[24px]" />
+            </span>
+          )}
           {node.label}
         </a>
       </div>
