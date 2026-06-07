@@ -31,6 +31,12 @@
 @source "src/hooks/**/*.{tsx,ts,jsx,js}";
 @source "src/utils/**/*.{tsx,ts,jsx,js}";
 @source "pages/**/*.{tsx,ts,jsx,js}";
+/* Consumed framework package: the header/sidebar/doclayout components ship
+ * their own responsive utilities (`lg:block`, etc.) in compiled dist JS. In
+ * the zudo-doc monorepo these are covered by `@source "packages/zudo-doc/src"`;
+ * a CONSUMER must point at node_modules instead or the desktop sidebar reveal
+ * (`.lg:block`) and other package utilities are never generated. */
+@source "../../node_modules/@takazudo/zudo-doc/dist/**/*.{js,mjs}";
 
 /* ========================================
  * Design Token System
