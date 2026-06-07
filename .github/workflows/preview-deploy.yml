@@ -1,7 +1,14 @@
 # Preview deployment workflow for branch-based previews.
 #
-# Triggered on pushes to `preview` or `expreview/*` branches.
-# Builds the site, deploys to Cloudflare Pages, and sets a commit status.
+# Triggered on pushes to `preview` and `expreview/**` branches.
+# Builds the zfb site and deploys to Cloudflare Workers static assets with a
+# preview alias so the preview URL is predictable.
+#
+# zcss is a pure-static site (no _worker.js). Preview uses
+# `wrangler versions upload --preview-alias` with `preview_urls = true` in
+# wrangler.toml to generate a stable *.workers.dev alias URL.
+#
+# Concurrency: cancel in-progress runs for the same branch to save resources.
 
 name: Preview Deploy
 
@@ -9,80 +16,236 @@ on:
   push:
     branches:
       - preview
-      - 'expreview/*'
+      - 'expreview/**'
 
 concurrency:
-  group: preview-deploy-${{ github.ref_name }}
+  group: preview-deploy-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
+  pull-requests: write
   statuses: write
 
 jobs:
-  # ─── Build and Deploy ─────────────────────────────────────────────────
-
-  build-and-deploy:
-    name: Build and Deploy Preview
+  # ---------------------------------------------------------------------------
+  # Job 1: Build the zfb docs site (full clone — needed for SSG meta dates)
+  # ---------------------------------------------------------------------------
+  build-site:
+    name: Build Site
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 22
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Build
-        run: pnpm build
-      - name: Determine branch name
+
+      - name: Build site
+        run: CI=true pnpm exec zfb build
+
+      - name: Cache site build output
+        uses: actions/cache/save@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+
+  # ---------------------------------------------------------------------------
+  # Job 2: HTML validate
+  # ---------------------------------------------------------------------------
+  html-validate:
+    name: HTML Validate
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install deps (no scripts)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Restore dist cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Run html-validate
+        run: pnpm check:html
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Deploy to Cloudflare Workers (preview alias)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy Preview
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # wrangler reads wrangler.toml from the repo root at upload time.
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Restore site build cache
+        uses: actions/cache/restore@v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Determine branch slug
         id: branch
-        env:
-          BRANCH: ${{ github.ref_name }}
         run: |
-          DEPLOY_BRANCH=$(echo "$BRANCH" | sed 's|/|-|g')
-          echo "name=$DEPLOY_BRANCH" >> "$GITHUB_OUTPUT"
-      - name: Prepare deploy directory
+          BRANCH_NAME="${{ github.ref_name }}"
+          # wrangler preview aliases must be lowercase [a-z0-9-].
+          # Lowercase, replace every invalid char with a hyphen, collapse repeats,
+          # and trim leading/trailing hyphens.
+          # e.g. expreview/Feature_X -> expreview-feature-x
+          BRANCH_SLUG=$(echo "$BRANCH_NAME" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's/[^a-z0-9]/-/g; s/-\{2,\}/-/g; s/^-//; s/-$//')
+          echo "slug=$BRANCH_SLUG" >> "$GITHUB_OUTPUT"
+          echo "Branch slug: $BRANCH_SLUG"
+
+      # Guard: assert the built HTML has root-relative asset URLs.
+      - name: Assert root asset URLs in built HTML
         run: |
-          mkdir -p deploy/pj/zcss
-          cp -r dist/. deploy/pj/zcss/
-          echo '/ /pj/zcss/ 302' > deploy/_redirects
-      - name: Deploy to Cloudflare Pages
+          set -euo pipefail
+          HTML_FILE="dist/index.html"
+          grep -qE 'href="/assets/' "$HTML_FILE" \
+            || { echo "::error::Built HTML missing root stylesheet href (expected href=\"/assets/...)"; exit 1; }
+          grep -qE 'src="/assets/' "$HTML_FILE" \
+            || { echo "::error::Built HTML missing root islands script src (expected src=\"/assets/...)"; exit 1; }
+          echo "OK: built HTML has root asset URLs"
+
+      - name: Deploy to Cloudflare Workers (preview alias)
+        id: deploy
+        run: |
+          SLUG="${{ steps.branch.outputs.slug }}"
+          # `wrangler versions upload --preview-alias=<slug>` uploads a new
+          # version and assigns a stable preview alias on *.workers.dev.
+          # Parse the stable alias URL — not the per-version hash URL — so
+          # commit status and PR comments target a predictable host.
+          DEPLOY_LOG=$(mktemp)
+          npx wrangler@4 versions upload \
+            --preview-alias="$SLUG" \
+            --message="Preview: ${SLUG} @ ${GITHUB_SHA:0:7}" \
+            2>&1 | tee "$DEPLOY_LOG"
+
+          DEPLOY_URL=$(grep -oE "https://${SLUG}-[a-z0-9.-]+\.workers\.dev" "$DEPLOY_LOG" | head -1)
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "::error::Failed to parse alias preview URL for slug '$SLUG' from wrangler output"
+            exit 1
+          fi
+          echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "Preview URL: $DEPLOY_URL"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          DEPLOY_BRANCH: ${{ steps.branch.outputs.name }}
-        run: |
-          npx wrangler@4 pages deploy deploy \
-            --project-name=zudo-css \
-            --branch="$DEPLOY_BRANCH" \
-            --commit-hash="${GITHUB_SHA}" \
-            --commit-message="Preview: ${DEPLOY_BRANCH} @ ${GITHUB_SHA::7}"
 
-          echo "Preview URL: https://${DEPLOY_BRANCH}.zudo-css.pages.dev/pj/zcss/"
       - name: Set commit status
         if: always()
         uses: actions/github-script@v8
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deploy_url }}
+          DEPLOY_OUTCOME: ${{ steps.deploy.outcome }}
         with:
           script: |
-            const branch = '${{ steps.branch.outputs.name }}';
-            const success = '${{ job.status }}' === 'success';
-            const previewUrl = `https://${branch}.zudo-css.pages.dev/pj/zcss/`;
+            const deployUrl = process.env.DEPLOY_URL;
+            const success = process.env.DEPLOY_OUTCOME === 'success';
 
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
               state: success ? 'success' : 'failure',
-              target_url: success
-                ? previewUrl
-                : `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-              description: success ? 'Preview deployed' : 'Preview deploy failed',
-              context: 'cloudflare/preview',
+              target_url: deployUrl || `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: success ? 'Preview deployment ready' : 'Preview deployment failed',
+              context: 'cloudflare/preview'
             });
+
+      - name: Comment on associated PR
+        if: success() && steps.deploy.outputs.deploy_url
+        uses: actions/github-script@v8
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deploy_url }}
+        with:
+          script: |
+            const branch = context.ref.replace('refs/heads/', '');
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open'
+            });
+
+            if (prs.length === 0) {
+              console.log('No open PR found for this branch, skipping comment');
+              return;
+            }
+
+            const pr = prs[0];
+            const deployUrl = process.env.DEPLOY_URL;
+            const shortSha = context.sha.substring(0, 7);
+            const marker = '<!-- cf-preview-branch -->';
+
+            const body = [
+              marker,
+              `## Cloudflare Workers Preview`,
+              '',
+              `Preview deployment is ready.`,
+              '',
+              `| | URL |`,
+              `|---|---|`,
+              `| Preview | ${deployUrl} |`,
+              '',
+              `Built from \`${branch}\` @ \`${shortSha}\``,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+            }
