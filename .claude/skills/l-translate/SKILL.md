@@ -1,7 +1,7 @@
 ---
 name: l-translate
 description: >-
-  Translate English docs to Japanese for the Astro i18n locale. Use when: (1) User wants to
+  Translate English docs to Japanese for the zfb i18n locale. Use when: (1) User wants to
   translate en docs to ja, (2) User says 'translate', 'ja version', 'Japanese translation', (3) User
   wants to check for missing ja docs.
 user-invocable: true
@@ -63,7 +63,7 @@ prompt: "Update the Japanese translation at <ja-path> based on changes in <en-pa
 
 ### Step 4: Validate
 
-Run `pnpm build` to verify no broken links or MDX errors.
+Run `pnpm check` then `pnpm build` to verify no broken links or MDX errors.
 
 ### Step 5: Report
 

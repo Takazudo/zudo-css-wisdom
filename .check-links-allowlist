@@ -1,0 +1,11 @@
+# Known exceptions for `pnpm run check:links` (consumed by
+# `scripts/check-links.js --allowlist=...`).
+#
+# Format: `<file>:<line>:<href>` per line. `#` comments and blank
+# lines are ignored. Each entry MUST match the printed report
+# verbatim (file path relative to repo root, 1-based line number,
+# href as it appeared in the source/dist).
+#
+# Add entries here when an issue cannot be fixed at the source —
+# typically: doc pages that reference EN-only siblings from JA.
+# Delete an entry when the underlying issue gets fixed.

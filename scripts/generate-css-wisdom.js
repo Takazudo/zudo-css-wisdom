@@ -162,7 +162,7 @@ documentation in this repo.
 6. **Update skill index**: Run \`pnpm generate:css-wisdom\` to regenerate the
    topic index. Add descriptions for new articles to
    \`.claude/skills/css-wisdom/descriptions.json\`.
-7. **Verify**: Run \`pnpm build\` to confirm the site builds correctly.
+7. **Verify**: Run \`pnpm b4push\` to confirm the site builds correctly.
 
 ## Topic Index
 

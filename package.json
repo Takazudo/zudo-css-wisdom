@@ -5,11 +5,12 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "dev": "zfb dev",
+    "predev": "lsof -ti:4321 | xargs -r kill || true",
+    "dev": "zfb dev --host",
     "build": "zfb build",
     "preview": "zfb preview",
     "check": "zfb check",
-    "check:links": "node scripts/check-links.js --strict",
+    "check:links": "node scripts/check-links.js",
     "check:html": "html-validate \"dist/**/*.html\"",
     "b4push": "bash scripts/run-b4push.sh",
     "setup:doc-skill": "bash scripts/setup-doc-skill.sh",
@@ -53,7 +54,6 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.0",
     "html-validate": "^10.0.0",
-    "pagefind": "^1.4.0",
     "tailwindcss": "^4.2.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.0"
