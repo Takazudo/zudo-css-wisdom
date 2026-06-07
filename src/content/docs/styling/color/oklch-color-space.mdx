@@ -3,8 +3,6 @@ title: OKLCH Color Space
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 AI agents almost always generate colors in `hex`, `rgb()`, or `hsl()` format. These older color spaces have a fundamental flaw: they are not perceptually uniform. In HSL, two colors with the same lightness value (e.g., `hsl(60, 100%, 50%)` yellow and `hsl(240, 100%, 50%)` blue) appear drastically different in perceived brightness. This makes it nearly impossible to create consistent, accessible color palettes by simply adjusting hue values. AI-generated palettes in HSL often have inconsistent contrast ratios, muddy mid-tones, and colors that "jump" in perceived brightness across the spectrum.
@@ -73,7 +71,7 @@ By fixing lightness and chroma and only rotating hue, every color has the same v
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="OKLCH Uniform Lightness vs HSL Inconsistent Lightness"
   html={`    <div class="color-demo">
       <div>

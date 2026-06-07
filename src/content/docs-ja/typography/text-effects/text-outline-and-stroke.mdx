@@ -3,8 +3,6 @@ title: テキストのアウトラインとストローク効果
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 テキストのアウトライン効果は一見シンプルに見えますが、レンダリングの詳細はシンプルではありません。
@@ -31,7 +29,7 @@ import CssPreview from '@/components/CssPreview';
 
 ### `-webkit-text-stroke` + `paint-order`
 
-<CssPreview client:load
+<CssPreview
   title="-webkit-text-stroke: paint-order なしとあり"
   html={`
     <section class="outline-demo outline-demo--stroke">
@@ -117,7 +115,7 @@ CJK に関する注意: 日本語のグリフは内部構造が密です。太�
 
 ### `text-shadow` によるアウトラインハック
 
-<CssPreview client:load
+<CssPreview
   title="4 方向、8 方向、高密度 text-shadow アウトライン"
   html={`
     <section class="outline-shadow">
@@ -245,7 +243,7 @@ CJK に関する注意: 画数の多い漢字ほど弱点が早く現れます�
 
 ### SVG テキストの `stroke` + `paint-order`
 
-<CssPreview client:load
+<CssPreview
   title="SVG テキスト: stroke、stroke-width、stroke-linejoin、paint-order"
   html={`
     <section class="svg-stroke-demo">
@@ -316,7 +314,7 @@ CJK に関する注意: 太いアウトラインとクリーンな角が必要�
 
 ### SVG `feMorphology` フィルタ
 
-<CssPreview client:load
+<CssPreview
   title="SVG feMorphology による外側のみのアウトライン"
   html={`
     <section class="svg-filter-demo">
@@ -391,7 +389,7 @@ CJK に関する注意: 内部のカウンターが完全に保持されます�
 
 ### 比較
 
-<CssPreview client:load
+<CssPreview
   title="全手法の横並び比較"
   html={`
     <section class="outline-compare">

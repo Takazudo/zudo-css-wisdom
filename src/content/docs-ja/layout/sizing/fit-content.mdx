@@ -3,9 +3,6 @@ title: fit-content, max-content, min-content
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 CSSのブロックレベル要素はデフォルトで `width: auto` となり、コンテナいっぱいに広がります。要素をコンテンツに合わせて縮小したい場合（タグ、ツールチップ、ブロックスタイルのCTAボタンなど）、AIエージェントは通常 `width: auto`（デフォルトなので何もしない）や `width: 100%`（必要なことの逆）を使いがちです。内在サイジングキーワード（intrinsic sizing keywords）の `fit-content`、`max-content`、`min-content` はこの問題を直接解決しますが、AIエージェントはこれらをほとんど使いません。
@@ -138,7 +135,7 @@ CSSは、要素がコンテンツに基づいてサイズを決定するため�
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="width: fit-content と width: 100% の比較"
   html={`
     <div class="demo">
@@ -225,7 +222,7 @@ Tailwind は内在サイジングのための `w-fit`、`w-min`、`w-max` ユー
 
 ### w-fit とデフォルト幅の比較
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: w-fit コンテンツ縮小フィット"
   html={`    <div class="flex gap-8 p-6">
       <div class="flex-1">
@@ -243,7 +240,7 @@ Tailwind は内在サイジングのための `w-fit`、`w-min`、`w-max` ユー
 
 ### センタリングされた fit-content 要素
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: mx-auto + w-fit センタリング"
   html={`    <div class="p-6 bg-slate-50">
       <div class="mx-auto w-fit bg-red-500 text-white px-5 py-1 rounded-full text-sm font-semibold">

@@ -3,8 +3,6 @@ title: マルチネームスペーストークン戦略
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 [タイトトークン戦略](../tight-token-strategy/)では、プロジェクト固有のセマンティックトークンを定義します。例えば、ブログ中心のウェブサイトでは、記事コンテンツに最適化されたスペーシングとフォントサイズのトークンを `myweb-` というネームスペースで定義します：
@@ -157,7 +155,7 @@ Tailwind クラスのネームスペースプレフィックスが、各コン�
 
 ### デモ：単一ネームスペース vs マルチネームスペース
 
-<CssPreview client:load
+<CssPreview
   title="Single namespace vs Multi namespace"
   height={480}
   html={`    <div class="demo">
@@ -277,7 +275,7 @@ Tailwind クラスのネームスペースプレフィックスが、各コン�
 
 以下のデモは、同じウェブサイト内の2つの異なるデザインコンテキストを示しています。左の記事 UI は広いスペーシングと大きなフォントを使い、右の管理 UI はタイトなスペーシングと小さなフォントを使っています。
 
-<CssPreview client:load
+<CssPreview
   title="Article content (myweb-) vs Admin dashboard (myadmin-)"
   height={420}
   html={`    <div class="ctx-demo">
@@ -432,7 +430,7 @@ Tailwind クラスのネームスペースプレフィックスが、各コン�
 
 サイトの規模が大きくなると、3つ以上のネームスペースが必要になることもあります。以下は記事、管理画面、マーケティングページの3コンテキストの例です。
 
-<CssPreview client:load
+<CssPreview
   title="Three namespaces: myweb- / myadmin- / mymarketing-"
   height={360}
   html={`    <div class="ns-demo">

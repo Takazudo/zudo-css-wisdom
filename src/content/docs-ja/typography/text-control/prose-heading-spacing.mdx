@@ -3,9 +3,6 @@ title: Prose Heading Spacing
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 Markdown から HTML へのコンバーターは、段落、リスト、テーブル、見出しといったブロック要素をフラットに並べた構造を出力します。よくあるスペーシング戦略は、すべてのブロック要素に同じ bottom margin を設定して均一なリズムを作り、見出しにはさらに大きな top margin を加えてセクション境界を読者に認識させるというものです。
@@ -23,7 +20,7 @@ Markdown から HTML へのコンバーターは、段落、リスト、テー�
 
 MDX ではコンポーネントラッパーやアドモニションが見出しとコンテンツの想定されるフローを中断する可能性があり、固定的なマージンルールが壊れやすくなります。
 
-<CssPreview client:load
+<CssPreview
   title="連続する見出しの問題 — top margin の蓄積"
   html={`
 <div class="prose-demo">
@@ -142,7 +139,7 @@ MDX ではコンポーネントラッパーやアドモニションが見出し�
 
 これが最も堅牢なアプローチです。スペーシングは一方向のマージン（`margin-block-start`）のみで制御されるため、block flow、flex、grid のいずれでも同じ動作になります。マージンの相殺に依存しません。
 
-<CssPreview client:load
+<CssPreview
   title="フローユーティリティ — 連続する見出しを詰める"
   html={`
 <div class="flow-demo">
@@ -258,7 +255,7 @@ Tailwind Typography は異なるアプローチを取ります。見出しが to
 
 トレードオフとして、見出しの後の**あらゆる**要素の top margin がゼロになります。つまり、見出し直後の最初の段落は常に見出しに密着します。これは通常望ましい動作ですが、そのギャップを個別に微調整する余地がなくなります。
 
-<CssPreview client:load
+<CssPreview
   title="Tailwind Typography スタイル — heading + * で top margin をリセット"
   html={`
 <div class="tw-demo">
@@ -365,7 +362,7 @@ Tailwind Typography は異なるアプローチを取ります。見出しが to
 
 トレードオフとして、この戦略は両方の見出しがそれぞれマージン（top と bottom）を持つことに依存しています。flex や grid コンテナではマージンが相殺されないため、連続する見出し間のギャップは block flow よりも大きくなります。prose コンテナが flex や grid のカラムになる可能性がある場合は、フローユーティリティ（戦略 1）または Tailwind スタイル（戦略 2）を使いましょう。
 
-<CssPreview client:load
+<CssPreview
   title=":has() — 見出しが後続する場合に bottom margin を縮小"
   html={`
 <div class="has-demo">
@@ -456,7 +453,7 @@ markdown コンテンツのコンテナが flex や grid レイアウト内（�
 .prose-flow > * + * { margin-block-start: var(--flow-space, 1em); }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="マージンの相殺 — block flow vs flex コンテナ"
   html={`
 <div class="collapse-demo">
@@ -591,7 +588,7 @@ markdown コンテンツのコンテナが flex や grid レイアウト内（�
 
 `:where()` ラッパーによって詳細度がフラットに保たれるため、宣言順で適用されるルールが決まります。ペア固有のオーバーライドは、連続する見出しの一括ルールの**後**に配置してください。
 
-<CssPreview client:load
+<CssPreview
   title="ペア固有のオーバーライド — 均一 vs 調整済みの連続見出し"
   html={`
 <div class="pair-demo">
@@ -790,7 +787,7 @@ Tailwind v4 の CSS ファーストな設定では、スタイルシートにセ
 
 動作はしますが、読みにくく保守が困難です。長い arbitrary variant よりも CSS `@layer` アプローチか `@tailwindcss/typography` を使いましょう。
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: @tailwindcss/typography が連続する見出しを処理"
   plugins={["typography"]}
   html={`

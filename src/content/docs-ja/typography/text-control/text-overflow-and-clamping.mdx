@@ -3,9 +3,6 @@ title: テキストオーバーフローとラインクランプ
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 カード、リスト項目、ナビゲーションなど、制約のあるUI領域にテキストを収めるために切り詰めるのはよくある要件です。AIエージェントはJavaScriptベースの解決策に頼ったり、1行の切り詰めしか処理できない不完全なCSSを生成したりしがちです。特に複数行のクランプは、正確なプロパティの組み合わせが必要で、間違えやすいものです。レガシーの`-webkit-line-clamp`アプローチには相互依存する3つの必須プロパティがあり、いずれか1つでも省略するとサイレントに失敗します。
@@ -62,7 +59,7 @@ CSSには2つの主要な切り詰めパターンがあります：`text-overflo
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="テキストオーバーフロー — 1行の省略記号と複数行クランプ"
   html={`    <div class="overflow-demo">
       <div class="demo-card">
@@ -237,7 +234,7 @@ CSSには2つの主要な切り詰めパターンがあります：`text-overflo
 
 Tailwindは1行の省略記号に`truncate`、複数行クランプに`line-clamp-*`ユーティリティを提供しています。
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: truncateとline-clamp"
   html={`    <div class="grid grid-cols-3 gap-4 p-6">
       <div class="bg-indigo-50 rounded-lg p-4">

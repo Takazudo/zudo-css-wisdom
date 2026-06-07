@@ -3,8 +3,6 @@ title: Two-Tier Size Strategy
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 When using the [tight token strategy](../tight-token-strategy/), all Tailwind defaults are reset — including the numeric spacing scale that powers `h-4`, `w-4`, `size-8`, and similar width/height utilities. The moment someone needs to size an icon or set a card width, these classes stop working.
@@ -97,7 +95,7 @@ When a value is purely a structural detail of one component (a button's exact pa
 
 This demo shows what happens when you re-add Tailwind's numeric spacing scale for width/height. The class names are meaningless — `size-4`, `size-5`, `size-8` tell you nothing about what they're sizing.
 
-<CssPreview client:load
+<CssPreview
   title="Wrong: Abstract Numeric Sizes (size-4, size-8, etc.)"
   height={280}
   html={`    <div class="wrong-demo">
@@ -212,7 +210,7 @@ This demo shows what happens when you re-add Tailwind's numeric spacing scale fo
 
 With semantic theme tokens, the class names are self-documenting. Every developer knows what `w-icon-md h-icon-md` means — and changing the icon size updates every component at once.
 
-<CssPreview client:load
+<CssPreview
   title="Right: Semantic Theme Tokens (icon-md, avatar-sm, etc.)"
   height={360}
   html={`    <div class="right-demo">
@@ -385,7 +383,7 @@ With semantic theme tokens, the class names are self-documenting. Every develope
 
 The same UI elements sized two ways. On the left, abstract numeric tokens that could mean anything. On the right, semantic theme tokens that tell you exactly what they're for.
 
-<CssPreview client:load
+<CssPreview
   title="Abstract Numbers vs Semantic Theme Tokens"
   height={300}
   html={`    <div class="compare">
@@ -528,7 +526,7 @@ The same UI elements sized two ways. On the left, abstract numeric tokens that c
 
 Component-specific sizing uses Tailwind's bracket syntax. These values stay in the component — they are not promoted to tokens because they have no meaning outside their context.
 
-<CssPreview client:load
+<CssPreview
   title="Arbitrary Values for Component-Specific Sizing"
   height={260}
   html={`    <div class="arb-demo">

@@ -3,8 +3,6 @@ title: Text Outline and Stroke Effects
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Text outline effects look simple. The rendering details are not simple.
@@ -31,7 +29,7 @@ Use the technique that matches the outline thickness and rendering requirement.
 
 ### `-webkit-text-stroke` + `paint-order`
 
-<CssPreview client:load
+<CssPreview
   title="-webkit-text-stroke without and with paint-order"
   html={`
     <section class="outline-demo outline-demo--stroke">
@@ -117,7 +115,7 @@ Browser support: `-webkit-text-stroke` is Baseline since April 2017. CSS `paint-
 
 ### `text-shadow` Outline Hack
 
-<CssPreview client:load
+<CssPreview
   title="4-direction, 8-direction, and dense text-shadow outlines"
   html={`
     <section class="outline-shadow">
@@ -245,7 +243,7 @@ CJK note: Dense kanji shapes expose the weakness earlier. Interior details blur 
 
 ### SVG Text with `stroke` + `paint-order`
 
-<CssPreview client:load
+<CssPreview
   title="SVG text with stroke, stroke-width, stroke-linejoin, and paint-order"
   html={`
     <section class="svg-stroke-demo">
@@ -316,7 +314,7 @@ CJK note: This is the strongest browser-native option for bold Japanese display 
 
 ### SVG `feMorphology` Filter
 
-<CssPreview client:load
+<CssPreview
   title="SVG feMorphology outside-only outline"
   html={`
     <section class="svg-filter-demo">
@@ -391,7 +389,7 @@ CJK note: This preserves interior counters completely. Test filter performance a
 
 ### Comparison
 
-<CssPreview client:load
+<CssPreview
   title="Side-by-side comparison of all techniques"
   html={`
     <section class="outline-compare">

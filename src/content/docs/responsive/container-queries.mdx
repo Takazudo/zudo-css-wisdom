@@ -4,8 +4,6 @@ description: Style components based on their container's size instead of the vie
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Media queries respond to the viewport width, not the width of the component's container. When a component is placed in a sidebar, a modal, or any constrained layout, viewport-based media queries cannot adapt the component's layout to its actual available space. AI agents almost always reach for `@media` queries for component-level responsiveness, ignoring container queries entirely.
@@ -39,7 +37,7 @@ A parent element must be declared as a containment context using `container-type
 
 The iframe in this demo acts as the container boundary. Use the viewport buttons to see the card layout adapt to the container width.
 
-<CssPreview client:load
+<CssPreview
   title="Basic Container Query — card layout adapts to container width"
   html={`
     <div class="card-wrapper">
@@ -146,7 +144,7 @@ The shorthand `container` property combines both:
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Named Containers — same component adapts differently in sidebar vs main"
   html={`
     <div class="page-layout">
@@ -269,7 +267,7 @@ Container query units are relative to the dimensions of the query container. The
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Container Query Units — text and spacing scale with container"
   html={`
     <div class="cqu-demo">
@@ -322,7 +320,7 @@ Container query units are relative to the dimensions of the query container. The
 
 A common real-world use case is a card component that works in any layout context: a narrow sidebar, a medium-width grid column, or a full-width main area.
 
-<CssPreview client:load
+<CssPreview
   title="Adaptive Card Grid — cards respond to their container, not the viewport"
   html={`
     <div class="card-grid">
@@ -434,7 +432,7 @@ A common real-world use case is a card component that works in any layout contex
 
 The key difference: media queries respond to the **viewport**, while container queries respond to the **parent container**. This demo places the same component in two different-width containers on the same page. The media query version looks identical in both because the viewport hasn't changed. The container query version adapts to each container independently.
 
-<CssPreview client:load
+<CssPreview
   title="Container queries vs media queries — same component, different containers"
   html={`
     <h4 class="demo-heading">Using @container (adapts to each container)</h4>

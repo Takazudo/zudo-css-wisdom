@@ -3,8 +3,6 @@ title: Font Loading Strategies
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Web fonts are a major source of layout shift (CLS) and poor perceived performance. When a browser downloads a custom font, it must decide what to show while waiting — invisible text (FOIT: Flash of Invisible Text) or fallback-styled text (FOUT: Flash of Unstyled Text). AI agents typically add a `@font-face` declaration or a Google Fonts `<link>` tag and consider the job done, ignoring the loading behavior entirely. This produces visible layout shifts when fonts load, blank text during the loading period, or unnecessary network requests for fonts that could be deferred.
@@ -66,7 +64,7 @@ A robust font loading strategy combines several techniques: the `font-display` d
 
 The `crossorigin` attribute is required even for same-origin fonts — without it, the font will be fetched twice.
 
-<CssPreview client:load
+<CssPreview
   title="System Font Stack — Rendering with Native Fonts"
   html={`    <div class="font-demo">
       <div class="font-card">

@@ -3,8 +3,6 @@ title: 親要素の状態による子要素のスタイリング
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 親のインタラクティブ状態（ホバー、フォーカス、チェックなど）に基づいて子要素をスタイリングすることは、最も一般的なUIパターンの1つです — カードをホバーするとタイトルがハイライトされたり、inputにフォーカスするとアイコンが変わったり、チェックボックスをオンにすると追加コンテンツが表示されたりします。AIエージェントはこれらのパターンにJavaScriptのイベントリスナーとクラストグルを使おうとしたり、各子要素に個別にホバースタイルを適用したりする傾向があります。Tailwind CSSは `group` と `group-hover:` ユーティリティでこれをエレガントに解決しましたが、基盤となるCSSパターンはシンプルで、多くの開発者が認識しているよりも強力です。
@@ -19,7 +17,7 @@ CSSは親の状態に基づく子スタイリングのための3つの補完的�
 
 これらを組み合わせることで、Tailwindの `group-*` ユーティリティが処理するすべてのシナリオ、さらにそれ以上をカバーします。
 
-<CssPreview client:load
+<CssPreview
   title="カード — ホバーまたはTabで連動する子の変化を確認"
   html={`
     <div class="demo">
@@ -135,7 +133,7 @@ CSSは親の状態に基づく子スタイリングのための3つの補完的�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="検索バー — inputをクリックまたはTabで移動"
   html={`
     <div class="demo">
@@ -220,7 +218,7 @@ CSSは親の状態に基づく子スタイリングのための3つの補完的�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="オプションカード — クリックで選択（:has(:checked) 使用）"
   html={`
     <div class="demo">
@@ -352,7 +350,7 @@ CSSは親の状態に基づく子スタイリングのための3つの補完的�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="ナビアイテムとツールチップ — ホバーまたはTabで表示"
   html={`
     <div class="demo">
@@ -443,7 +441,7 @@ CSSは親の状態に基づく子スタイリングのための3つの補完的�
 
 クラシックなパターンです。チェックボックスやラジオの状態に基づいてコンテンツセクションの表示/非表示を切り替えます。JavaScriptは不要です。
 
-<CssPreview client:load
+<CssPreview
   title="アコーディオン — クリックでセクションを展開（純粋なCSS）"
   html={`
     <div class="accordion">
@@ -586,7 +584,7 @@ CSSは親の状態に基づく子スタイリングのための3つの補完的�
 
 これはTailwindの名前付きグループ（`group/card`、`group/footer`）のCSS等価物です。各祖先の状態がそれぞれの子孫を独立して制御します。
 
-<CssPreview client:load
+<CssPreview
   title="ネストされたグループ — カードをホバーし、次にフッターリンクをホバー"
   html={`
     <div class="demo">

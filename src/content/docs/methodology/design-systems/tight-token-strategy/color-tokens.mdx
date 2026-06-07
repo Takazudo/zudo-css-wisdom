@@ -3,8 +3,6 @@ title: Color Token Patterns
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Tailwind CSS ships with approximately 22 color families, each with 11 shades (50 through 950), resulting in 240+ color utilities. In practice, teams end up using `blue-500` in one component, `blue-600` in another, and `indigo-500` in a third — all intended to mean "primary button blue." Without constraints, every shade is equally valid, so inconsistency grows silently.
@@ -78,7 +76,7 @@ After this configuration, Tailwind utilities like `bg-surface`, `text-primary`, 
 
 The left side shows a sampling of Tailwind's 22 default gray shades — all technically valid for backgrounds. The right side shows the 3 semantic surface tokens that replace them. Fewer choices means faster decisions and guaranteed consistency.
 
-<CssPreview client:load
+<CssPreview
   title="22 Default Grays vs 3 Semantic Surfaces"
   height={340}
   html={`    <div class="demo">
@@ -176,7 +174,7 @@ The left side shows a sampling of Tailwind's 22 default gray shades — all tech
 
 These buttons use only the semantic color tokens — `primary`, `secondary`, `error`, and `accent`. No numeric color shades are involved. Every button in the project uses these same tokens, so the palette stays consistent.
 
-<CssPreview client:load
+<CssPreview
   title="Buttons with Semantic Color Tokens"
   height={200}
   html={`    <div class="btn-demo">
@@ -267,7 +265,7 @@ These buttons use only the semantic color tokens — `primary`, `secondary`, `er
 
 This card demonstrates all five token categories working together. The background uses `surface` and `surface-alt`, text uses `text` and `text-muted`, borders use `border`, and the badge uses `primary` brand color. Every color in the component maps to exactly one semantic token.
 
-<CssPreview client:load
+<CssPreview
   title="Card Using All Semantic Color Token Categories"
   height={320}
   html={`    <div class="card-demo">
@@ -467,7 +465,7 @@ No renaming was needed when `gray2` arrived — the original `gray` stayed untou
 
 This demo shows a simple card UI that initially uses a single `gray` token. When the design later requires a darker card surface, `gray2` is added without touching the original `gray`.
 
-<CssPreview client:load
+<CssPreview
   title="Palette Growth: gray → gray + gray2"
   height={420}
   html={`    <div class="growth-demo">

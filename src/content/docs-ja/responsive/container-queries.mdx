@@ -4,8 +4,6 @@ description: ビューポートではなく親コンテナのサイズに応じ�
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 メディアクエリ（media query）はビューポートの幅に応じて反応しますが、コンポーネントのコンテナの幅には対応しません。コンポーネントがサイドバー、モーダル、あるいは制約のあるレイアウトに配置された場合、ビューポートベースのメディアクエリではコンポーネントのレイアウトを実際の利用可能スペースに適応させることができません。AIエージェントはコンポーネントレベルのレスポンシブ対応にほぼ常に `@media` クエリを使い、コンテナクエリ（container query）を完全に無視してしまいます。
@@ -39,7 +37,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
 
 このデモでは iframe がコンテナの境界として機能します。ビューポートボタンを使って、カードレイアウトがコンテナの幅に応じて変化する様子を確認しましょう。
 
-<CssPreview client:load
+<CssPreview
   title="基本的なコンテナクエリ — カードレイアウトがコンテナ幅に応じて変化"
   html={`
     <div class="card-wrapper">
@@ -146,7 +144,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="名前付きコンテナ — 同じコンポーネントがサイドバーとメインで異なる表示に"
   html={`
     <div class="page-layout">
@@ -269,7 +267,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="コンテナクエリ単位 — テキストと余白がコンテナに応じてスケール"
   html={`
     <div class="cqu-demo">
@@ -322,7 +320,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
 
 よくある実用的なユースケースとして、狭いサイドバー、中幅のグリッドカラム、全幅のメインエリアなど、どのレイアウトコンテキストでも機能するカードコンポーネントがあります。
 
-<CssPreview client:load
+<CssPreview
   title="アダプティブカードグリッド — カードがビューポートではなくコンテナに応じて変化"
   html={`
     <div class="card-grid">
@@ -434,7 +432,7 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
 
 重要な違い：メディアクエリは**ビューポート**に応じて反応し、コンテナクエリは**親コンテナ**に応じて反応します。このデモでは、同じページ上の幅が異なる2つのコンテナに同一コンポーネントを配置しています。メディアクエリ版はビューポートが変わっていないため両方とも同じ見た目になります。コンテナクエリ版はそれぞれのコンテナに独立して適応します。
 
-<CssPreview client:load
+<CssPreview
   title="コンテナクエリ vs メディアクエリ — 同じコンポーネント、異なるコンテナ"
   html={`
     <h4 class="demo-heading">Using @container (adapts to each container)</h4>

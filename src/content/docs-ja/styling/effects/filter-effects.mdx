@@ -3,9 +3,6 @@ title: フィルターエフェクト
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 AIエージェントはCSSフィルターを活用できていないことが多く、CSS `filter` でネイティブに処理できるエフェクトに対して画像編集ツールやJavaScriptに頼ってしまいます。フィルターを使う場合でも、`filter: drop-shadow()` と `box-shadow` を混同したり、`backdrop-filter: blur()` のつもりで要素に `blur()` を適用したり、複数のフィルター関数を1つの宣言でチェーンできることを忘れたりします。`drop-shadow()` と `box-shadow` の決定的な違い — シェイプ認識 — はほとんど考慮されません。
@@ -232,7 +229,7 @@ CSS `filter` プロパティは、要素とそのすべてのコンテンツに�
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="フィルターエフェクトギャラリー"
   html={`    <div class="demo"><div class="item"><div class="box original"></div><span>Original</span></div><div class="item"><div class="box blur"></div><span>blur(4px)</span></div><div class="item"><div class="box brightness"></div><span>brightness(1.5)</span></div><div class="item"><div class="box contrast"></div><span>contrast(1.8)</span></div><div class="item"><div class="box saturate"></div><span>saturate(2)</span></div><div class="item"><div class="box hue-rotate"></div><span>hue-rotate(90deg)</span></div></div>`}
   css={`
@@ -273,7 +270,7 @@ CSS `filter` プロパティは、要素とそのすべてのコンテンツに�
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="不規則な形状での drop-shadow vs box-shadow"
   html={`    <div class="demo"><div class="col"><div class="triangle-wrapper box-shadow-demo"><div class="triangle"></div></div><span>box-shadow (rectangular)</span></div><div class="col"><div class="triangle-wrapper drop-shadow-demo"><div class="triangle"></div></div><span>drop-shadow (shape-aware)</span></div></div>`}
   css={`
@@ -346,7 +343,7 @@ Tailwindは一般的なCSSフィルター関数のユーティリティクラス
 
 ### フィルターエフェクトギャラリー
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: フィルターエフェクトギャラリー"
   html={`    <div class="flex flex-wrap gap-3 justify-center items-center min-h-[230px] bg-slate-900 p-4">
       <div class="flex flex-col items-center gap-1.5">
@@ -386,7 +383,7 @@ Tailwindは一般的なCSSフィルター関数のユーティリティクラス
 
 ### ホバーフィルターエフェクト
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: ホバーフィルターエフェクト"
   html={`    <div class="flex gap-6 justify-center items-center min-h-[200px] bg-slate-100 p-6">
       <div class="flex flex-col items-center gap-2">

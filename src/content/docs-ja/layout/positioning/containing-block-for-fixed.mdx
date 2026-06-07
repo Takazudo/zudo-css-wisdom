@@ -3,8 +3,6 @@ title: position fixed の包含ブロック
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 `position: fixed` は要素をビューポートにピン留めするためのものです。普段はそう動作します。しかし、[スタッキングコンテキスト](./stacking-context.mdx)を作成するのと同じプロパティ群 ―― `transform`、`filter`、`backdrop-filter`、`perspective`、`will-change`、`contain`、`content-visibility` ―― は、**`position: fixed` の子孫に対する包含ブロック（containing block）**も作成します。これが起きると、`top` / `left` / `right` / `bottom` はビューポートではなくその祖先のボックスに対して解決されます。要素はサイレントに `position: absolute` のような振る舞いをします。
@@ -56,7 +54,7 @@ import CssPreview from '@/components/CssPreview';
 
 `.pinned` はビューポートの右上に配置されるはずです。`.parent` に `transform` があるため、`.pinned` は `.parent` のボックスの右上に配置されます。
 
-<CssPreview client:load
+<CssPreview
   title="包含ブロックのトラップ：親の transform"
   html={`    <div class="trap">
       <div class="trap-label">Parent with transform: translateZ(0)</div>
@@ -105,7 +103,7 @@ import CssPreview from '@/components/CssPreview';
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="トラップがなければ fixed はビューポートにピン留めされる"
   html={`    <div class="ok">
       <div class="ok-label">Parent with no trap properties</div>
@@ -160,7 +158,7 @@ import CssPreview from '@/components/CssPreview';
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="ツールバーの backdrop-filter が fixed のポップオーバーをトラップ"
   html={`    <div class="page">
       <div class="bg-text">Page content behind the frosted toolbar</div>

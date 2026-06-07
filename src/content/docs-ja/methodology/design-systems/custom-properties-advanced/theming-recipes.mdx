@@ -3,15 +3,13 @@ title: テーマレシピ
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 CSSカスタムプロパティを使った完全なテーマシステムレシピです。各レシピはプロダクション対応のパターンで、自分のプロジェクトに適応できます。これらのレシピは [Three-Tier Color Strategy](../../../../styling/color/three-tier-color-strategy) で説明されているレイヤードアーキテクチャ — パレットトークン、セマンティックテーマトークン、コンポーネントスコープのオーバーライド — をカスケードと `var()` フォールバックを使って実装しています。
 
 ## ライト/ダークテーマとカスタムプロパティ
 
 カラーパレット全体をカスタムプロパティとして定義し、1つのクラストグルですべてを切り替えます。個別の色に対するJavaScriptロジックは不要です — カスケードがすべてを処理します。
 
-<CssPreview client:load
+<CssPreview
   title="ライト / ダークテーマ"
   height={340}
   html={`
@@ -99,7 +97,7 @@ CSSカスタムプロパティを使った完全なテーマシステムレシ�
 
 デフォルトテーマから開始し、コンポーネントをブランドカラーのコンテナでラップしてオーバーライドします。子要素はカスケードを通じて自動的に新しい値を取得します。
 
-<CssPreview client:load
+<CssPreview
   title="ブランドテーマのオーバーライド"
   height={340}
   html={`
@@ -173,7 +171,7 @@ CSSカスタムプロパティを使った完全なテーマシステムレシ�
 
 カスタムプロパティのセットをコンポーネントのパブリックスタイリングAPIとして公開します。コンシューマーは必要なプロパティだけをオーバーライドし、コンポーネントが残りを内部的に処理します。
 
-<CssPreview client:load
+<CssPreview
   title="コンポーネントAPIパターン"
   height={250}
   html={`
@@ -241,7 +239,7 @@ CSSカスタムプロパティを使った完全なテーマシステムレシ�
 
 3つの論理レイヤーを定義します — **surface**（背景）、**content**（テキスト）、**accent**（インタラクティブなハイライト）。コンポーネントは生の色ではなくレイヤーを参照するため、ページ全体のテーマ切り替えが簡単になります。これは [Three-Tier Color Strategy](../../../../styling/color/three-tier-color-strategy) の実践例です — 以下のレイヤーは Tier 2（セマンティックテーマトークン）に対応しています。
 
-<CssPreview client:load
+<CssPreview
   title="Surface / Contentレイヤーパターン"
   height={320}
   html={`

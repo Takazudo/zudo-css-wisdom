@@ -4,8 +4,6 @@ sidebar_position: 6
 description: Build-time enforcement of a design token system — forbid raw color literals, raw z-index integers, and zone-aware misuse, with a documented escape hatch.
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Methodology articles document *what tokens to define*. They stop short of *how to enforce them at build time*. Without enforcement, a token system decays:
@@ -71,7 +69,7 @@ For Tailwind-class projects, the same rule applies to numeric utilities and defa
 
 The point is not the specific syntax — it is that every raw literal in component code is a violation by default. The violation can be excused with an escape hatch, but it cannot be silent.
 
-<CssPreview client:load
+<CssPreview
   title="Before / After: Raw Literal vs Token"
   height={300}
   html={`    <div class="dtl-demo">

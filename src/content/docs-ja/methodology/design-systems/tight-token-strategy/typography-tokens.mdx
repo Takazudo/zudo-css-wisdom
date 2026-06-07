@@ -3,8 +3,6 @@ title: タイポグラフィトークンパターン
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 Tailwind CSS はデフォルトで13のフォントサイズステップ（`text-xs` から `text-9xl` まで）、9つの font-weight 値（`font-thin` から `font-black` まで）、6つ以上の line-height 値、複数の font-family オプションを提供しています。チームは本文テキストに `text-sm`、`text-base`、`text-lg` を交互に使い、あるコンポーネントでは `font-semibold` を使い、別のコンポーネントでは同じ視覚的な強調のために `font-bold` を使うことになります。
@@ -103,7 +101,7 @@ Tailwind CSS はデフォルトで13のフォントサイズステップ（`text
 
 左のカラムは Tailwind の13のデフォルトフォントサイズステップ — `text-xs` から `text-9xl` までを示しています。右のカラムはそれらを置き換える6つの抽象サイズです。各トークンはスケール内のステップであり、特定の UI 上の役割には紐づいていません。
 
-<CssPreview client:load
+<CssPreview
   title="13のデフォルトサイズ vs 6つの抽象サイズ"
   height={420}
   html={`    <div class="demo">
@@ -223,7 +221,7 @@ Tailwind CSS はデフォルトで13のフォントサイズステップ（`text
 
 6つの抽象サイズすべてとペアリングされた line-height を示す視覚的な階層カードです。これがプロジェクトの完全なタイポグラフィ語彙であり、どのコンテキストでも再利用できます。
 
-<CssPreview client:load
+<CssPreview
   title="タイポグラフィスケール — 全6サイズとペアリングされた Line-Height"
   height={420}
   html={`    <div class="scale-card">
@@ -355,7 +353,7 @@ Tailwind CSS はデフォルトで13のフォントサイズステップ（`text
 
 抽象名の最大の利点は、`text-lg` がカードタイトル、価格表示、ナビゲーションリンクのどれにも同じように使えることです。`subheading` のようなセマンティック名では、同じ 20px の値に対して3つの別々のトークンが必要になります。
 
-<CssPreview client:load
+<CssPreview
   title="1つのトークン（lg）、3つの異なる役割"
   height={200}
   html={`    <div class="roles-demo">
@@ -416,7 +414,7 @@ Tailwind CSS はデフォルトで13のフォントサイズステップ（`text
 
 6つの抽象フォントサイズ、3つのウェイト、3つの line-height のみを使った完全な記事レイアウトです。`text-lg` がサブタイトルとセクション見出しの両方に再利用されていることに注目してください — 同じサイズ、異なる役割です。セマンティック命名では、同じ値に対して別々の `subtitle` トークンと `section-heading` トークンが必要になります。
 
-<CssPreview client:load
+<CssPreview
   title="抽象タイポグラフィトークンを使った記事レイアウト"
   height={440}
   html={`    <article class="article">

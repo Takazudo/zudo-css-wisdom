@@ -3,8 +3,6 @@ title: Color Contrast and Accessibility
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Color contrast is the number one accessibility violation on the web. WebAIM's annual analysis consistently finds that over 80% of homepages have low-contrast text. AI agents frequently generate designs with light gray text on white backgrounds, placeholder text that fails contrast requirements, decorative color choices that prioritize aesthetics over readability, and interactive elements that are indistinguishable from surrounding content. The result is text that is difficult or impossible to read for users with low vision, color blindness, or in challenging viewing conditions (bright sunlight, dim screens).
@@ -49,7 +47,7 @@ WCAG (Web Content Accessibility Guidelines) defines minimum contrast ratios betw
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Good Contrast vs Poor Contrast"
   html={`    <div class="contrast-demo">
       <div class="example pass">

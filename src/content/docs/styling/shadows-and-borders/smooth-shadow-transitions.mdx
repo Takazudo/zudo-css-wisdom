@@ -3,8 +3,6 @@ title: Smooth Shadow Transitions
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Hover effects on cards commonly involve changing `box-shadow` to make the element appear to lift. AI agents naively write `transition: box-shadow 0.3s ease`, which works visually but triggers expensive repaints on every animation frame. The browser must recalculate and repaint the shadow pixels each frame because `box-shadow` is not a compositor-friendly property. On pages with many interactive cards, this causes visible frame drops and jank, especially on lower-powered devices.
@@ -202,7 +200,7 @@ This transitions each shadow parameter on its own timing. The browser still repa
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Expensive box-shadow Transition vs Cheap Opacity Approach"
   html={`<div class="demo"><div class="card naive"><h3>Naive Approach</h3><p>Transitions box-shadow directly (triggers repaint every frame)</p><span class="hint">Hover to see effect</span></div><div class="card performant"><h3>Performant Approach</h3><p>Transitions pseudo-element opacity (GPU compositing only)</p><span class="hint">Hover to see effect</span></div></div>`}
   css={`

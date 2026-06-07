@@ -3,8 +3,6 @@ title: ":is()と:where()セレクター"
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 同じ宣言を共有するCSSセレクターは、すべての組み合わせを個別に書く必要があり、冗長で繰り返しの多いルールセットになります。異なる詳細度レベルのセレクターリストは、簡単にオーバーライドできるベーススタイルの作成を困難にします。リセット、デフォルト、ライブラリCSSを構築する際、コンシューマーのスタイルとの詳細度の競合は常に課題です。AIエージェントは通常、繰り返しの多いセレクターを生成し、詳細度を意図的に管理するために`:is()`や`:where()`を使うことはほとんどありません。
@@ -219,7 +217,7 @@ aside h3 {
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title=":is() — セレクターのグループ化"
   html={`
     <article>
@@ -280,7 +278,7 @@ aside h3 {
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title=":where() — ゼロ詳細度（簡単にオーバーライド可能）"
   html={`
     <div class="demo">

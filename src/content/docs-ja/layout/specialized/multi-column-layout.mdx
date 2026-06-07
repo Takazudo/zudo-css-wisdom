@@ -3,8 +3,6 @@ title: マルチカラムレイアウト
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 新聞スタイルの段組みテキストやmasonry/Pinterestスタイルのレイアウトを作るには、従来はJavaScriptライブラリや複雑なCSS Gridのハックが必要でした。AIエージェントは、CSS Multi-Column Layout（ネイティブのCSSモジュールで、わずかなプロパティでカラムベースのコンテンツフローを処理できる）を検討せずに、こうした重い解決策に手を出しがちです。優れたブラウザサポートにもかかわらず、マルチカラムレイアウトは広く活用されていません。特に、JavaScriptなしでコンテンツをカラムを通じて縦方向にフローさせる機能は注目に値します。
@@ -70,7 +68,7 @@ CSS Multi-Column Layoutは `columns` プロパティ系を使ってコンテン�
 
 `column-count` と `column-gap`、`column-rule` を使ったクラシックな新聞スタイルの段組みテキストです。テキストはカラム間を自然に流れます。
 
-<CssPreview client:load
+<CssPreview
   title="column-count を使ったマガジンテキストレイアウト"
   height={320}
   html={`    <article class="magazine-text">
@@ -97,7 +95,7 @@ CSS Multi-Column Layoutは `columns` プロパティ系を使ってコンテン�
 
 `column-count` なしで `column-width` を使うと、ブラウザが何カラム収まるかを自動的に判断します。これは自然にレスポンシブです。メディアクエリは不要です。指定した幅は最小値で、ブラウザはカラムを広くすることはあっても狭くすることはありません。
 
-<CssPreview client:load
+<CssPreview
   title="column-width によるレスポンシブカラム（リサイズして確認）"
   height={280}
   html={`    <div class="responsive-text">
@@ -124,7 +122,7 @@ CSS Multi-Column Layoutは `columns` プロパティ系を使ってコンテン�
 
 マルチカラムコンテナ内のブロックレベルカードに `break-inside: avoid` を付けて、カードがカラムをまたいで分割されるのを防ぎます。高さの異なるカードでmasonryエフェクトを示しています。
 
-<CssPreview client:load
+<CssPreview
   title="break-inside: avoid を使ったMasonryカードギャラリー"
   height={420}
   html={`    <div class="masonry-gallery">
@@ -199,7 +197,7 @@ CSS Multi-Column Layoutは `columns` プロパティ系を使ってコンテン�
 
 `column-span: all` を使って、カラムフローから抜け出す全幅の要素を作ります。見出し、プルクオート、セクション区切りなど、すべてのカラムにまたがるべき要素に使います。
 
-<CssPreview client:load
+<CssPreview
   title="column-span: all によるカラムスパン"
   height={360}
   html={`    <article class="spanning-article">
@@ -241,7 +239,7 @@ CSS Multi-Column Layoutは `columns` プロパティ系を使ってコンテン�
 
 マルチカラムレイアウトとCSS Gridはどちらもマルチカラムの見た目を作りますが、コンテンツのフロー方向が根本的に異なります。Columnsはコンテンツを**縦方向**（上から下、次のカラムへ）にフローさせ、Gridはコンテンツを**横方向**（左から右、行ごと）にフローさせます。
 
-<CssPreview client:load
+<CssPreview
   title="Multi-Column（縦方向フロー） vs CSS Grid（横方向フロー）"
   height={340}
   html={`    <div class="comparison">

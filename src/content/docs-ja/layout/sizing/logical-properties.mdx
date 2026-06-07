@@ -3,8 +3,6 @@ title: 論理プロパティ（Logical Properties）
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 CSSは当初、物理的な方向（`top`、`right`、`bottom`、`left`）で設計されました。これは左から右（LTR）の言語では機能しますが、アラビア語やヘブライ語のような右から左（RTL）の言語や、日本語のような縦書きモードでは崩れます。AIエージェントは論理的な代替手段がある場合でも、ほぼ常に物理プロパティ（`margin-left`、`padding-right`、`border-top`）を生成します。これにより、国際化（i18n）のために手動でミラーリングが必要なレイアウトが作られ、エラーが起きやすく重複したCSSが生まれます。
@@ -42,7 +40,7 @@ CSS論理プロパティは、物理的な画面方向ではなくコンテン�
 
 LTRでは同じ結果になります。RTLでは、論理バージョンはボーダーを自動的に右側（RTLでのインライン軸の開始側）に配置します。
 
-<CssPreview client:load
+<CssPreview
   title="margin-inline と margin-left/right の比較"
   html={`    <div class="demo">
       <div class="label">margin-left + margin-right (physical):</div>
@@ -208,7 +206,7 @@ LTRではアイコンにテキストと区切るための右マージンがあ�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="padding-block の使用例"
   html={`    <div class="demo">
       <div class="box">

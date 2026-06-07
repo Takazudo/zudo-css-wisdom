@@ -3,8 +3,6 @@ title: CSS 3Dトランスフォーム
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 開発者がカードフリップ、回転パネル、キューブなどの3Dエフェクトを試みると、原因不明のバグに遭遇します。カードの裏側が鏡像として透けて見える、回転が3Dではなく平面的に見える、エフェクト全体が2D平面に潰れてしまう、などです。これらのバグは紛らわしいものです。なぜなら、個々のプロパティ（`transform`、`backface-visibility`）は単体では正しく見えるからです。根本原因は、CSS 3Dトランスフォームが4つのプロパティ — `perspective`、`transform-style: preserve-3d`、`backface-visibility`、`perspective-origin` — の**連携したシステム**を必要とし、いずれか1つでも省略や誤配置があると錯覚が壊れるということです。
@@ -46,7 +44,7 @@ CSS 3Dトランスフォームは、各プロパティに特定の役割があ�
 
 クラシックなカードフリップは4つのプロパティすべてを使います。親が `perspective` を提供し、カードラッパーが `preserve-3d` を使ってホバー時に回転し、各面が `backface-visibility: hidden` を使って正面を向いているときだけ表示されます。
 
-<CssPreview client:load
+<CssPreview
   title="ホバーでカードフリップ"
   height={320}
   html={`
@@ -128,7 +126,7 @@ CSS 3Dトランスフォームは、各プロパティに特定の役割があ�
 
 小さい perspective 値は極端な遠近感を作り、大きい値はより繊細な効果を生みます。以下の2つのパネルはどちらも同じ `rotateY(40deg)` トランスフォームです。親の `perspective` 値だけが異なります。
 
-<CssPreview client:load
+<CssPreview
   title="パースペクティブ: 低い値 (200px) vs 高い値 (1000px)"
   height={280}
   html={`
@@ -197,7 +195,7 @@ CSS 3Dトランスフォームは、各プロパティに特定の役割があ�
 
 CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つの面を使います。親が `perspective` を提供し、キューブラッパーが `preserve-3d` を使います。ホバーでキューブを回転させます。
 
-<CssPreview client:load
+<CssPreview
   title="ホバー回転する3Dキューブ"
   height={350}
   html={`
@@ -283,7 +281,7 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
 
 `perspective-origin` は視聴者の目の位置をずらします。以下では、同じ傾いたカードのグリッドを3つの異なる視点から見ています。各グループにホバーすると、傾いたカードの遠近感がどのように異なるかを確認できます。
 
-<CssPreview client:load
+<CssPreview
   title="パースペクティブオリジン: 左上 vs 中央 vs 右下"
   height={340}
   html={`
@@ -385,7 +383,7 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
 
 本番用のカードフリップは `prefers-reduced-motion` を尊重すべきです。ユーザーがモーション軽減を好む場合、カードは3D回転の代わりにオパシティによるクロスフェードで表と裏を切り替えます。
 
-<CssPreview client:load
+<CssPreview
   title="モーション軽減対応のアクセシブルなカードフリップ"
   height={320}
   html={`

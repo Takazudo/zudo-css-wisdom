@@ -3,8 +3,6 @@ title: line-heightのベストプラクティス
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 line-heightは、CSSで最も誤解されているプロパティの一つです。AIエージェントは単位付きの値（`line-height: 24px`や`line-height: 1.5em`）を頻繁に使用しますが、これは子要素のフォントサイズが異なる場合に継承の問題を引き起こします。その結果、見出し・本文・小さなテキストの間でフォントサイズが異なるコンポーネントにおいて、テキストが詰まりすぎたり間延びしたりします。
@@ -90,7 +88,7 @@ code {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="line-heightの比較 — タイト (1.2) vs 標準 (1.5) vs ルーズ (2.0)"
   html={`    <div class="lh-demo">
       <div class="lh-column">

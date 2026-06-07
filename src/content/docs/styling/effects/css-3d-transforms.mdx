@@ -3,8 +3,6 @@ title: CSS 3D Transforms
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Developers attempt 3D effects like card flips, rotating panels, and cubes, then hit mysterious bugs: the backside of the card shows through as a mirror image, the rotation looks flat instead of 3D, or the entire effect collapses into a 2D plane. These bugs are confusing because each individual property (`transform`, `backface-visibility`) seems correct in isolation. The root cause is that CSS 3D transforms require a **system** of four coordinated properties — `perspective`, `transform-style: preserve-3d`, `backface-visibility`, and `perspective-origin` — and omitting or misplacing any one of them breaks the illusion.
@@ -46,7 +44,7 @@ Every HTML element has a front face and a back face. By default, the back face i
 
 The classic card flip uses all four properties together. The parent provides `perspective`, the card wrapper uses `preserve-3d` and rotates on hover, and each face uses `backface-visibility: hidden` to show only when facing forward.
 
-<CssPreview client:load
+<CssPreview
   title="Card Flip on Hover"
   height={320}
   html={`
@@ -128,7 +126,7 @@ The classic card flip uses all four properties together. The parent provides `pe
 
 Lower perspective values create extreme foreshortening while higher values produce a subtler effect. Both panels below have the same `rotateY(40deg)` transform — only the parent `perspective` value differs.
 
-<CssPreview client:load
+<CssPreview
   title="Perspective: Low (200px) vs High (1000px)"
   height={280}
   html={`
@@ -197,7 +195,7 @@ Lower perspective values create extreme foreshortening while higher values produ
 
 A CSS cube uses six faces positioned with `translateZ` and `rotateX`/`rotateY`. The parent provides `perspective` and the cube wrapper uses `preserve-3d`. Hover to spin the cube.
 
-<CssPreview client:load
+<CssPreview
   title="3D Cube with Hover Rotation"
   height={350}
   html={`
@@ -283,7 +281,7 @@ A CSS cube uses six faces positioned with `translateZ` and `rotateX`/`rotateY`. 
 
 `perspective-origin` shifts where the viewer's eye sits. Below, the same grid of tilted cards is viewed from three different vantage points. Hover over each group to see how the tilted cards are foreshortened differently.
 
-<CssPreview client:load
+<CssPreview
   title="Perspective Origin: Top-Left vs Center vs Bottom-Right"
   height={340}
   html={`
@@ -385,7 +383,7 @@ A CSS cube uses six faces positioned with `translateZ` and `rotateX`/`rotateY`. 
 
 A production-ready card flip should respect `prefers-reduced-motion`. When the user prefers reduced motion, the card cross-fades between front and back using opacity instead of rotating in 3D.
 
-<CssPreview client:load
+<CssPreview
   title="Accessible Card Flip with Reduced Motion"
   height={320}
   html={`

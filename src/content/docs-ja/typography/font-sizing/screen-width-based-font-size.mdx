@@ -3,8 +3,6 @@ title: 画面幅ベースのフォントサイズ定義
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 基本的な`clamp()`タイポグラフィは、ビューポート範囲**全体**にわたってフォントサイズを線形にスケーリングします。シンプルなケースではこれで十分ですが、特定のブレークポイント範囲内でテキストのスケーリングを精密に制御したい場合には不十分です。たとえば、サイトロゴに次のような要件があるとします：
@@ -81,7 +79,7 @@ intercept = 15 - 0.03516 × 1024 = 15 - 36 ≈ -21px
 
 注意：以下のデモではプレビューiframe内で流体スケーリングが見えるよう、縮小したブレークポイント（320px / 500px / 768px）を使用しています。上記のコード例は本番環境に適したブレークポイントを示しています。
 
-<CssPreview client:load
+<CssPreview
   title="区間別の流体フォントサイズ -- モバイルとフルビューポートを切り替えてスケーリングを確認"
   html={`<div class="seg-demo">
   <div class="seg-demo__label">Site Title (segmented clamp)</div>
@@ -214,7 +212,7 @@ intercept = 15 - 0.03516 × 1024 = 15 - 36 ≈ -21px
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="デザイントークンのフォントサイズ -- 各ステップがブレークポイントごとに独立してスケーリング"
   html={`<div class="token-demo">
   <div class="token-demo__scale">
@@ -333,7 +331,7 @@ Step 3: Assemble the clamp()
 
 サイトヘッダーのロゴテキストが全ブレークポイントで滑らかにスケーリングする実践的な例です：
 
-<CssPreview client:load
+<CssPreview
   title="区間別の流体ロゴテキストを持つサイトヘッダー -- モバイルとフルビューポートを比較"
   html={`<header class="header-demo">
   <div class="header-demo__inner">

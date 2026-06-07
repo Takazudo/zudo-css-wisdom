@@ -3,8 +3,6 @@ title: currentColor パターン
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 AIエージェントはすべてのプロパティに色値をハードコードしがちです。`color`、`border-color`、`box-shadow`、`outline`、SVGの `fill` に個別の hex 値を設定し、これらすべてが要素のテキストカラーと一致すべき場合でもそうします。これはメンテナンスの問題を生みます：コンポーネントの色を変更する場合、複数の宣言を更新する必要があります。さらに悪いことに、親コンポーネントがテキストカラーを変更した場合（ホバー状態やテーマ切り替えなど）、ボーダー、アイコン、シャドウは特定の hex 値に固定されているため追従しません。
@@ -47,7 +45,7 @@ AIエージェントはすべてのプロパティに色値をハードコード
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="currentColor — 親の色を変えるとすべてが更新される"
   html={`    <div class="cc-demo">
       <div class="card" style="color: #4f46e5;">

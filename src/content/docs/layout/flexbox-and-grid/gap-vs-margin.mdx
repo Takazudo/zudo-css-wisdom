@@ -3,9 +3,6 @@ title: gap vs margin
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 Spacing between elements is one of the most common CSS tasks, yet AI agents frequently reach for `margin` in every situation — even inside flex and grid containers where `gap` is the correct tool. Margin-based spacing creates several problems: double margins where items meet, first/last child workarounds, margin collapse in block flow, and inconsistent spacing when items wrap. The `gap` property, available in flexbox, grid, and multi-column layouts, solves all of these issues.
@@ -66,7 +63,7 @@ The key distinction: `gap` only creates space between items, never before the fi
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flex gap vs margin Comparison"
   html={`    <div class="label">With margin (extra space on last item):</div>
     <div class="row-margin">
@@ -182,7 +179,7 @@ Margin collapse only occurs in normal block flow. It does **not** occur:
 
 All cards have exactly 1.5rem of space between them — horizontally and vertically. No margin workarounds needed.
 
-<CssPreview client:load
+<CssPreview
   title="Grid gap: Consistent Spacing"
   html={`    <div class="card-grid">
       <div class="card">Card 1</div>
@@ -279,7 +276,7 @@ Gap and margin serve different purposes and can be used together:
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Margin Collapse Demonstration"
   html={`    <div class="demo">
       <div class="label">Block flow (margins collapse):</div>
@@ -386,7 +383,7 @@ Tailwind makes `gap` the natural choice with its `gap-*` utilities on flex and g
 
 ### Flex Gap
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Flex with gap"
   html={`    <div class="p-4">
       <p class="text-sm font-semibold text-slate-600 mb-2">Flex with gap-2.5:</p>
@@ -401,7 +398,7 @@ Tailwind makes `gap` the natural choice with its `gap-*` utilities on flex and g
 
 ### Grid Gap
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Grid with gap"
   html={`    <div class="grid grid-cols-3 gap-3 p-2">
       <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center text-sm">Card 1</div>

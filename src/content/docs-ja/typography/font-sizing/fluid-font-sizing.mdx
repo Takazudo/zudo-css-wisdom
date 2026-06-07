@@ -3,8 +3,6 @@ title: clamp()を使った流体フォントサイズ
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 レスポンシブタイポグラフィは、従来、異なるブレークポイントでフォントサイズを調整するために複数のメディアクエリを必要としていました。これはサイズ間の急激な変化を生み、冗長でメンテナンスしにくいCSSになります。AIエージェントは、流体スケーリングの代わりに、任意のブレークポイントで固定の`px`や`rem`値を生成しがちで、モバイルではテキストが小さすぎ、デスクトップでは大きすぎ、ブレークポイント間の遷移が不自然になります。
@@ -87,7 +85,7 @@ small {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="clamp()による流体タイポグラフィ — ビューポートをリサイズしてスケーリングを確認"
   html={`<div class="fluid-demo">
     <h1>Heading One</h1>

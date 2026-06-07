@@ -3,8 +3,6 @@ title: clamp() for Fluid Sizing
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Responsive design traditionally relies on media queries to change sizes at specific breakpoints. This creates abrupt jumps — a heading might be 2rem on mobile and suddenly 3rem on desktop. AI agents tend to generate multiple media queries for font sizes, padding, and widths, producing verbose CSS that is hard to maintain. The `clamp()` function solves this by creating smooth, fluid scaling between a minimum and maximum value with a single declaration and zero media queries.
@@ -105,7 +103,7 @@ In practice, use a clamp calculator tool rather than computing by hand.
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="clamp(): Fluid Width with clamp()"
   html={`    <div class="outer">
       <div class="fluid-box">
@@ -136,7 +134,7 @@ In practice, use a clamp calculator tool rather than computing by hand.
       opacity: 0.85;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="clamp(): Fluid Padding with clamp()"
   html={`    <div class="section">
       <div class="content">

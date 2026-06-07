@@ -3,9 +3,6 @@ title: Backdrop Filter and Glassmorphism
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 Glassmorphism — the frosted-glass aesthetic popularized by Apple's iOS and macOS — requires `backdrop-filter: blur()` combined with a semi-transparent background. AI agents frequently get this wrong in several ways: they apply blur to the element itself instead of the backdrop, use fully opaque backgrounds that hide the blur entirely, forget the `-webkit-` prefix needed for Safari, or apply the effect on solid-colored backgrounds where there is nothing interesting to blur.
@@ -179,7 +176,7 @@ When performance is critical (mobile, many glass elements), use a pre-blurred im
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Frosted Glass Card"
   html={`    <div class="vibrant-bg"><div class="glass-card"><h2>Frosted Glass</h2><p>Content is readable over a blurred, colorful background.</p></div></div>`}
   css={`
@@ -219,7 +216,7 @@ When performance is critical (mobile, many glass elements), use a pre-blurred im
     `}
   height={280} />
 
-<CssPreview client:load
+<CssPreview
   title="Glassmorphism Panel (Dark Theme)"
   html={`    <div class="vibrant-bg"><div class="glass-panel"><h3>Settings</h3><div class="item"><span>Notifications</span><span class="toggle">ON</span></div><div class="item"><span>Dark Mode</span><span class="toggle">ON</span></div><div class="item"><span>Auto-save</span><span class="toggle off">OFF</span></div></div></div>`}
   css={`
@@ -302,7 +299,7 @@ Tailwind provides `backdrop-blur-*`, `backdrop-brightness-*`, and `backdrop-satu
 
 ### Frosted Glass Card
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Frosted Glass Card"
   html={`    <div class="min-h-[280px] flex justify-center items-center p-6" style="background: radial-gradient(circle at 20% 80%, hsl(280deg 80% 60% / 0.8), transparent 50%), radial-gradient(circle at 80% 20%, hsl(200deg 80% 60% / 0.8), transparent 50%), radial-gradient(circle at 50% 50%, hsl(340deg 80% 50% / 0.5), transparent 60%), linear-gradient(135deg, hsl(220deg 60% 20%), hsl(280deg 60% 30%));">
       <div class="backdrop-blur-xl bg-white/15 border border-white/25 rounded-2xl p-8 max-w-xs text-white">
@@ -314,7 +311,7 @@ Tailwind provides `backdrop-blur-*`, `backdrop-brightness-*`, and `backdrop-satu
 
 ### Dark Glass Panel
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Dark Glassmorphism Panel"
   html={`    <div class="min-h-[300px] flex justify-center items-center p-6" style="background: radial-gradient(circle at 70% 30%, hsl(330deg 80% 50% / 0.6), transparent 50%), radial-gradient(circle at 30% 70%, hsl(180deg 80% 50% / 0.5), transparent 50%), linear-gradient(135deg, #0f172a, #1e1b4b);">
       <div class="backdrop-blur-2xl backdrop-saturate-[1.8] bg-slate-900/40 border border-white/10 rounded-2xl p-6 w-72 text-white shadow-[0_8px_32px_hsl(0deg_0%_0%/0.3)]">

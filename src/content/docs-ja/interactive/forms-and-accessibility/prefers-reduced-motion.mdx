@@ -3,8 +3,6 @@ title: prefers-reduced-motion（モーション軽減設定）
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 アニメーションやトランジションは、前庭障害、モーション感度、特定の認知障害を持つユーザーに不快感、めまい、吐き気を引き起こす可能性があります。`prefers-reduced-motion` メディアクエリは、ユーザーがオペレーティングシステムの設定を通じてモーションの好みを伝えることを可能にします。AIエージェントは生成するコードにモーション設定の処理をほとんど含めず、含める場合でもすべてのモーションを完全に削除する傾向があります。しかし、これは有用な状態変化インジケーターまで削除してしまうため、逆にユーザビリティを損なう可能性があります。
@@ -18,7 +16,7 @@ import CssPreview from '@/components/CssPreview';
 1. **モーション削除アプローチ**：通常通りアニメーションを書き、`prefers-reduced-motion: reduce` ブロック内で無効化します。
 2. **ノーモーションファーストアプローチ**：デフォルトで静的なスタイルを書き、`prefers-reduced-motion: no-preference` ブロック内でアニメーションを追加します。この方が安全です。設定を指定していないユーザーでもモーションが軽減されるためです。
 
-<CssPreview client:load
+<CssPreview
   title="prefers-reduced-motion: フルモーション vs 軽減モーション"
   html={`
     <div class="demo">

@@ -3,8 +3,6 @@ title: Scroll Snap
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Carousels, slideshows, and horizontally scrolling content sections are extremely common UI patterns. AI agents almost always reach for JavaScript libraries or custom scroll event handlers to implement snap-to-slide behavior. CSS Scroll Snap provides this functionality natively with a few lines of CSS, delivering better performance and touch device compatibility than JavaScript solutions. AI rarely suggests it.
@@ -24,7 +22,7 @@ CSS Scroll Snap lets you define snap points on a scroll container so that scroll
 - **`mandatory`**: The scroll container **always** snaps to a snap point when scrolling stops. Even if the user scrolls only slightly, it snaps to the nearest point. Best for carousels and paginated content.
 - **`proximity`**: The scroll container only snaps when near a snap point. If the user scrolls past snap points, it behaves like normal scrolling. Best for long content where snapping is helpful but not required.
 
-<CssPreview client:load
+<CssPreview
   title="Horizontal Scroll-Snap Carousel"
   height={250}
   html={`

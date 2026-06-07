@@ -3,8 +3,6 @@ title: "@property（型付きカスタムプロパティ）"
 sidebar_position: 6
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 標準的なCSSカスタムプロパティは型がなく、ブラウザはそれらを任意の文字列として扱います。つまり、カスタムプロパティのアニメーションやトランジション（例：グラデーションのスムーズなトランジション）ができず、ブラウザが値を検証することもできず、継承の動作を制御することもできません。AIエージェントが`@property`を使うことは稀で、代わりに`@property`なら簡単に実現できるエフェクトに対してJavaScriptアニメーションや複雑な回避策に頼りがちです。
@@ -209,7 +207,7 @@ import CssPreview from '@/components/CssPreview';
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="@propertyによるグラデーションアニメーション — ホバーで確認"
   html={`
     <div class="gradient-box">
@@ -263,7 +261,7 @@ import CssPreview from '@/components/CssPreview';
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="@propertyによるグラデーション角度の回転"
   html={`
     <div class="rotating-gradient"></div>

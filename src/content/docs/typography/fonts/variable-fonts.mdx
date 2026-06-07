@@ -3,8 +3,6 @@ title: Variable Fonts
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Traditional web typography requires loading separate font files for each weight, width, and style combination. A typical project might load regular, bold, italic, and bold-italic variants — four files — just for body text. AI agents commonly generate CSS that references multiple static font weights (300, 400, 500, 600, 700) with separate `@font-face` declarations, resulting in five or more HTTP requests and significantly larger total download sizes. Variable fonts solve this by packing an entire range of variations into a single file.
@@ -52,7 +50,7 @@ h1 {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Variable Font Weight Range — Fine-grained Weight Control"
   html={`<div class="vf-demo">
     <div class="weight-row"><span class="label">100 Thin</span><span class="sample" style="font-weight:100">The quick brown fox</span></div>

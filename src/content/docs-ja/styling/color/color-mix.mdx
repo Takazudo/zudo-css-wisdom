@@ -3,8 +3,6 @@ title: color-mix()
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 CSSでティント、シェード、半透明のカラーバリアントを作成するには、従来はすべての色値を手動で計算する必要がありました。AIエージェントはすべてのシェードを個別の hex や rgb 値としてハードコードしがちで（例：`#3366cc`、`#5588dd`、`#99bbee` を独立して生成）、パレットが脆く保守しにくくなります。ベースのブランドカラーが変わると、すべての派生値を再計算する必要があります。Sassのような CSSプリプロセッサは `lighten()` や `darken()` でこれを解決しましたが、ネイティブCSSには同等の機能がありませんでした — `color-mix()` が登場するまでは。
@@ -62,7 +60,7 @@ color-mix(in <color-space>, <color> <percentage>?, <color> <percentage>?)
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="color-mix() — ティント、シェード、半透明バリアント"
   html={`    <div class="mix-demo">
       <div class="section">

@@ -3,8 +3,6 @@ title: Line Height Best Practices
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Line height is one of the most misunderstood CSS properties. AI agents frequently use values with units (`line-height: 24px` or `line-height: 1.5em`), which causes inheritance problems when child elements have different font sizes. The result is text that is either too cramped or too spaced, especially in components where font sizes vary between headings, body text, and small text.
@@ -90,7 +88,7 @@ code {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Line Height Comparison — Tight (1.2) vs Normal (1.5) vs Loose (2.0)"
   html={`    <div class="lh-demo">
       <div class="lh-column">

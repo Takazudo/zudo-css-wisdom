@@ -3,8 +3,6 @@ title: Typography Token Patterns
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Tailwind CSS ships with 13 font-size steps (`text-xs` through `text-9xl`), 9 font-weight values (`font-thin` through `font-black`), 6+ line-height values, and multiple font-family options. Teams end up using `text-sm`, `text-base`, and `text-lg` interchangeably for body text, and `font-semibold` in one component while another uses `font-bold` for the same visual emphasis.
@@ -103,7 +101,7 @@ After this configuration:
 
 The left column shows Tailwind's 13 default font-size steps — from `text-xs` to `text-9xl`. The right column shows the 6 abstract sizes that replace them. Each token is a step in the scale, not tied to a specific UI role.
 
-<CssPreview client:load
+<CssPreview
   title="13 Default Sizes vs 6 Abstract Sizes"
   height={420}
   html={`    <div class="demo">
@@ -223,7 +221,7 @@ The left column shows Tailwind's 13 default font-size steps — from `text-xs` t
 
 A visual hierarchy card showing all 6 abstract sizes with their paired line-heights. This is the complete typographic vocabulary of the project — reusable in any context.
 
-<CssPreview client:load
+<CssPreview
   title="Typography Scale — All 6 Sizes with Paired Line-Heights"
   height={420}
   html={`    <div class="scale-card">
@@ -355,7 +353,7 @@ A visual hierarchy card showing all 6 abstract sizes with their paired line-heig
 
 The key advantage of abstract names: `text-lg` works equally well for a card title, a price, and a nav link. With semantic names like `subheading`, you would need three separate tokens for the same 20px value.
 
-<CssPreview client:load
+<CssPreview
   title="One Token (lg), Three Different Roles"
   height={200}
   html={`    <div class="roles-demo">
@@ -416,7 +414,7 @@ The key advantage of abstract names: `text-lg` works equally well for a card tit
 
 A complete article layout using only the 6 abstract font sizes, 3 weights, and 3 line-heights. Notice how `text-lg` is reused for both the subtitle and the section heading — same size, different roles. With semantic naming, you would need separate `subtitle` and `section-heading` tokens for the same value.
 
-<CssPreview client:load
+<CssPreview
   title="Article Layout with Abstract Typography Tokens"
   height={440}
   html={`    <article class="article">

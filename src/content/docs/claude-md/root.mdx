@@ -10,17 +10,17 @@ generated: true
 
 # zcss — zudo-css
 
-CSS best practices documentation site, built with zudo-doc (Astro 5, MDX, Tailwind CSS v4).
+CSS best practices documentation site, built with zudo-doc (zfb framework, MDX, Tailwind CSS v4).
 
 ## Commands
 
 Package manager: **pnpm** (Node.js >= 20).
 
 ```bash
-pnpm dev              # Dev server → http://css-bp.localhost:8811
+pnpm dev              # Dev server (kills port 4321, starts zfb dev)
 pnpm build            # Production build → dist/
 pnpm preview          # Preview built site
-pnpm check            # Astro type checking
+pnpm check            # Type checking (zfb check)
 pnpm b4push           # Pre-push validation (typecheck + build + link check)
 ```
 
@@ -155,7 +155,7 @@ Adding a new header nav item requires editing `settings.ts`.
 4. Include CssPreview demos to illustrate techniques
 5. Create the matching Japanese file under `src/content/docs-ja/` with the same path
 6. Keep code blocks and `<CssPreview>` blocks identical -- only translate prose
-7. Run `pnpm build` to verify the site builds correctly
+7. Run `pnpm b4push` to verify the site builds correctly
 
 ### Adding a New Category
 
@@ -163,7 +163,7 @@ Adding a new header nav item requires editing `settings.ts`.
 2. Create `index.mdx` with `title`, `description`, and `sidebar_position`
 3. Add a `headerNav` entry in `src/config/settings.ts` with `categoryMatch` pointing to the directory name
 4. Mirror the directory structure under `src/content/docs-ja/`
-5. Run `pnpm build` to verify
+5. Run `pnpm b4push` to verify
 
 ## Design Token System
 
@@ -206,7 +206,7 @@ After editing or creating an English doc, translate the Japanese counterpart usi
 
 ## Site Config
 
-- Base path: `/pj/zcss/`
+- Base path: `/` (root — served at `https://zudo-css.takazudomodular.com/`)
 - Settings: `src/config/settings.ts`
 
 ## CI/CD

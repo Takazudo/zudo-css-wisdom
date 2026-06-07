@@ -3,8 +3,6 @@ title: Noto Sans Webfont Guide
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 AI agents loading Noto Sans (especially Noto Sans JP for Japanese content) commonly make a few mistakes: loading all nine weights when only two or three are needed, omitting `font-display: swap`, or not using subsetting — resulting in megabytes of font data blocking page render. For Japanese, the default Noto Sans JP file is several MB; without subsetting it can be the single largest asset on the page.
@@ -149,7 +147,7 @@ h6 {
 
 ### Font Weight Hierarchy Patterns
 
-<CssPreview client:load
+<CssPreview
   title="Light Body (300) + Regular Headings (400)"
   html={`    <article class="article">
       <h1 class="article__title">見出し：Noto Sans JP で読みやすいタイポグラフィ</h1>
@@ -191,7 +189,7 @@ h6 {
     }`}
   height={380} />
 
-<CssPreview client:load
+<CssPreview
   title="Regular Body (400) + Medium Headings (500)"
   html={`    <article class="article">
       <h1 class="article__title">見出し：Noto Sans JP で読みやすいタイポグラフィ</h1>
@@ -235,7 +233,7 @@ h6 {
 
 ### Weight Comparison across the Full Range
 
-<CssPreview client:load
+<CssPreview
   title="Noto Sans JP — All Available Weights"
   html={`    <div class="weight-showcase">
       <div class="weight-row">
@@ -312,7 +310,7 @@ h6 {
 
 ### CSS Variable Approach for Easy Switching
 
-<CssPreview client:load
+<CssPreview
   title="CSS Variable Font Stack — Easy Theming"
   html={`    <div class="theme-demo">
       <div class="theme-demo__card theme-demo__card--sans">

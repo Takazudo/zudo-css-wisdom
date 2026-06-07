@@ -3,9 +3,6 @@ title: 3層カラー戦略
 sidebar_position: 7
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 ウェブサイトやウェブアプリを構築する際、コンポーネントの CSS にカラー値を直接記述しがちです。ボタンに hex コードを指定し、サイドバーに別のシェードを使い、hover 状態にはさらに別の色を使います。最初はこれで問題ありませんが、2つの深刻な問題が生じます。
@@ -33,7 +30,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 
 パレットは素材そのものです。システムで利用可能なすべての色が含まれます。これらはコンポーネントで直接使いません。絵の具のチューブのようなものです。用意はしておきますが、計画なしにキャンバスに直接絞り出すことはしません。
 
-<CssPreview client:load
+<CssPreview
   title="ティア 1 — パレット: 生のカラー値"
   height={280}
   html={`    <div class="palette-demo">
@@ -157,7 +154,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 
 テーマトークンはパレットカラーに**セマンティックな意味**を与えます。「blue-500」の代わりに、コンポーネントは「アクセントカラー」や「前景色」を参照します。この層がリデザインを容易にします。`--theme-accent` をブルーからインディゴに一箇所で変更するだけで、すべてのコンポーネントが更新されます。
 
-<CssPreview client:load
+<CssPreview
   title="ティア 2 — テーマ: パレットからのセマンティックマッピング"
   height={360}
   html={`    <div class="theme-demo">
@@ -369,7 +366,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 Tailwind + コンポーネントファーストのプロジェクト（React、Vue、Astro でユーティリティクラスを使用）では、ティア 3 のコンポーネントスコープ CSS カスタムプロパティが必要になることはほとんどありません。コンポーネントフレームワーク自体がスコープを提供するため、これらの変数を定義する別の CSS ファイルが存在しません。ティア 3 は主に一般的な CSS アプローチ（BEM、CSS Modules、バニラ CSS）で必要になります。
 </Info>
 
-<CssPreview client:load
+<CssPreview
   title="ティア 3 — コンポーネント: スコープ付きカラーオーバーライド"
   height={340}
   html={`    <div class="tier3-demo">
@@ -493,7 +490,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 ここでは、3つのティアがどのように連携するかを示す完全な例を紹介します。任意の色をその出所まで簡単に追跡できることに注目してください。コンポーネントはテーマを使い、テーマはパレットを指します。
 
-<CssPreview client:load
+<CssPreview
   title="3つのティアすべて — CSS カスタムプロパティの完全な例"
   height={420}
   html={`    <div class="full-demo">
@@ -717,7 +714,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 3層システムの最大の利点は、テーマを変更するときに明らかになります。ティア 2 のポインタを再マッピングするだけで、コンポーネントの CSS に一切触れることなく、すべてのコンポーネントが更新されます。
 
-<CssPreview client:load
+<CssPreview
   title="同じコンポーネント、異なるテーマ — ティア 2 のみ変更"
   height={320}
   html={`    <div class="swap-demo">
@@ -908,7 +905,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 3層戦略は Tailwind の設定に自然にマッピングできます。パレットカラーは `theme.colors` に配置し、テーマトークンは Tailwind クラスが参照する CSS カスタムプロパティにします。
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: 3層カラーシステム"
   height={420}
   html={`    <script>
@@ -1007,7 +1004,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 同じ Tailwind マークアップが、まったく異なるカラースキームで動作します。CSS 変数を変更するだけです。
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: 同じマークアップ、3つの異なるテーマ"
   height={360}
   html={`    <script>
@@ -1110,7 +1107,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 ダークモードのテクニックについて詳しくは、[ダークモード戦略](../dark-mode-strategies/)を参照してください。
 
-<CssPreview client:load
+<CssPreview
   title="light-dark() によるティア 2 でのダークモード"
   height={340}
   html={`    <div class="dm-demo">

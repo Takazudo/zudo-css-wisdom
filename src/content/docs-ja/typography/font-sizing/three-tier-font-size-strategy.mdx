@@ -3,8 +3,6 @@ title: 3層フォントサイズ戦略
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 UI を構築する際、フォントサイズの値を直接使いたくなりがちです。あるコンポーネントでは `font-size: 1.25rem`、別のコンポーネントでは `font-size: 20px`、さらに別のコンポーネントでは `font-size: 1.3rem` と、すべて「やや大きいテキスト」を意味しています。これでは生の値がコードベース全体に散らばり、一元管理できるポイントがありません。
@@ -35,7 +33,7 @@ UI を構築する際、フォントサイズの値を直接使いたくなり�
 
 スケールは素材そのものです。システムで利用可能なすべてのフォントサイズが含まれます。これらの値はコンポーネントで直接使いません。絵の具のチューブのようなものです。用意はしておきますが、計画なしにキャンバスに直接絞り出すことはしません。
 
-<CssPreview client:load
+<CssPreview
   title="ティア 1 — スケール: 抽象的なサイズ値"
   height={320}
   html={`    <div class="scale-demo">
@@ -156,7 +154,7 @@ Tailwind の `@theme` 設定の詳細（ペアとなる line-height や weight �
 
 テーマトークンはスケール値に**セマンティックな意味**を与えます。コンポーネントから見ると「lg」ではなく「subheading」や「heading」になります。タイポグラフィの調整を容易にするレイヤーです。`--font-heading` を `--scale-xl` から `--scale-lg` に一箇所で変更すれば、プロジェクト内のすべての見出しが更新されます。
 
-<CssPreview client:load
+<CssPreview
   title="ティア 2 — テーマ: スケールからのセマンティックマッピング"
   height={380}
   html={`    <div class="theme-demo">
@@ -374,7 +372,7 @@ CSS では、ティア 2 は `:root`（または共有スコープ）に配置�
 Tailwind + コンポーネントファーストのプロジェクト（React、Vue、Astro でユーティリティクラスを使用）では、ティア 3 のコンポーネントスコープ CSS カスタムプロパティが必要になることはほとんどありません。コンポーネントフレームワーク自体がスコープを提供するため、これらの変数を定義する別の CSS ファイルが存在しません。ティア 3 は主に一般的な CSS アプローチ（BEM、CSS Modules、バニラ CSS）で必要になります。
 </Info>
 
-<CssPreview client:load
+<CssPreview
   title="ティア 3 — コンポーネント: スコープ付きサイズオーバーライド"
   height={300}
   html={`    <div class="tier3-demo">
@@ -519,7 +517,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 このデモは、CSS に3つのティアすべてが表示された完全なページレイアウトを示しています。ティア 1 が生のスケールを定義し、ティア 2 がそれをセマンティックな役割にマッピングし、ティア 3 が stat カードに独自のローカルサイズ変数を与えています。
 
-<CssPreview client:load
+<CssPreview
   title="3つのティアの連携"
   height={400}
   html={`    <div class="page">
@@ -658,7 +656,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 このアーキテクチャの最も強力な特徴は、**同じマークアップがまったく異なるサイズテーマで動作する**ことです。ティア 2（セマンティックトークン）を再マッピングするだけで、UI 全体が調整されます。コンパクトモード、大きい/アクセシブルモード、密度設定などを、コンポーネントの CSS に一切触れずに実装できます。
 
-<CssPreview client:load
+<CssPreview
   title="同じマークアップ、3つのサイズテーマ"
   height={460}
   html={`    <div class="themes-demo">

@@ -3,8 +3,6 @@ title: Screen-Width Based Font Size Definition
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Basic `clamp()` typography scales font size linearly across the **entire** viewport range. This works for simple cases, but falls short when you need precise control over how text scales within specific breakpoint ranges. For example, a site logo might need to:
@@ -81,7 +79,7 @@ Result: `clamp(15px, calc(-21px + 3.516vw), 24px)`
 
 Note: The demos below use scaled-down breakpoints (320px / 500px / 768px) so the fluid scaling is visible within the preview iframe. The code examples above show production-appropriate breakpoints.
 
-<CssPreview client:load
+<CssPreview
   title="Segmented fluid font size — switch between Mobile and Full viewports to see scaling"
   html={`<div class="seg-demo">
   <div class="seg-demo__label">Site Title (segmented clamp)</div>
@@ -214,7 +212,7 @@ Define a reusable token system where each font size step has precise per-breakpo
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Design token font sizes — each step scales independently per breakpoint"
   html={`<div class="token-demo">
   <div class="token-demo__scale">
@@ -333,7 +331,7 @@ Step 3: Assemble the clamp()
 
 A real-world example showing a site header with logo text that scales smoothly across all breakpoints:
 
-<CssPreview client:load
+<CssPreview
   title="Site header with segmented fluid logo text — compare Mobile vs Full viewport"
   html={`<header class="header-demo">
   <div class="header-demo__inner">

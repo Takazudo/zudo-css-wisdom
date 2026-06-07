@@ -3,8 +3,6 @@ title: レイヤードナチュラルシャドウ
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 シャドウはUIデザインにおいて最も重要な奥行きの手がかりの1つですが、AIエージェントはほぼ常に単一のフラットな `box-shadow` 宣言を生成します。単一のシャドウは不自然に見えます。なぜなら、現実世界のシャドウは均一なブラーではないからです。オブジェクトが面の上にあるとき、底部近くに密で暗いコンタクトシャドウと、より遠くに広がる柔らかく薄いシャドウを落とします。単一の `box-shadow` ではこのレイヤードな振る舞いを再現できません。
@@ -150,7 +148,7 @@ import CssPreview from '@/components/CssPreview';
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="フラットシャドウ vs レイヤードシャドウ"
   html={`
     <div class="demo">

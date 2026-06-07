@@ -3,8 +3,6 @@ title: Touch Target Sizing
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Small interactive targets are one of the most common accessibility failures on the web. Users with motor impairments, older adults, and anyone on a mobile device struggle to accurately tap small buttons and links. AI agents routinely generate buttons, icon buttons, and navigation links that are far too small — especially icon-only controls that may be only 16-24px in size. WCAG requires a minimum target size, and failing to meet it creates a frustrating, inaccessible experience.
@@ -18,7 +16,7 @@ All interactive elements must have a minimum touch target size of **44x44 CSS pi
 - **Level AAA (2.5.5)**: At least **44x44px** for all interactive targets. This is the recommended baseline.
 - **Level AA (2.5.8)**: At least **24x24px**, with at least **24px** of spacing between adjacent targets.
 
-<CssPreview client:load
+<CssPreview
   title="Touch Target Comparison: 44px Minimum vs Too Small"
   html={`
     <div class="demo">

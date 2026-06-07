@@ -3,9 +3,6 @@ title: fit-content, max-content, min-content
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 Block-level elements in CSS default to `width: auto`, which stretches them to fill their container. When you need an element to shrink to fit its content — for example, a tag, a tooltip, or a call-to-action button styled as a block — AI agents typically reach for `width: auto` (which does nothing since it is the default) or `width: 100%` (which is the opposite of what is needed). The intrinsic sizing keywords `fit-content`, `max-content`, and `min-content` solve this directly, but AI agents rarely use them.
@@ -138,7 +135,7 @@ Each badge is exactly as wide as its content. No fixed width, no overflow.
 
 ## Live Preview
 
-<CssPreview client:load
+<CssPreview
   title="width: fit-content vs width: 100%"
   html={`
     <div class="demo">
@@ -225,7 +222,7 @@ Tailwind provides `w-fit`, `w-min`, and `w-max` utilities for intrinsic sizing.
 
 ### w-fit vs Default Width
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: w-fit Shrink-to-Content"
   html={`    <div class="flex gap-8 p-6">
       <div class="flex-1">
@@ -243,7 +240,7 @@ Tailwind provides `w-fit`, `w-min`, and `w-max` utilities for intrinsic sizing.
 
 ### Centered Fit-Content Element
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: mx-auto + w-fit Centering"
   html={`    <div class="p-6 bg-slate-50">
       <div class="mx-auto w-fit bg-red-500 text-white px-5 py-1 rounded-full text-sm font-semibold">

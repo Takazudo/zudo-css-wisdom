@@ -3,8 +3,6 @@ title: Transition Best Practices
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 CSS transitions add polish and help users understand state changes. However, AI agents consistently make the same mistakes: transitioning expensive properties (like `width`, `height`, and `margin`) that trigger layout recalculations, using generic `transition: all 0.3s ease` declarations, and never considering the `transition-behavior: allow-discrete` property for transitioning `display` or other discrete properties. The result is janky animations, poor performance, and missed opportunities for smooth UI transitions.
@@ -19,7 +17,7 @@ Transition only **cheap properties** (`transform`, `opacity`) whenever possible,
 2. **Moderate (paint-only)**: `background-color`, `color`, `box-shadow` — trigger repaint but not layout.
 3. **Expensive (layout-triggering)**: `width`, `height`, `margin`, `padding`, `top`, `left` — trigger full layout recalculation.
 
-<CssPreview client:load
+<CssPreview
   title="Transition Comparison — Hover to see smooth vs janky"
   html={`
     <div class="demo">

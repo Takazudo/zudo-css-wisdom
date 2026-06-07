@@ -3,8 +3,6 @@ title: prefers-reduced-motion
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Animations and transitions can cause discomfort, dizziness, or nausea for users with vestibular disorders, motion sensitivities, or certain cognitive conditions. The `prefers-reduced-motion` media query lets users signal their preference through their operating system settings. AI agents almost never include motion preference handling in generated code, and when they do, they tend to remove all motion entirely — which can actually harm usability by removing helpful state-change indicators.
@@ -18,7 +16,7 @@ Respect the `prefers-reduced-motion: reduce` preference by **reducing** rather t
 1. **Remove-motion approach**: Write animations normally, then disable them in a `prefers-reduced-motion: reduce` block.
 2. **No-motion-first approach**: Write static styles by default, then add animations in a `prefers-reduced-motion: no-preference` block. This is safer because users without a preference set still get reduced motion.
 
-<CssPreview client:load
+<CssPreview
   title="prefers-reduced-motion: Full Motion vs Reduced Motion"
   html={`
     <div class="demo">

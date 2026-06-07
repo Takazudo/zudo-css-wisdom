@@ -3,8 +3,6 @@ title: Negative Margin Expand + Padding Back
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Inside a padded container, every child element respects the container's padding and stays inset from the edges. But sometimes a section needs its background color, image, or border to visually break out of that container — extending edge-to-edge — while keeping its text content aligned with the rest of the page. AI agents typically solve this by nesting extra wrapper divs, breaking the element out of the container entirely, or using `100vw` hacks that cause horizontal scrollbars.
@@ -31,7 +29,7 @@ Apply negative horizontal margins to pull the element beyond the container's pad
 
 The negative margin and positive padding must always match. The background expands, but the text stays exactly where it was.
 
-<CssPreview client:load
+<CssPreview
   title="Negative margin expand vs normal content"
   html={`
     <div class="container">
@@ -123,7 +121,7 @@ When the container padding changes at different breakpoints, scale the break-out
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Responsive full-bleed with viewport switching"
   html={`
     <div class="container">

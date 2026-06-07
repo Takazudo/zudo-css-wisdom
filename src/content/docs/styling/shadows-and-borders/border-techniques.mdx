@@ -3,9 +3,6 @@ title: Border Techniques
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 AI agents typically stick to `border: 1px solid #ccc` and rarely explore the richer border capabilities CSS offers. Gradient borders, double-border effects, outline tricks, and the interplay between `border-radius` and `overflow: hidden` are routinely missed or implemented incorrectly. The biggest pitfall is using `border-image` with `border-radius` — they are incompatible, and AI agents generate broken code when combining them.
@@ -183,7 +180,7 @@ When using `border-radius` with children that have their own backgrounds, the ch
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Gradient Border with border-image"
   html={`    <div class="demo"><div class="gradient-border-straight"><p>Gradient border using border-image. Works on straight edges only — no border-radius.</p></div></div>`}
   css={`
@@ -210,7 +207,7 @@ When using `border-radius` with children that have their own backgrounds, the ch
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="Gradient Border with background-clip (Rounded)"
   html={`    <div class="demo"><div class="gradient-border-rounded"><p>Rounded gradient border using the background-clip technique.</p></div></div>`}
   css={`
@@ -240,7 +237,7 @@ When using `border-radius` with children that have their own backgrounds, the ch
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="Double Border with box-shadow"
   html={`    <div class="demo"><div class="double-border"><p>Double border using box-shadow spread</p></div></div>`}
   css={`
@@ -269,7 +266,7 @@ When using `border-radius` with children that have their own backgrounds, the ch
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="Outline-Offset Ring Effect"
   html={`    <div class="demo"><div class="ring-box"><p>Ring effect with outline-offset</p></div></div>`}
   css={`
@@ -322,7 +319,7 @@ Tailwind provides `border-*`, `ring-*`, `outline-*`, and `divide-*` utilities fo
 
 ### Border and Ring Effects
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Border and Ring Effects"
   html={`    <div class="flex flex-wrap gap-8 justify-center items-center min-h-[220px] bg-slate-50 p-8">
       <div class="flex flex-col items-center gap-2">
@@ -342,7 +339,7 @@ Tailwind provides `border-*`, `ring-*`, `outline-*`, and `divide-*` utilities fo
 
 ### Divide Utilities
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Divide Utilities"
   html={`    <div class="flex justify-center items-center min-h-[200px] bg-slate-50 p-6">
       <div class="w-72 bg-white rounded-xl border border-slate-200 divide-y divide-slate-200">
@@ -356,7 +353,7 @@ Tailwind provides `border-*`, `ring-*`, `outline-*`, and `divide-*` utilities fo
 
 ### Focus Ring Pattern
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Focus Ring Pattern"
   html={`    <div class="flex gap-4 justify-center items-center min-h-[160px] bg-slate-100 p-6">
       <button class="bg-blue-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-100">

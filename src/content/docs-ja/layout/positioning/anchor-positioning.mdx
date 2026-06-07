@@ -3,8 +3,6 @@ title: アンカーポジショニング
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 要素を他の要素に対して相対的に配置すること（ツールチップ、ポップオーバー、ドロップダウンメニュー、ラベルなど）は、これまで常にJavaScriptが必要でした。Floating UI（Popper.js）のようなライブラリが位置を計算し、ビューポートのオーバーフローを処理し、スクロールやリサイズ時に再配置します。これによりバンドルサイズ、複雑さ、フレームレートの問題が生じます。AIエージェントは、純粋なCSS Anchor Positioningの方がパフォーマンスが良く保守しやすい場合でも、一貫してJavaScriptの配置ライブラリを推奨します。
@@ -253,7 +251,7 @@ CSS Anchor Positioningを使うと、純粋なCSSで要素を「アンカー」�
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="CSS Anchor Positioning — ツールチップパターン"
   html={`
     <div class="demo">

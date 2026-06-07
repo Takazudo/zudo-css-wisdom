@@ -3,8 +3,6 @@ title: カスタムプロパティパターンカタログ
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 堅牢なデザインシステム、レスポンシブレイアウト、コンポーネントアーキテクチャを構築するためのCSSカスタムプロパティパターンの包括的なコレクションです — すべてインタラクティブなデモ付きです。
 
 ## レスポンシブカスタムプロパティ
@@ -24,7 +22,7 @@ import CssPreview from '@/components/CssPreview';
 
 `--content-padding`を参照するすべての要素がブレークポイントで自動的に更新されます — コンポーネントごとのオーバーライドは不要です。
 
-<CssPreview client:load
+<CssPreview
   title="レスポンシブカスタムプロパティ"
   height={280}
   html={`
@@ -100,7 +98,7 @@ import CssPreview from '@/components/CssPreview';
 
 CSSカウンターは自動番号付けを生成します。カスタムプロパティと組み合わせることで、カウンターのスタイリングを設定可能にします — 親要素から色、サイズ、形状を変更できます。
 
-<CssPreview client:load
+<CssPreview
   title="CSSカウンターとカスタムプロパティ"
   height={320}
   html={`
@@ -163,7 +161,7 @@ CSSカウンターは自動番号付けを生成します。カスタムプロ�
 
 親コンポーネントがカスタムプロパティを設定し、深くネストされた子が自動的にそれを継承します — プロップドリリングも追加クラスも不要です。これはコンポーネントテーマの最も強力なパターンの一つです。
 
-<CssPreview client:load
+<CssPreview
   title="カスタムプロパティの継承"
   height={260}
   html={`
@@ -247,7 +245,7 @@ CSSカウンターは自動番号付けを生成します。カスタムプロ�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="calcベースのスペーシングスケール"
   height={300}
   html={`
@@ -377,7 +375,7 @@ HSLコンポーネントを個別のカスタムプロパティに分離する�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="HSLカラーシステム"
   height={200}
   html={`

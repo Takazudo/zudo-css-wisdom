@@ -3,8 +3,6 @@ title: フォームコントロールのスタイリング
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 フォーム要素 — チェックボックス、ラジオボタン、レンジスライダー、テキストエリア — は、歴史的にウェブで最もスタイリングが難しい要素です。レンダリングはオペレーティングシステムに深く結びついており、ブラウザはCSSによる見た目の制御を制限しています。そのため、開発者はJavaScriptライブラリ、`<div>` 要素で構築されたカスタムトグルコンポーネント、または隠しinputと兄弟セレクタを使った複雑なCSSハックに頼ることになります。これらの回避策はバンドルを肥大化させ、ネイティブのアクセシビリティを壊し、本来のHTMLセマンティクスから逸脱してしまいます。
@@ -24,7 +22,7 @@ import CssPreview from '@/components/CssPreview';
 
 最初のツールとして `accent-color` を使いましょう — 単一プロパティ以外のカスタムCSSが不要で、完全なアクセシビリティを維持します。`accent-color` で表現できないデザインが必要な場合にのみ `appearance: none` を使いましょう。`appearance: none` を使用する場合は、Windows High Contrastモードでコントロールが表示されるよう、必ず `@media (forced-colors: active)` 内で復元してください。
 
-<CssPreview client:load
+<CssPreview
   title="ネイティブコントロールの accent-color"
   height={320}
   html={`
@@ -96,7 +94,7 @@ import CssPreview from '@/components/CssPreview';
 
 たった1行のCSS — `accent-color: hsl(262 80% 50%)` — でコンテナ内のすべてのネイティブコントロールにテーマが適用されます。ブラウザがアクセントの背景に対してチェックマークやラジオドットの色を自動的にコントラスト調整します。
 
-<CssPreview client:load
+<CssPreview
   title="appearance: none によるカスタムチェックボックス"
   height={200}
   html={`
@@ -183,7 +181,7 @@ import CssPreview from '@/components/CssPreview';
 
 `appearance: none` 宣言はネイティブのチェックボックスレンダリングを除去し、CSSで再構築します：ボックスのボーダー、`::before` の `clip-path` ポリゴンでチェックマーク、チェック状態と非チェック状態のアニメーションに `transform: scale()` を使用します。`@media (forced-colors: active)` ブロックは `appearance: auto` を復元し、Windows High Contrastモードでチェックボックスが機能し続けるようにします。
 
-<CssPreview client:load
+<CssPreview
   title="スムーズなトランジション付きカスタムラジオボタン"
   height={200}
   html={`
@@ -279,7 +277,7 @@ import CssPreview from '@/components/CssPreview';
 
 カスタムラジオボタンもチェックボックスと同じパターンに従います：`appearance: none` でネイティブレンダリングを除去し、`::before` 擬似要素で内側のドットを描画し、`transform: scale()` で選択をスムーズにアニメーションします。円形の `border-radius: 50%` と小さな内側のドットにより、従来のラジオボタンの視覚言語が保持され、ユーザーはコントロールをすぐに認識できます。
 
-<CssPreview client:load
+<CssPreview
   title="field-sizing による自動拡張テキストエリア"
   height={280}
   html={`
@@ -352,7 +350,7 @@ import CssPreview from '@/components/CssPreview';
 
 **ブラウザサポートの注意：** `field-sizing` は Chrome 123+ と Edge 123+（2024年3月リリース）でサポートされています。Firefox と Safari はまだサポートしていません。プログレッシブエンハンスメントとして使用しましょう — 非対応ブラウザではテキストエリアがデフォルトの固定サイズにフォールバックします。
 
-<CssPreview client:load
+<CssPreview
   title="統一されたフォームテーマ"
   height={400}
   html={`

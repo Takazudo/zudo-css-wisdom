@@ -3,8 +3,6 @@ title: Containing Block for position fixed
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 `position: fixed` is supposed to pin an element to the viewport. Most of the time it does. But the same set of properties that create a [stacking context](./stacking-context.mdx) — `transform`, `filter`, `backdrop-filter`, `perspective`, `will-change`, `contain`, `content-visibility` — also create a **containing block for fixed-positioned descendants**. When that happens, `top`, `left`, `right`, `bottom` resolve relative to that ancestor's box, not the viewport. The element silently behaves like `position: absolute`.
@@ -56,7 +54,7 @@ Treat the first seven rows as one mental list: "anything from this list above th
 
 `.pinned` is supposed to sit at the top-right of the viewport. Because `.parent` has `transform`, `.pinned` sits at the top-right of `.parent`'s box instead.
 
-<CssPreview client:load
+<CssPreview
   title="Containing block trap: transform on parent"
   html={`    <div class="trap">
       <div class="trap-label">Parent with transform: translateZ(0)</div>
@@ -105,7 +103,7 @@ Treat the first seven rows as one mental list: "anything from this list above th
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Fixed pins to viewport when no trap exists"
   html={`    <div class="ok">
       <div class="ok-label">Parent with no trap properties</div>
@@ -160,7 +158,7 @@ A frosted-glass toolbar with `backdrop-filter: blur()` looks innocuous, but any 
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="backdrop-filter on toolbar traps fixed popover"
   html={`    <div class="page">
       <div class="bg-text">Page content behind the frosted toolbar</div>

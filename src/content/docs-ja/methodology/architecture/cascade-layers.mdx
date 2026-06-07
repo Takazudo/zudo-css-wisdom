@@ -3,8 +3,6 @@ title: カスケードレイヤー
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 CSSの詳細度（specificity）の競合は、バグやフラストレーションの最も一般的な原因の一つです。開発者は、詳細度の競合を管理するために、過剰に具体的なセレクター、`!important`、またはBEMのような命名規則に頼ります。サードパーティCSS（デザインシステム、コンポーネントライブラリ、リセット）を統合する際、どのスタイルが優先されるかの制御はますます困難になります。AIエージェントは、詳細度の競合を引き起こすCSSを生成したり、修正として`!important`を使用したりすることがよくあります。
@@ -238,7 +236,7 @@ p {
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="レイヤーの順序が勝者を決定する"
   html={`
     <div class="demo">
@@ -306,7 +304,7 @@ p {
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="レイヤーの優先度が詳細度に勝つ"
   html={`
     <nav>

@@ -3,8 +3,6 @@ title: OKLCH カラースペース
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 AIエージェントはほぼ常に `hex`、`rgb()`、または `hsl()` 形式で色を生成します。これらの古いカラースペースには根本的な欠陥があります：知覚的に均一ではないということです。HSLでは、同じ明度値を持つ2つの色（例：`hsl(60, 100%, 50%)` の黄色と `hsl(240, 100%, 50%)` の青）は、知覚される明るさが大きく異なります。これにより、色相値を調整するだけでは一貫したアクセシブルなカラーパレットを作ることがほぼ不可能になります。HSLで生成されたAIのパレットは、コントラスト比が不均一で、中間トーンがくすみ、スペクトラム全体で知覚される明るさが「飛ぶ」ことがよくあります。
@@ -73,7 +71,7 @@ OKLCH（`oklch()`）は、Oklab 知覚カラーモデルに基づくCSS色関数
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="OKLCH の均一な明度 vs HSL の不均一な明度"
   html={`    <div class="color-demo">
       <div>

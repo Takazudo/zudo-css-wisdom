@@ -3,8 +3,6 @@ title: 2層サイズ戦略
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 [タイトトークン戦略](../tight-token-strategy/)を使用している場合、Tailwind のデフォルトはすべてリセットされます。これには `h-4`、`w-4`、`size-8` などの幅・高さユーティリティを支える数値スペーシングスケールも含まれます。アイコンのサイズ指定やカードの幅設定が必要になった瞬間、これらのクラスは機能しなくなります。
@@ -97,7 +95,7 @@ CSS プロパティの中には、抽象化する価値のある自然なスケ�
 
 このデモは、Tailwind の数値スペーシングスケールを幅・高さに再追加した場合に何が起こるかを示しています。クラス名には意味がありません — `size-4`、`size-5`、`size-8` は何をサイズ指定しているのか伝えてくれません。
 
-<CssPreview client:load
+<CssPreview
   title="間違った例: 抽象的な数値サイズ（size-4、size-8 など）"
   height={280}
   html={`    <div class="wrong-demo">
@@ -212,7 +210,7 @@ CSS プロパティの中には、抽象化する価値のある自然なスケ�
 
 セマンティックなテーマトークンを使えば、クラス名が自己文書化されます。`w-icon-md h-icon-md` の意味はすべての開発者が分かります。アイコンサイズを変更すれば、すべてのコンポーネントが一度に更新されます。
 
-<CssPreview client:load
+<CssPreview
   title="正しい例: セマンティックテーマトークン（icon-md、avatar-sm など）"
   height={360}
   html={`    <div class="right-demo">
@@ -385,7 +383,7 @@ CSS プロパティの中には、抽象化する価値のある自然なスケ�
 
 同じ UI 要素を2つの方法でサイズ指定した比較です。左側は何を意味するか分からない抽象的な数値トークン、右側はそのサイズが何のためかを正確に伝えるセマンティックなテーマトークンです。
 
-<CssPreview client:load
+<CssPreview
   title="抽象的な数値 vs セマンティックテーマトークン"
   height={300}
   html={`    <div class="compare">
@@ -528,7 +526,7 @@ CSS プロパティの中には、抽象化する価値のある自然なスケ�
 
 コンポーネント固有のサイジングには Tailwind のブラケット構文を使います。これらの値はコンポーネント内にとどめます。コンテキスト外では意味を持たないため、トークンに昇格させません。
 
-<CssPreview client:load
+<CssPreview
   title="コンポーネント固有のサイジングに任意の値を使用"
   height={260}
   html={`    <div class="arb-demo">
