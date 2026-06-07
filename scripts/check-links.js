@@ -35,34 +35,29 @@ export async function parseContentDirs(settingsPath) {
   const docsDirMatch = content.match(/docsDir:\s*["']([^"']*)["']/);
   const docsDir = docsDirMatch ? docsDirMatch[1] : "src/content/docs";
 
-  // Extract locale content dirs.
-  // Supports two formats:
-  //   1. Flat property: docsJaDir: "src/content/docs-ja"
-  //   2. Locales map:   locales: { ja: { dir: "src/content/docs-ja" } }
+  // Extract locale content dirs. Supports both the legacy `docsJaDir: "..."`
+  // form and the current settings shape `locales: { ja: { dir: "..." } }`.
   const localeDirs = [];
 
-  // Format 1: flat property names like docsJaDir, docsZhDir, etc.
-  const localeRegex = /docs[A-Z][a-z]+Dir:\s*["']([^"']*)["']/g;
-  let localeMatch;
-  while ((localeMatch = localeRegex.exec(content)) !== null) {
-    localeDirs.push(localeMatch[1]);
+  const legacyRegex = /docs[A-Z][a-z]+Dir:\s*["']([^"']*)["']/g;
+  let legacyMatch;
+  while ((legacyMatch = legacyRegex.exec(content)) !== null) {
+    localeDirs.push(legacyMatch[1]);
   }
 
-  // Format 2: locales map — { xx: { dir: "..." }, yy: { dir: "..." } }
-  // Only runs if Format 1 found nothing (avoid double-counting).
-  if (localeDirs.length === 0) {
-    const localeDirRegex = /dir:\s*["']([^"']*)["']/g;
-    let m;
-    while ((m = localeDirRegex.exec(content)) !== null) {
-      const dir = m[1];
-      // Skip the main docsDir itself and any non-content paths
-      if (dir !== docsDir && dir.startsWith("src/")) {
-        localeDirs.push(dir);
-      }
+  // Current shape: pull each `dir: "..."` out of the `locales` object.
+  // Scoped to the first `locales: {...}` block so unrelated `dir:` props
+  // elsewhere in settings.ts (e.g. nav locale overrides) aren't picked up.
+  const localesBlockMatch = content.match(/locales:\s*\{([\s\S]*?)\n\s*\},?/);
+  if (localesBlockMatch) {
+    const dirRegex = /\bdir:\s*["']([^"']*)["']/g;
+    let dirMatch;
+    while ((dirMatch = dirRegex.exec(localesBlockMatch[1])) !== null) {
+      localeDirs.push(dirMatch[1]);
     }
   }
 
-  return { docsDir, localeDirs };
+  return { docsDir, localeDirs: [...new Set(localeDirs)] };
 }
 
 async function fileExists(filePath) {

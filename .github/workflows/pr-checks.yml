@@ -34,6 +34,52 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Job 0a: Pin parity check
+  # ---------------------------------------------------------------------------
+  # Pure-Node script — reads package.json only, no pnpm install needed.
+  # Verifies the @takazudo/zfb and @takazudo/zudo-doc package groups stay in
+  # lockstep (a bump to one without the others is a CI error).
+  check-pin-parity:
+    name: Pin Parity Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Check pin parity
+        run: node scripts/check-pin-parity.mjs
+
+  # ---------------------------------------------------------------------------
+  # Job 0b: Template drift check
+  # ---------------------------------------------------------------------------
+  # Compares scaffolded files against the create-zudo-doc devDep templates.
+  # Intentional zcss divergences are listed in .template-drift-allowlist.
+  check-template-drift:
+    name: Template Drift Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check template drift
+        run: pnpm check:template-drift
+
+  # ---------------------------------------------------------------------------
   # Job 1: Type checking
   # ---------------------------------------------------------------------------
   typecheck:

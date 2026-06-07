@@ -4,13 +4,20 @@ set -euo pipefail
 # b4push — local quality gate run before pushing.
 #
 # Step order (cheap → expensive):
-#   1. Type checking (zfb check)
-#   2. Build (zfb build)
-#   3. Link check (check:links --strict-broken --strict-absolute)
+#   1. Pin parity check    (pure-Node, reads package.json only)
+#   2. Template drift check (needs node_modules — create-zudo-doc devDep)
+#   3. Type checking       (zfb check)
+#   4. Build               (zfb build)
+#   5. HTML validation     (html-validate dist/**/*.html)
+#   6. Link check          (check:links --strict-broken --strict-absolute)
+#
+# Env overrides for non-interactive use:
+#   B4PUSH_SKIP_HTML_VALIDATE=1  — skip HTML validation (step 5)
+#   B4PUSH_SKIP_LINK_CHECK=1     — skip link check (step 6)
 
 START_TIME=$(date +%s)
 FAILURES=()
-TOTAL_STEPS=3
+TOTAL_STEPS=6
 CURRENT_STEP=0
 
 step() {
@@ -23,10 +30,32 @@ step() {
 
 pass() { echo "✅ $1"; }
 fail() { echo "❌ $1"; FAILURES+=("$1"); }
+skip() { echo "⏭  $1 (skipped)"; }
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-# ── Step 1: Type checking ─────────────────────────────
+# ── Step 1: Pin parity check ──────────────────────────
+# Pure-Node: reads package.json only, no install needed. Catches the zfb /
+# zudo-doc package groups drifting out of lockstep on a `pnpm up`.
+step "Pin parity check (check:pin-parity)"
+if (cd "$ROOT_DIR" && pnpm check:pin-parity); then
+  pass "Pin parity check passed"
+else
+  fail "Pin parity check"
+fi
+
+# ── Step 2: Template drift check ──────────────────────
+# Requires node_modules (reads create-zudo-doc devDep templates). Run
+# `pnpm install` first if this fails with "not found". Intentional
+# divergences are listed in .template-drift-allowlist.
+step "Template drift check (check:template-drift)"
+if (cd "$ROOT_DIR" && pnpm check:template-drift); then
+  pass "Template drift check passed"
+else
+  fail "Template drift check"
+fi
+
+# ── Step 3: Type checking ─────────────────────────────
 step "Type checking (zfb check)"
 if (cd "$ROOT_DIR" && pnpm check); then
   pass "Type checking passed"
@@ -34,7 +63,7 @@ else
   fail "Type checking"
 fi
 
-# ── Step 2: Build ─────────────────────────────────────
+# ── Step 4: Build ─────────────────────────────────────
 step "Build (zfb build)"
 if (cd "$ROOT_DIR" && pnpm build); then
   pass "Build passed"
@@ -42,15 +71,31 @@ else
   fail "Build"
 fi
 
-# ── Step 3: Link check ────────────────────────────────
+# ── Step 5: HTML validation ───────────────────────────
+step "HTML validation (html-validate)"
+if [[ "${B4PUSH_SKIP_HTML_VALIDATE:-}" == "1" ]]; then
+  skip "HTML validation (B4PUSH_SKIP_HTML_VALIDATE=1)"
+else
+  if (cd "$ROOT_DIR" && pnpm check:html); then
+    pass "HTML validation passed"
+  else
+    fail "HTML validation"
+  fi
+fi
+
+# ── Step 6: Link check ────────────────────────────────
 #
 # Strict on broken links + absolute MDX-source warnings.
 # Allowlist file at `.check-links-allowlist` carries known exceptions.
 step "Link check (check:links --strict-broken --strict-absolute)"
-if (cd "$ROOT_DIR" && pnpm run check:links -- --strict-broken --strict-absolute --allowlist=.check-links-allowlist); then
-  pass "Link check passed"
+if [[ "${B4PUSH_SKIP_LINK_CHECK:-}" == "1" ]]; then
+  skip "Link check (B4PUSH_SKIP_LINK_CHECK=1)"
 else
-  fail "Link check"
+  if (cd "$ROOT_DIR" && pnpm run check:links -- --strict-broken --strict-absolute --allowlist=.check-links-allowlist); then
+    pass "Link check passed"
+  else
+    fail "Link check"
+  fi
 fi
 
 # ── Summary ──────────────────────────────────────────
@@ -63,7 +108,7 @@ echo "  SUMMARY (${DURATION}s)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 if [ ${#FAILURES[@]} -eq 0 ]; then
-  echo "✅ All $TOTAL_STEPS checks passed. Safe to push."
+  echo "✅ All $TOTAL_STEPS checks passed (or skipped). Safe to push."
   exit 0
 else
   echo "❌ ${#FAILURES[@]} check(s) failed:"

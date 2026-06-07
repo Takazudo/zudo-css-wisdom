@@ -1,0 +1,83 @@
+# Template drift allowlist for zudo-css-wisdom (zcss).
+# Generated projects start from create-zudo-doc templates; this file lists
+# intentional divergences so `pnpm check:template-drift` exits 0.
+#
+# Format: one repo-relative path per line (no leading slash).
+# Blank lines and `#` comments are ignored.
+#
+# REGENERATE when bumping create-zudo-doc / @takazudo/zudo-doc: re-run
+# `pnpm check:template-drift`, then for each newly-reported file decide whether
+# it is an intentional zcss customization (add here, documented) or real drift
+# to reconcile (fix the file). Delete an entry when its divergence goes away.
+
+# ── Build-time / gitignored ───────────────────────────────────────────────
+# .zfb/ is gitignored; doc-history-meta.json is written at build time by the
+# doc-history plugin. Absent in a fresh checkout (CI) → [MISSING IN PROD];
+# present + stale locally → [DIFF]. Either way not a tracked-source divergence.
+.zfb/doc-history-meta.json
+
+# ── zcss host customizations (base/ files) ────────────────────────────────
+# _mdx-components.ts registers the zcss-specific CssPreview / TailwindPreview
+# demo components (+ admonitions / CategoryNav) on top of the scaffold defaults.
+pages/_mdx-components.ts
+
+# _head-with-defaults.tsx: zcss adds OgTags/TwitterCard og:image, the
+# ColorSchemeProvider palette mount, the sidebar-resizer pre-paint script, and
+# the favicon set (.ico + 16/32 png).
+pages/lib/_head-with-defaults.tsx
+
+# run-b4push.sh is intentionally the zcss gate set (format-free; pin-parity +
+# template-drift + typecheck + build + html-validate + link-check).
+scripts/run-b4push.sh
+
+# i18n.ts adds the search.placeholder / search.shortcutHint UI strings (EN+JA)
+# that the scaffold default omits.
+src/config/i18n.ts
+
+# global.css carries the zcss design tokens (Default Dark/Light, p0–p15 palette,
+# @theme) plus the @source node_modules scan + @source inline(...) safelist for
+# the consumed @takazudo/zudo-doc bracket/responsive utilities.
+src/styles/global.css
+
+# theme-toggle.tsx: zcss pins `ThemeToggle.displayName = "ThemeToggle"` (+ a
+# "use client" first line) to avoid the esbuild ThemeToggle2 island-marker
+# collision (mirrors zudo-doc#1446).
+src/components/theme-toggle.tsx
+
+# sidebar-toggle.tsx: zcss ships the data-props variant (nodes/currentSlug/
+# rootMenuItems/localeLinks/themeDefaultMode → <SidebarTree>) to fix the empty
+# mobile drawer.
+src/components/sidebar-toggle.tsx
+
+# sidebar-tree.tsx: minor type-cast difference only —
+# `(e.target as HTMLInputElement).value` vs the template's `e.target.value`.
+src/components/sidebar-tree.tsx
+
+# rehype-heading-links.ts: comment-only drift — our copy retains the
+# pre-migration doc comments; behaviorally identical to the template plugin.
+src/plugins/rehype-heading-links.ts
+
+# tsconfig.json: zcss adds the @/components/CssPreview + @/components/TailwindPreview
+# path aliases and adjusts `exclude` (e2e, scripts/**/__tests__).
+tsconfig.json
+
+# ── Feature islands: enabled feature's real impl overrides the base no-op stub
+# These three files exist in BOTH base/ (no-op stub) and their feature/ dir
+# (real island). zcss has the features enabled, so the production file is the
+# real island — which DIFFs against the base stub in the base/ pass. The real
+# impl matches its feature template; the divergence is base-stub-vs-real only.
+src/components/desktop-sidebar-toggle.tsx
+src/components/doc-history.tsx
+src/components/image-enlarge.tsx
+
+# ── claudeResources: package-export approach (vendored copies intentionally
+# absent). zcss's plugins/claude-resources-plugin.mjs (identical to template)
+# imports the generation step from the npm package
+# `@takazudo/zudo-doc/integrations/claude-resources`, so the template's vendored
+# src/integrations/claude-resources/* copies + tests are not carried (removed in
+# commit ff283b9; build verifies claude docs still generate). CF kept these
+# copies; zcss deliberately does not.
+src/integrations/claude-resources/escape-for-mdx.ts
+src/integrations/claude-resources/generate.ts
+src/integrations/claude-resources/__tests__/escape-for-mdx.test.ts
+src/integrations/claude-resources/__tests__/generate.test.ts
