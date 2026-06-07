@@ -3,8 +3,6 @@ title: Custom Properties Pattern Catalog
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 A comprehensive collection of CSS custom property patterns for building robust design systems, responsive layouts, and component architectures — all with interactive demos.
 
 ## Responsive Custom Properties
@@ -24,7 +22,7 @@ Custom properties that change at breakpoints using `@media` create a responsive 
 
 Every element referencing `--content-padding` automatically updates at the breakpoint — no per-component overrides needed.
 
-<CssPreview client:load
+<CssPreview
   title="Responsive Custom Properties"
   height={280}
   html={`
@@ -100,7 +98,7 @@ Every element referencing `--content-padding` automatically updates at the break
 
 CSS counters generate automatic numbering. Combine them with custom properties to make the counter styling configurable — change colors, sizes, or shapes from a parent element.
 
-<CssPreview client:load
+<CssPreview
   title="CSS Counters with Custom Properties"
   height={320}
   html={`
@@ -163,7 +161,7 @@ CSS counters generate automatic numbering. Combine them with custom properties t
 
 A parent component sets custom properties, and deeply nested children inherit them automatically — no prop drilling, no extra classes. This is one of the most powerful patterns for component theming.
 
-<CssPreview client:load
+<CssPreview
   title="Custom Property Inheritance"
   height={260}
   html={`
@@ -247,7 +245,7 @@ Define a single base spacing unit, then derive an entire scale with `calc()`. Ch
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Calc-Based Spacing Scale"
   height={300}
   html={`
@@ -377,7 +375,7 @@ Separate HSL components into individual custom properties for maximum flexibilit
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="HSL Color System"
   height={200}
   html={`

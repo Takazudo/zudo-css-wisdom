@@ -3,8 +3,6 @@ title: ビュートランジション
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 ページの状態間やナビゲーション時にスムーズなアニメーショントランジションを作成するには、従来、複雑なJavaScriptアニメーションライブラリ、手動のDOM操作、またはReact Transition Groupのようなフレームワーク固有のソリューションが必要でした。ページナビゲーション（SPAとMPAの両方）では、視覚的な連続性のない唐突なコンテンツの切り替えが発生します。AIエージェントはJavaScriptに依存するアニメーションアプローチをデフォルトとし、View Transitions APIを提案することはほとんどありません。
@@ -250,7 +248,7 @@ CSSを繰り返すことなく、複数の名前付きトランジションに�
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="View Transition CSSパターン（静的例）"
   html={`
     <div class="demo">

@@ -4,8 +4,6 @@ description: Control image sizing and art direction with object-fit, aspect-rati
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Images are one of the most common sources of layout issues and performance problems. AI agents frequently output `<img>` tags with fixed widths, forget `object-fit` (causing stretched or squished images), omit `aspect-ratio` (causing layout shift), and rarely generate proper `srcset`/`sizes` attributes or `<picture>` elements for art direction.
@@ -14,7 +12,7 @@ Images are one of the most common sources of layout issues and performance probl
 
 Responsive images require both CSS techniques (`object-fit`, `aspect-ratio`) for visual presentation and HTML attributes (`srcset`, `sizes`, `<picture>`) for performance and art direction.
 
-<CssPreview client:load
+<CssPreview
   title="object-fit Comparison: cover vs contain vs fill"
   html={`
     <div class="fit-grid">

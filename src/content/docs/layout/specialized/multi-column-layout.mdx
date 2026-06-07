@@ -3,8 +3,6 @@ title: Multi-Column Layout
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Creating newspaper-style multi-column text or masonry/Pinterest-style layouts has historically required JavaScript libraries or complex CSS Grid hacks. AI agents often reach for these heavier solutions without considering CSS Multi-Column Layout, a native CSS module that handles column-based content flow with just a few properties. Despite excellent browser support, multi-column layout remains widely underused — particularly for its ability to flow content vertically through columns without any JavaScript.
@@ -70,7 +68,7 @@ This is essential for masonry-style card layouts where each card should remain i
 
 Classic newspaper-style multi-column text using `column-count` with `column-gap` and `column-rule`. Text flows naturally from one column to the next.
 
-<CssPreview client:load
+<CssPreview
   title="Magazine Text Layout with column-count"
   height={320}
   html={`    <article class="magazine-text">
@@ -97,7 +95,7 @@ Classic newspaper-style multi-column text using `column-count` with `column-gap`
 
 Using `column-width` without `column-count` lets the browser automatically determine how many columns fit. This is naturally responsive — no media queries needed. The specified width is a minimum; the browser may use wider columns but never narrower.
 
-<CssPreview client:load
+<CssPreview
   title="Responsive Columns with column-width (resize to see)"
   height={280}
   html={`    <div class="responsive-text">
@@ -124,7 +122,7 @@ Using `column-width` without `column-count` lets the browser automatically deter
 
 Block-level cards in a multi-column container with `break-inside: avoid` to prevent cards from splitting across columns. Cards have varying heights to show the masonry effect.
 
-<CssPreview client:load
+<CssPreview
   title="Masonry Card Gallery with break-inside: avoid"
   height={420}
   html={`    <div class="masonry-gallery">
@@ -199,7 +197,7 @@ Without `break-inside: avoid`, the browser would split cards across column bound
 
 Use `column-span: all` to create a full-width element that breaks out of the column flow. This is useful for headings, pull-quotes, or section dividers that should stretch across all columns.
 
-<CssPreview client:load
+<CssPreview
   title="Column Spanning with column-span: all"
   height={360}
   html={`    <article class="spanning-article">
@@ -241,7 +239,7 @@ Note that `column-span` only accepts `all` or `none` — you cannot span a speci
 
 Multi-column layout and CSS Grid both create multi-column appearances, but they flow content in fundamentally different directions. Columns flow content **vertically** (top-to-bottom, then the next column), while Grid flows content **horizontally** (left-to-right, row by row).
 
-<CssPreview client:load
+<CssPreview
   title="Multi-Column (vertical flow) vs CSS Grid (horizontal flow)"
   height={340}
   html={`    <div class="comparison">

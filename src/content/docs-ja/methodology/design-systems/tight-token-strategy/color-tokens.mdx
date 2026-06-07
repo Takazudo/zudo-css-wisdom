@@ -3,8 +3,6 @@ title: カラートークンパターン
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 Tailwind CSS はデフォルトで約22のカラーファミリーを持ち、各ファミリーに11のシェード（50〜950）があるため、240以上のカラーユーティリティがあります。実際には、あるコンポーネントで `blue-500` を使い、別のコンポーネントで `blue-600` を使い、3つ目で `indigo-500` を使う — すべて「プライマリボタンの青」のつもりです。制約がなければすべてのシェードが等しく有効なので、不整合は静かに広がっていきます。
@@ -78,7 +76,7 @@ Tailwind CSS はデフォルトで約22のカラーファミリーを持ち、�
 
 左側は Tailwind の22種類のデフォルトグレーシェードのサンプルです — すべて背景として技術的に有効です。右側はそれらを置き換える3つのセマンティックサーフェストークンです。選択肢が少ないほど、決定が速くなり、一貫性が保証されます。
 
-<CssPreview client:load
+<CssPreview
   title="22種類のデフォルトグレー vs 3つのセマンティックサーフェス"
   height={340}
   html={`    <div class="demo">
@@ -176,7 +174,7 @@ Tailwind CSS はデフォルトで約22のカラーファミリーを持ち、�
 
 これらのボタンはセマンティックカラートークンのみを使用しています — `primary`、`secondary`、`error`、`accent`。数値カラーシェードは一切使われていません。プロジェクト内のすべてのボタンがこれらのトークンを使うため、パレットは一貫性を保ちます。
 
-<CssPreview client:load
+<CssPreview
   title="セマンティックカラートークンを使ったボタン"
   height={200}
   html={`    <div class="btn-demo">
@@ -267,7 +265,7 @@ Tailwind CSS はデフォルトで約22のカラーファミリーを持ち、�
 
 このカードは5つのトークンカテゴリすべてが連携して動作することを示しています。背景には `surface` と `surface-alt` を、テキストには `text` と `text-muted` を、ボーダーには `border` を、バッジには `primary` ブランドカラーを使用しています。コンポーネント内のすべてのカラーが正確に1つのセマンティックトークンに対応しています。
 
-<CssPreview client:load
+<CssPreview
   title="すべてのセマンティックカラートークンカテゴリを使ったカード"
   height={320}
   html={`    <div class="card-demo">
@@ -467,7 +465,7 @@ zmod プロジェクトではまさにこのパターンを使っています：
 
 このデモは、最初は単一の `gray` トークンを使ったシンプルなカードUIを示しています。デザインが後からダークなカードサーフェスを必要としたとき、オリジナルの `gray` に触れることなく `gray2` が追加されます。
 
-<CssPreview client:load
+<CssPreview
   title="パレット拡張：gray → gray + gray2"
   height={420}
   html={`    <div class="growth-demo">

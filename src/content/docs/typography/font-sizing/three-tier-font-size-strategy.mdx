@@ -3,8 +3,6 @@ title: Three-Tier Font-Size Strategy
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 When building a UI, it's tempting to use font-size values directly — `font-size: 1.25rem` in one component, `font-size: 20px` in another, and `font-size: 1.3rem` in a third, all meaning "slightly large text." This scatters raw values across the codebase with no central point of control.
@@ -35,7 +33,7 @@ This is the same architecture as the [Three-Tier Color Strategy](../../../stylin
 
 The scale is the raw material — every font size available in the system. These values are not used directly in components. Think of them as paint tubes: you have them ready, but you don't squeeze them onto the canvas without a plan.
 
-<CssPreview client:load
+<CssPreview
   title="Tier 1 — Scale: Abstract Size Values"
   height={320}
   html={`    <div class="scale-demo">
@@ -156,7 +154,7 @@ For detailed Tailwind `@theme` configuration, including paired line-heights and 
 
 Theme tokens give **semantic meaning** to scale values. Instead of "lg", components see "subheading" or "heading". This is the layer that makes typography adjustments painless — change `--font-heading` from `--scale-xl` to `--scale-lg` in one place, and every heading in the project updates.
 
-<CssPreview client:load
+<CssPreview
   title="Tier 2 — Theme: Semantic Mapping from Scale"
   height={380}
   html={`    <div class="theme-demo">
@@ -374,7 +372,7 @@ The `--_` prefix tells readers "this variable is locally scoped to this componen
 In Tailwind + component-first projects (React, Vue, Astro with utility classes), Tier 3 component-scoped CSS custom properties are rarely needed. The component framework itself provides scoping — there are no separate CSS files where these variables would be defined. Tier 3 is primarily relevant for general CSS approaches (BEM, CSS Modules, vanilla CSS).
 </Info>
 
-<CssPreview client:load
+<CssPreview
   title="Tier 3 — Component: Scoped Size Overrides"
   height={300}
   html={`    <div class="tier3-demo">
@@ -519,7 +517,7 @@ Notice how each component defines its own font-size variables but still referenc
 
 This demo shows a complete page layout with all three tiers visible in the CSS. Tier 1 defines the raw scale, Tier 2 maps it to semantic roles, and Tier 3 gives the stat cards their own local size variables.
 
-<CssPreview client:load
+<CssPreview
   title="All Three Tiers Working Together"
   height={400}
   html={`    <div class="page">
@@ -658,7 +656,7 @@ This demo shows a complete page layout with all three tiers visible in the CSS. 
 
 The most powerful feature of this architecture: **the same markup works with completely different size themes**. Just remap Tier 2 — the semantic tokens — and the entire UI adjusts. This is how you implement compact mode, large/accessible mode, or density settings without touching any component CSS.
 
-<CssPreview client:load
+<CssPreview
   title="Same Markup, Three Size Themes"
   height={460}
   html={`    <div class="themes-demo">

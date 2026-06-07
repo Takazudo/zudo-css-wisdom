@@ -4,9 +4,6 @@ description: Build grids that reflow automatically with auto-fill, auto-fit, and
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 Creating responsive grid layouts traditionally requires multiple media queries with different `grid-template-columns` values at each breakpoint. AI agents almost always hard-code column counts (e.g., `grid-template-columns: repeat(3, 1fr)`) and then add breakpoints to switch to 2 columns and then 1 column. This produces brittle layouts that break when the container width changes unexpectedly. CSS Grid has built-in features that make grids inherently responsive without any media queries.
@@ -25,7 +22,7 @@ When the grid has fewer items than columns, the difference becomes visible:
 - `auto-fill` preserves the empty column slots (useful for consistent column widths).
 - `auto-fit` collapses empty slots and stretches existing items to fill the row.
 
-<CssPreview client:load
+<CssPreview
   title="auto-fill + minmax() Grid — Use Mobile / Tablet / Full to see reflow"
   html={`
     <div class="grid">
@@ -263,7 +260,7 @@ Tailwind uses responsive breakpoint prefixes (`sm:`, `md:`, `lg:`, `xl:`) to cha
 
 ### Responsive Card Grid
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Responsive Grid (try Mobile / Tablet / Full)"
   html={`    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       <div class="bg-blue-500 text-white font-bold p-8 rounded-lg flex items-center justify-center min-h-[80px]">Card 1</div>
@@ -276,7 +273,7 @@ Tailwind uses responsive breakpoint prefixes (`sm:`, `md:`, `lg:`, `xl:`) to cha
 
 ### Asymmetric Layout
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Main + Sidebar Responsive Layout"
   html={`    <div class="grid grid-cols-1 md:grid-cols-[1fr_16rem] gap-4 p-4">
       <div class="bg-green-500 text-white p-6 rounded-lg min-h-[200px]">

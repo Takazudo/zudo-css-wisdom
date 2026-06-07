@@ -3,8 +3,6 @@ title: Fluid Font Sizing with clamp()
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Responsive typography traditionally requires multiple media queries to adjust font sizes at different breakpoints. This creates abrupt jumps between sizes and produces verbose, hard-to-maintain CSS. AI agents frequently generate fixed `px` or `rem` values at arbitrary breakpoints instead of using fluid scaling, resulting in text that is either too small on mobile or too large on desktop, with jarring transitions between breakpoints.
@@ -87,7 +85,7 @@ small {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Fluid Typography with clamp() — Resize viewport to see scaling"
   html={`<div class="fluid-demo">
     <h1>Heading One</h1>

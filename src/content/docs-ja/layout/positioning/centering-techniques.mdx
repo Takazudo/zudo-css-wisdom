@@ -3,9 +3,6 @@ title: センタリングテクニック
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 要素のセンタリングはCSSの最も基本的なタスクの1つですが、AIエージェントは過度に複雑な方法や不適切な方法を使いがちです。よくあるミスとしては、非インライン要素に `text-align: center` を使う、flexboxやgridで十分なのに `transform: translate(-50%, -50%)` を適用する、複数のセンタリング手法を重ねて使う、レイアウトが求めていないのに `position: absolute` に頼る、などがあります。
@@ -142,7 +139,7 @@ flexまたはgridアイテムに `margin: auto` を設定すると、その軸�
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox センタリング"
   html={`
     <div class="flex-center">
@@ -167,7 +164,7 @@ flexまたはgridアイテムに `margin: auto` を設定すると、その軸�
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="Grid place-items: center"
   html={`
     <div class="grid-center">
@@ -236,7 +233,7 @@ Tailwindは、すべてのセンタリング手法に対応する簡潔なユー
 
 ### Flexbox センタリング
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Flexbox センタリング"
   html={`    <div class="flex justify-center items-center h-[200px] bg-blue-50">
       <div class="px-6 py-4 bg-blue-500 text-white rounded-lg font-semibold">
@@ -247,7 +244,7 @@ Tailwindは、すべてのセンタリング手法に対応する簡潔なユー
 
 ### Grid センタリング
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Grid place-items-center"
   html={`    <div class="grid place-items-center h-[200px] bg-green-50">
       <div class="px-6 py-4 bg-green-500 text-white rounded-lg font-semibold">
@@ -258,7 +255,7 @@ Tailwindは、すべてのセンタリング手法に対応する簡潔なユー
 
 ### mx-auto による水平センタリング
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: mx-auto センタリング"
   html={`    <div class="p-6 bg-slate-100">
       <div class="mx-auto w-fit bg-violet-500 text-white px-6 py-4 rounded-lg font-semibold">

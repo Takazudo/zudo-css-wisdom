@@ -3,8 +3,6 @@ title: タイトトークン戦略
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 Tailwind CSS はデフォルトで膨大なトークンセットを提供しています。spacing スケールだけでも `0`、`0.5`、`1`、`1.5`、`2`、`2.5`、`3`、`3.5`、`4`、`5`、`6`、`7`、`8`、`9`、`10`、`11`、`12`、`14`、`16`、`20`、`24`、`28`、`32`、`36`、`40`、`44`、`48`、`52`、`56`、`60`、`64`、`72`、`80`、`96` と、30以上の数値ステップがあります。これにカラー、フォントサイズ、border-radius などのカテゴリを掛け合わせると、利用可能なユーティリティの空間は膨大になります。
@@ -198,7 +196,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
 
 以下のデモは、同じカードレイアウトを2通りの方法で構築しています。左のカードはタイトなセマンティックトークンアプローチを使用し、右のカードは任意の数値スペーシング値を使用しています。あらゆる値が許可されている場合にどのように不整合が生じるかをシミュレートしています。
 
-<CssPreview client:load
+<CssPreview
   title="セマンティックトークン vs 任意の値"
   html={`    <div class="demo-container">
       <div class="demo-column">
@@ -326,7 +324,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
 
 ### デモ：セマンティックスペーシングを使ったページレイアウト
 
-<CssPreview client:load
+<CssPreview
   title="タイトトークンを使ったページレイアウト"
   html={`    <div class="page">
       <header class="page-header">
@@ -452,11 +450,11 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
 
 各カテゴリの詳細なトークン戦略については以下を参照してください：
 
-- [カラートークンパターン](./color-tokens) — セマンティックカラースケール、ブランドカラー、ステートカラー、サーフェスレイヤー（基盤となるアーキテクチャについては [3層カラー戦略](../../../styling/color/three-tier-color-strategy) も参照）
-- [タイポグラフィトークンパターン](./typography-tokens) — フォントサイズ、line-height、font-weight、letter-spacing のトークン戦略
-- [トークンプレビュー](./token-preview) — 利用可能なすべてのトークンのビジュアルリファレンス
-- [コンポーネントトークンと任意の値](./component-tokens) — システムトークンと任意の値の使い分け
-- [2層サイズ戦略](../two-tier-size-strategy/) — width/height のサイジングが抽象レイヤーをスキップし、セマンティックなテーマトークンを直接使う理由
+- [カラートークンパターン](./color-tokens.mdx) — セマンティックカラースケール、ブランドカラー、ステートカラー、サーフェスレイヤー（基盤となるアーキテクチャについては [3層カラー戦略](../../../styling/color/three-tier-color-strategy.mdx) も参照）
+- [タイポグラフィトークンパターン](./typography-tokens.mdx) — フォントサイズ、line-height、font-weight、letter-spacing のトークン戦略
+- [トークンプレビュー](./token-preview.mdx) — 利用可能なすべてのトークンのビジュアルリファレンス
+- [コンポーネントトークンと任意の値](./component-tokens.mdx) — システムトークンと任意の値の使い分け
+- [2層サイズ戦略](../two-tier-size-strategy.mdx) — width/height のサイジングが抽象レイヤーをスキップし、セマンティックなテーマトークンを直接使う理由
 
 ## 参考リンク
 

@@ -3,15 +3,13 @@ title: Theming Recipes
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 Complete theme system recipes using CSS custom properties. Each recipe is a production-ready pattern you can adapt to your own projects. These recipes implement the layered architecture described in [Three-Tier Color Strategy](../../../../styling/color/three-tier-color-strategy) — palette tokens, semantic theme tokens, and component-scoped overrides — using the cascade and `var()` fallbacks.
 
 ## Light/Dark Theme with Custom Properties
 
 Define your entire color palette as custom properties, then swap them all with a single class toggle. No JavaScript logic for individual colors — the cascade handles everything.
 
-<CssPreview client:load
+<CssPreview
   title="Light / Dark Theme"
   height={340}
   html={`
@@ -99,7 +97,7 @@ Define your entire color palette as custom properties, then swap them all with a
 
 Start with a default theme, then override it by wrapping components in a brand-color container. The children automatically pick up the new values through the cascade.
 
-<CssPreview client:load
+<CssPreview
   title="Brand Theme Override"
   height={340}
   html={`
@@ -173,7 +171,7 @@ Start with a default theme, then override it by wrapping components in a brand-c
 
 Expose a set of custom properties as a component's public styling API. Consumers override just the properties they need — the component handles the rest internally.
 
-<CssPreview client:load
+<CssPreview
   title="Component API Pattern"
   height={250}
   html={`
@@ -241,7 +239,7 @@ Expose a set of custom properties as a component's public styling API. Consumers
 
 Define three logical layers — **surface** (backgrounds), **content** (text), and **accent** (interactive highlights). Components reference layers instead of raw colors, making full-page theme swaps trivial. This is the [Three-Tier Color Strategy](../../../../styling/color/three-tier-color-strategy) in action — the layers below correspond to Tier 2 (semantic theme tokens).
 
-<CssPreview client:load
+<CssPreview
   title="Surface / Content Layer Pattern"
   height={320}
   html={`

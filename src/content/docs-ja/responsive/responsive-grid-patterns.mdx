@@ -4,9 +4,6 @@ description: auto-fill・auto-fit と minmax() を使い、自動でカラム数
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 レスポンシブなグリッドレイアウトの作成には、従来、各ブレークポイントで異なる `grid-template-columns` 値を持つ複数のメディアクエリが必要でした。AIエージェントはほぼ常にカラム数をハードコード（例：`grid-template-columns: repeat(3, 1fr)`）してから、2カラム、1カラムに切り替えるブレークポイントを追加します。これではコンテナ幅が予想外に変わると壊れる脆いレイアウトになります。CSS Grid にはメディアクエリなしでグリッドを本質的にレスポンシブにする組み込み機能があります。
@@ -25,7 +22,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 - `auto-fill` は空のカラムスロットを保持します（一貫したカラム幅に便利です）。
 - `auto-fit` は空のスロットを折りたたみ、既存のアイテムを行全体に引き伸ばします。
 
-<CssPreview client:load
+<CssPreview
   title="auto-fill + minmax() グリッド — Mobile / Tablet / Full でリフローを確認"
   html={`
     <div class="grid">
@@ -263,7 +260,7 @@ Tailwind はレスポンシブブレークポイントプレフィックス（`s
 
 ### レスポンシブカードグリッド
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: レスポンシブグリッド（Mobile / Tablet / Full で確認）"
   html={`    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       <div class="bg-blue-500 text-white font-bold p-8 rounded-lg flex items-center justify-center min-h-[80px]">Card 1</div>
@@ -276,7 +273,7 @@ Tailwind はレスポンシブブレークポイントプレフィックス（`s
 
 ### 非対称レイアウト
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: メイン + サイドバーのレスポンシブレイアウト"
   html={`    <div class="grid grid-cols-1 md:grid-cols-[1fr_16rem] gap-4 p-4">
       <div class="bg-green-500 text-white p-6 rounded-lg min-h-[200px]">

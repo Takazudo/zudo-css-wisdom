@@ -3,8 +3,6 @@ title: ":is() and :where() Selectors"
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 CSS selectors that share the same declarations require writing out every combination individually, leading to verbose and repetitive rule sets. Selector lists with different specificity levels make it difficult to create easily overridable base styles. When building resets, defaults, or library CSS, specificity conflicts with consumer styles are a constant battle. AI agents typically generate repetitive selectors and rarely use `:is()` or `:where()` to manage specificity intentionally.
@@ -219,7 +217,7 @@ Both `:is()` and `:where()` have global support exceeding 96%. They are safe for
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title=":is() — Selector Grouping"
   html={`
     <article>
@@ -280,7 +278,7 @@ Both `:is()` and `:where()` have global support exceeding 96%. They are safe for
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title=":where() — Zero Specificity (Easily Overridable)"
   html={`
     <div class="demo">

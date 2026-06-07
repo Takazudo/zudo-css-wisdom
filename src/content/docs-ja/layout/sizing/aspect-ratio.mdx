@@ -3,8 +3,6 @@ title: aspect-ratio
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 画像、動画、埋め込みコンテンツ、カードレイアウトのアスペクト比を維持することはよくある要件です。長年にわたり、唯一の信頼できるテクニックは「padding-top ハック」でした。パーセントベースの padding を使って比率を持つボックスを作る方法です。AIエージェントは今でも古いハックを生成したり、さらに悪い場合には画面サイズが変わると崩れる固定ピクセルサイズを使ったりします。モダンな `aspect-ratio` プロパティは、追加のマークアップなしで1行でこの問題を解決します。
@@ -40,7 +38,7 @@ import CssPreview from '@/components/CssPreview';
 
 画像はコンテナの幅いっぱいに広がり、16:9の比率を維持します。`object-fit: cover` により、画像は歪みなくボックスを埋め、必要に応じてトリミングされます。
 
-<CssPreview client:load
+<CssPreview
   title="aspect-ratio: 画像コンテナ（16/9）"
   html={`    <div class="container">
       <div class="thumbnail">
@@ -133,7 +131,7 @@ import CssPreview from '@/components/CssPreview';
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="aspect-ratio: カードレイアウトグリッド"
   html={`    <div class="card-grid">
       <div class="card">

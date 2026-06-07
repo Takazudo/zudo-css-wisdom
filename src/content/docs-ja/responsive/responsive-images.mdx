@@ -4,8 +4,6 @@ description: object-fit・aspect-ratio・srcset・picture で画像のサイズ�
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 画像はレイアウトの問題やパフォーマンス低下の最も一般的な原因の一つです。AIエージェントは固定幅の `<img>` タグを出力し、`object-fit` を忘れ（画像が引き伸ばされたり潰れたりする）、`aspect-ratio` を省略し（レイアウトシフトが発生する）、適切な `srcset`/`sizes` 属性や `<picture>` 要素によるアートディレクションもほとんど生成しません。
@@ -14,7 +12,7 @@ import CssPreview from '@/components/CssPreview';
 
 レスポンシブ画像には、視覚的な表示のためのCSSテクニック（`object-fit`、`aspect-ratio`）と、パフォーマンスとアートディレクションのためのHTML属性（`srcset`、`sizes`、`<picture>`）の両方が必要です。
 
-<CssPreview client:load
+<CssPreview
   title="object-fit の比較: cover vs contain vs fill"
   html={`
     <div class="fit-grid">

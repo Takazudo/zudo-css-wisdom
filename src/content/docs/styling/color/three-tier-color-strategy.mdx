@@ -3,9 +3,6 @@ title: Three-Tier Color Strategy
 sidebar_position: 7
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 When building a website or web app, it's tempting to use color values directly in component CSS — picking a hex code for a button, a different shade for a sidebar, and yet another for hover states. This works initially but creates two serious problems:
@@ -33,7 +30,7 @@ The key insight: **each tier only references the tier above it**. Components use
 
 The palette is the raw material — every color available in the system. These are not used directly in components. Think of them as paint tubes: you have them ready, but you don't squeeze them onto the canvas without a plan.
 
-<CssPreview client:load
+<CssPreview
   title="Tier 1 — Palette: Raw Color Values"
   height={280}
   html={`    <div class="palette-demo">
@@ -157,7 +154,7 @@ The palette is the raw material — every color available in the system. These a
 
 Theme tokens give **semantic meaning** to palette colors. Instead of "blue-500", components see "accent color" or "foreground color". This is the layer that makes redesigns painless — change `--theme-accent` from blue to indigo in one place, and every component updates.
 
-<CssPreview client:load
+<CssPreview
   title="Tier 2 — Theme: Semantic Mapping from Palette"
   height={360}
   html={`    <div class="theme-demo">
@@ -369,7 +366,7 @@ The `--_` prefix tells readers "this variable is locally scoped to this componen
 In Tailwind + component-first projects (React, Vue, Astro with utility classes), Tier 3 component-scoped CSS custom properties are rarely needed. The component framework itself provides scoping — there are no separate CSS files where these variables would be defined. Tier 3 is primarily relevant for general CSS approaches (BEM, CSS Modules, vanilla CSS).
 </Info>
 
-<CssPreview client:load
+<CssPreview
   title="Tier 3 — Component: Scoped Color Overrides"
   height={340}
   html={`    <div class="tier3-demo">
@@ -493,7 +490,7 @@ In Tailwind + component-first projects (React, Vue, Astro with utility classes),
 
 Here's a complete example showing how the three tiers connect. Notice how easy it is to trace any color back to its source: component uses theme, theme points to palette.
 
-<CssPreview client:load
+<CssPreview
   title="All Three Tiers — Full Example with CSS Custom Properties"
   height={420}
   html={`    <div class="full-demo">
@@ -717,7 +714,7 @@ Here's a complete example showing how the three tiers connect. Notice how easy i
 
 The biggest advantage of the three-tier system is visible when you change the theme. By remapping Tier 2 pointers, every component updates without touching component CSS.
 
-<CssPreview client:load
+<CssPreview
   title="Same Components, Different Themes — Only Tier 2 Changes"
   height={320}
   html={`    <div class="swap-demo">
@@ -908,7 +905,7 @@ Here's how a real project would organize the three tiers across files:
 
 The three-tier strategy maps naturally to Tailwind's configuration. Palette colors go in `theme.colors`, theme tokens become CSS custom properties that Tailwind classes reference.
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Three-Tier Color System"
   height={420}
   html={`    <script>
@@ -1007,7 +1004,7 @@ The three-tier strategy maps naturally to Tailwind's configuration. Palette colo
 
 The same Tailwind markup works with completely different color schemes — just change the CSS variables.
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Same Markup, Three Different Themes"
   height={360}
   html={`    <script>
@@ -1110,7 +1107,7 @@ Dark mode fits naturally into the three-tier system. The palette (Tier 1) stays 
 
 For a deep dive into dark mode techniques, see [Dark Mode Strategies](../dark-mode-strategies/).
 
-<CssPreview client:load
+<CssPreview
   title="Dark Mode via Tier 2 with light-dark()"
   height={340}
   html={`    <div class="dm-demo">

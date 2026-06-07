@@ -3,9 +3,6 @@ title: ホバー・フォーカス・アクティブ状態
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 インタラクティブな要素には、ホバー、フォーカス、アクティブ状態の視覚的フィードバックが必要です。AIエージェントは、タッチデバイスでスティッキーなホバー状態を引き起こす `:hover` スタイルを追加したり、`:focus` や `:focus-visible` のスタイリングを省略してキーボードアクセシビリティを壊したり、本来は区別すべき3つの状態すべてに同一のスタイルを適用したりします。その結果、マウスでは動作するものの、タッチユーザーやキーボードナビゲーターにはストレスの多いインターフェースになります。
@@ -21,7 +18,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 - **`:focus-visible`** — 要素がフォーカスされ、**かつ**ブラウザが視覚的インジケーターが適切と判断した状態（通常はキーボードナビゲーション）です。ボタンのマウスクリックでは `:focus-visible` はトリガーされません。
 - **`:active`** — 要素がアクティベートされている状態（マウスボタン押下中、タッチで指を押している状態）です。
 
-<CssPreview client:load
+<CssPreview
   title="ボタンの状態 — ホバーとTabで状態を確認"
   html={`
     <div class="demo">
@@ -317,7 +314,7 @@ a:active {
 
 Tailwind は CSS擬似クラスに直接対応する `hover:`、`focus:`、`focus-visible:`、`active:` のバリアントプレフィックスを提供しています。
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: インタラクティブ状態バリアント"
   html={`    <div class="flex flex-wrap gap-4 items-center p-6">
       <button class="px-5 py-2.5 rounded-md text-sm font-semibold bg-blue-500 text-white

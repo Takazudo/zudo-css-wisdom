@@ -4,8 +4,6 @@ sidebar_position: 5
 description: Semantic z-index tokens, single-source-of-truth codegen, global vs local tiers, and a forbid-raw-z-index lint rule.
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 A site grows past five overlay types — modal, drawer, popover, toolbar, tooltip — and z-index becomes a hand-rolled lottery. Every new overlay nudges a value up: `10`, `20`, `99`, `100`, `9999`. Within a year the codebase contains `z-index: 1`, `z-index: 21`, `z-index: 100`, `z-index: 99999`, and a comment that reads `/* must be above modal */` with no way to verify the claim.
@@ -58,7 +56,7 @@ Three properties make this work:
 2. **Single namespace** — one flat list of tiers, not split by feature or context. (Z-index is fundamentally one ordering problem, unlike density tokens which split per design context.)
 3. **Codegen from a TS source of truth** — the CSS block, the styleguide table, and any TypeScript constants all derive from one file. Drift is structurally impossible.
 
-<CssPreview client:load
+<CssPreview
   title="Semantic Tier Tokens vs Magic Numbers"
   height={340}
   html={`    <div class="ztk-demo">
@@ -140,7 +138,9 @@ Tailwind's default `z-0` / `z-10` / `z-20` / `z-30` / `z-40` / `z-50` scale exis
 Both costs that drove numeric scales — refactor pain and memorisation tax — collapse once a model can confidently rename across the whole codebase. Semantic names win on every other axis: readability, grepability, code review, onboarding.
 
 :::tip[Migration path]
+
 If a project is already on Tailwind-numeric (`z-10`/`z-20`/...), migrate by mapping each numeric utility to a semantic token, then doing a single AI-assisted rename pass. Do not migrate one component at a time — half-migrated codebases are harder to reason about than either pure state.
+
 :::
 
 ## Single-namespace vs multi-namespace
@@ -217,7 +217,9 @@ Wire two scripts:
 The styleguide page imports `Z_INDEX_TIERS` directly from the TS file and renders a table. The table can never go stale because there is no second copy of the data.
 
 :::note[Why a marker block, not a separate CSS file]
+
 Putting the generated CSS inside `App.css` between markers means the rest of `App.css` stays hand-written. A separate `tokens-z-index.css` would also work, but markers keep the file count down and make it obvious to a reader of `App.css` that this block is generated.
+
 :::
 
 ## Global vs local tokens
@@ -250,7 +252,7 @@ The rule for using `--z-local-N`:
 
 If the child needs to render above unrelated UI (e.g. a popover that must sit above the page toolbar), it is not local — it is a global tier and belongs in the named scale.
 
-<CssPreview client:load
+<CssPreview
   title="Local Promotion Inside a Stacking Context"
   height={300}
   html={`    <div class="zlocal-demo">
@@ -312,10 +314,12 @@ If the child needs to render above unrelated UI (e.g. a popover that must sit ab
     }`} />
 
 :::note[--z-local-N is reusable]
+
 The same `--z-local-1` token applies to every isolated parent. There is no need for `--z-card-bg` or `--z-modal-content` local tokens — local tiers are anonymous helpers, not semantic per-component values.
+
 :::
 
-<CssPreview client:load
+<CssPreview
   title="Sibling-Ordered Global Overlays"
   height={320}
   html={`    <div class="zsib-demo">
@@ -399,7 +403,9 @@ The escape hatch matters. Some legitimate cases (a one-off third-party widget in
 For the full multi-pass linter pattern (raw color literals, zone-aware semantic tokens, and the matching enforcement rules for other token families), see [Design Token Lint](../architecture/design-token-lint.mdx). Pass 3 covers the raw-z-index rule documented above.
 
 :::info[Pre-push wiring]
+
 Add both `pnpm check:z-index` (codegen drift) and the lint rule (raw `z-index:` integers) to a pre-push hook. The drift check catches stale generated CSS; the lint check catches new violations. Together they prevent the system from rotting between PRs.
+
 :::
 
 ## Decision tree: where does my new overlay belong?

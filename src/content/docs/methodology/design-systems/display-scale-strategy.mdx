@@ -3,8 +3,6 @@ title: Display Scale Strategy
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Desktop apps built with web technology (Tauri, Electron) render inside a WebView — essentially a browser window without the browser chrome. Users expect the same zoom behavior they get in native apps: Ctrl+scroll or Ctrl+/- to scale the entire UI.
@@ -131,7 +129,7 @@ The rule of thumb: if the value defines **how big** something is, it scales. If 
 
 This demo shows the same UI at three different display scales. Notice how spacing, text, and icons scale proportionally while borders and border-radius stay fixed.
 
-<CssPreview client:load
+<CssPreview
   title="Display Scale: 75%, 100%, 125%"
   height={380}
   html={`    <div class="scale-demo">
@@ -267,7 +265,7 @@ This demo shows the same UI at three different display scales. Notice how spacin
 
 This demo highlights the difference between values that scale and values that stay fixed. The border, border-radius, and divider thickness remain constant — only the content dimensions change.
 
-<CssPreview client:load
+<CssPreview
   title="What Scales vs What Stays Fixed"
   height={300}
   html={`    <div class="fixed-demo">

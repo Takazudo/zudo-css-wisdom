@@ -4,8 +4,6 @@ description: Use media queries for page-level layout and user preferences with a
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 AI agents use media queries as the default (and often only) responsive tool. They frequently use arbitrary device-based breakpoints, ignore user preference queries (`prefers-reduced-motion`, `prefers-color-scheme`, `prefers-contrast`), and never use feature queries (`@supports`). They also tend to write desktop-first styles and then override everything for mobile, leading to bloated CSS.
@@ -14,7 +12,7 @@ AI agents use media queries as the default (and often only) responsive tool. The
 
 Media queries should be one tool among many for responsive design. Use them for page-level layout changes and user preference detection. Prefer content-driven breakpoints over device-specific ones, and adopt a mobile-first approach.
 
-<CssPreview client:load
+<CssPreview
   title="Mobile-First Layout — Use viewport buttons to see breakpoints"
   html={`
     <div class="layout">

@@ -4,8 +4,6 @@ description: Break long URLs, file paths, and package identifiers at delimiter-a
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Narrow containers — sidebars, tables, chat bubbles, callout boxes — routinely receive long unbroken tokens that the browser has no idea how to wrap:
@@ -59,7 +57,7 @@ After:
 <code>@scope/<wbr>org-name/<wbr>packages/<wbr>feature-module/<wbr>src/<wbr>widget.tsx</code>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="D1 — Four wrapping strategies in a 240px column"
   height={520}
   defaultOpen={false}
@@ -141,7 +139,7 @@ After:
 
 The `plain` cell overflows horizontally. `break-all` wraps at arbitrary character positions — the URL is unreadable. `anywhere` wraps at similar arbitrary positions but only when overflow would occur. `smart-break` wraps cleanly after each `/`, `?`, and `&`.
 
-<CssPreview client:load
+<CssPreview
   title="D2 — Same path with and without wbr injection in a narrow sidebar"
   height={340}
   defaultOpen={false}
@@ -257,7 +255,7 @@ Examples that must remain untouched:
 | `C:\Users\Example\logs` | Yes — Windows drive |
 | `?q=hello&lang=ja` | Yes — query shape |
 
-<CssPreview client:load
+<CssPreview
   title="D3 — isPathLike gate: prose stays whole, paths get break opportunities"
   height={380}
   defaultOpen={false}
@@ -349,7 +347,7 @@ If you cannot confidently classify a token as path-like, do not inject. The cost
 
 Do not reach for `word-break: break-all` on code blocks — it shreds the code mid-identifier on every line.
 
-<CssPreview client:load
+<CssPreview
   title="D5 — overflow-wrap: break-word vs anywhere on the same injected content"
   height={380}
   defaultOpen={false}
@@ -442,7 +440,7 @@ Trade-offs vs `<wbr>`:
 
 Rule of thumb: if you can emit HTML, use `<wbr>`. Reach for `U+200B` only for text-only surfaces. Document the decision in code comments so the next maintainer does not swap it back to a plain string and lose the wrapping.
 
-<CssPreview client:load
+<CssPreview
   title="D4 — U+200B wraps inside a plain-text surface"
   height={260}
   defaultOpen={false}

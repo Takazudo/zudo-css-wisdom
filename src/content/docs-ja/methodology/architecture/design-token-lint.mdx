@@ -4,8 +4,6 @@ sidebar_position: 6
 description: デザイントークンシステムをビルド時に強制する ―― 生のカラーリテラル、生の z-index 整数、ゾーン認識違反を検出し、エスケープハッチも明文化する。
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 メソドロジー記事は *どんなトークンを定義するか* は語りますが、*ビルド時にどう強制するか* には踏み込みません。強制がなければトークンシステムは腐っていきます。
@@ -71,7 +69,7 @@ Tailwind class ベースのプロジェクトでは、同じルールが数値�
 
 要点は構文そのものではありません ―― コンポーネントコード内のあらゆる生リテラルは既定で違反である、という点です。違反はエスケープハッチで免除できますが、無言で済ませることはできません。
 
-<CssPreview client:load
+<CssPreview
   title="Before / After: Raw Literal vs Token"
   height={300}
   html={`    <div class="dtl-demo">

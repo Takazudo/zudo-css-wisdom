@@ -3,8 +3,6 @@ title: トランジションのベストプラクティス
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 CSSトランジションは仕上げを加え、ユーザーが状態変化を理解する助けになります。しかし、AIエージェントは一貫して同じミスを犯します：レイアウト再計算を引き起こす高コストなプロパティ（`width`、`height`、`margin` など）をトランジションしたり、汎用的な `transition: all 0.3s ease` を使用したり、`display` やその他の離散プロパティをトランジションするための `transition-behavior: allow-discrete` プロパティを考慮しなかったりします。その結果、カクつくアニメーション、パフォーマンスの低下、スムーズなUIトランジションの機会損失につながります。
@@ -19,7 +17,7 @@ CSSトランジションは仕上げを加え、ユーザーが状態変化を�
 2. **中程度（ペイントのみ）**：`background-color`、`color`、`box-shadow` — リペイントは発生しますがレイアウトは発生しません。
 3. **高コスト（レイアウトトリガー）**：`width`、`height`、`margin`、`padding`、`top`、`left` — 完全なレイアウト再計算が発生します。
 
-<CssPreview client:load
+<CssPreview
   title="トランジション比較 — ホバーでスムーズ vs カクつきを確認"
   html={`
     <div class="demo">

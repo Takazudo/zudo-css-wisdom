@@ -3,8 +3,6 @@ title: Component First Strategy
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 When projects use a utility-first CSS framework like Tailwind CSS alongside a component framework (React, Vue, Svelte, etc.), developers and AI agents frequently fall back to traditional CSS patterns. Instead of composing utility classes inside components, they create custom CSS class names — `.profile-card`, `.btn-primary`, `.sidebar-nav` — with separate stylesheets or CSS modules.
@@ -59,7 +57,7 @@ function ProfileCard({ name, role, avatar }) {
 
 The CSS for this anti-pattern looks like traditional component CSS — custom class names, separate file, BEM-influenced naming:
 
-<CssPreview client:load
+<CssPreview
   title="Anti-Pattern: Custom CSS Classes (What NOT to Do)"
   html={`<div class="profile-card">
   <img class="profile-card__avatar" src="https://i.pravatar.cc/64?img=12" alt="Avatar">
@@ -127,7 +125,7 @@ function ProfileCard({ name, role, avatar }) {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Component First: Utility Classes (Recommended)"
   html={`<div class="flex gap-4 p-6 bg-white rounded-lg shadow-md">
   <img class="w-16 h-16 rounded-full object-cover" src="https://i.pravatar.cc/64?img=12" alt="Avatar">
@@ -197,7 +195,7 @@ No `.btn-primary` class to maintain. The `variant` prop can be type-checked with
 
 The demo below uses CSS classes to approximate the visual output. In a real project, the variant logic lives in the component code and utility classes handle the styling — no custom CSS classes are created.
 
-<CssPreview client:load
+<CssPreview
   title="Component Variants via Props"
   html={`<div class="demo">
   <button class="btn btn-primary">Save</button>
@@ -280,7 +278,7 @@ function ProductGrid({ products }) {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Responsive Grid Inside a Component"
   html={`<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   <div class="card">Item 1</div>

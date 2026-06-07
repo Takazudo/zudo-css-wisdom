@@ -3,8 +3,6 @@ title: Table Cell Width Control
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Tables with mixed content types — text columns alongside image columns, status badges, or action buttons — often render with unpredictable widths. The browser's automatic table layout algorithm distributes space based on content, which means a text-heavy column expands to fill available space while an image column gets more room than it needs. AI agents often try to fix this with `width` on `<td>` elements, which the browser treats as a suggestion and frequently ignores. The result is columns that are either too wide or too narrow, with no reliable way to say "this column should be exactly as wide as its content" or "this column needs at least 200px but no more."
@@ -60,7 +58,7 @@ The tradeoff: `table-layout: fixed` renders faster (the browser doesn't need to 
 
 The most common pattern: shrink specific columns (image, status, actions) to fit their content, letting the text column take remaining space.
 
-<CssPreview client:load
+<CssPreview
   title="width: 0 — Shrink Columns to Content"
   height={280}
   html={`    <table class="demo-table">
@@ -146,7 +144,7 @@ The Avatar and Status columns shrink to exactly fit their content (the image and
 
 When a column needs a guaranteed minimum width — for example, a name column that should always be at least 180px to remain readable — use an inner `<div>` with a fixed width.
 
-<CssPreview client:load
+<CssPreview
   title="Inner div — Enforcing Minimum Column Width"
   height={300}
   html={`    <table class="demo-table">
@@ -226,7 +224,7 @@ The Product column is always at least 180px wide (set by the `cell-sizer` div in
 
 A realistic data table combining all techniques: a fixed-width ID column, shrink-to-content columns for avatar and actions, and flexible text columns.
 
-<CssPreview client:load
+<CssPreview
   title="Combined — Fixed, Shrink, and Flexible Columns"
   height={310}
   html={`    <table class="demo-table">
@@ -324,7 +322,7 @@ A realistic data table combining all techniques: a fixed-width ID column, shrink
 
 `table-layout: fixed` gives full control but requires sizing every column. Use `<col>` elements to set widths declaratively.
 
-<CssPreview client:load
+<CssPreview
   title="table-layout: fixed with &lt;col&gt; elements"
   height={260}
   html={`    <table class="fixed-table">

@@ -3,8 +3,6 @@ title: バーティカルリズム
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 AIが生成したレイアウトは、適切なフォントサイズやカラーを使っていても「なんか違う」と感じることがよくあります。その根本原因は垂直方向のスペーシングの不一致です — マージン、パディング、line-heightが、互いに数学的な関係を持たない任意の値で設定されています。`margin-bottom: 12px`の見出しの後に`margin-top: 20px`の段落が続き、さらに`margin-bottom: 15px`のリストが続くと、視覚的なノイズが生まれます。人間はレイアウトがなぜ不自然に感じるのかを言語化できなくても、この不一致を感知します。
@@ -75,7 +73,7 @@ blockquote {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="一貫したバーティカルリズム vs 不一致なスペーシング"
   html={`    <div class="vr-demo">
       <div class="vr-column">

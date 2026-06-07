@@ -3,8 +3,6 @@ title: カラーコントラストとアクセシビリティ
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 カラーコントラストはウェブ上で最も多いアクセシビリティ違反です。WebAIMの年次分析では、ホームページの80%以上に低コントラストのテキストがあることが一貫して報告されています。AIエージェントは白い背景に薄いグレーのテキスト、コントラスト要件を満たさないプレースホルダーテキスト、読みやすさよりも美観を優先した装飾的な色選び、周囲のコンテンツと区別できないインタラクティブ要素を持つデザインを頻繁に生成します。その結果、ロービジョン、色覚異常、または困難な閲覧条件（明るい日差し、暗い画面）のユーザーにとって読みにくい、または読めないテキストになります。
@@ -49,7 +47,7 @@ WCAG（Web Content Accessibility Guidelines）は、前景色と背景色の間�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="良いコントラスト vs 悪いコントラスト"
   html={`    <div class="contrast-demo">
       <div class="example pass">

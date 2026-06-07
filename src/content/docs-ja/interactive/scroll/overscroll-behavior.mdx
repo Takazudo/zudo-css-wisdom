@@ -3,8 +3,6 @@ title: オーバースクロールの挙動
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 ネストされたスクロール可能領域 — モーダル、サイドバー、ドロップダウン、チャットパネル — の端までスクロールすると、ブラウザはスクロールイベントを最も近いスクロール可能な祖先に「チェーン」します。背景のページがオーバーレイの下で突然スクロールし始めます。これは**スクロールチェーン**と呼ばれ、ウェブアプリケーションで最もよく見られるUXバグの1つです。
@@ -35,7 +33,7 @@ import CssPreview from '@/components/CssPreview';
 
 `contain` よりさらに進んで、ラバーバンドバウンスやプルトゥリフレッシュなどのネイティブオーバースクロールエフェクトも抑制します。境界でスクロールが視覚的フィードバックなしで完全に停止してほしい場合に使用します。埋め込みアプリライクなインターフェースに便利です。
 
-<CssPreview client:load
+<CssPreview
   title="スクロールチェーンの問題（修正なし）"
   height={350}
   html={`
@@ -112,7 +110,7 @@ import CssPreview from '@/components/CssPreview';
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="overscroll-behavior: contain でスクロールチェーンを修正"
   height={350}
   html={`
@@ -189,7 +187,7 @@ import CssPreview from '@/components/CssPreview';
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="contain vs none — 並べて比較"
   height={350}
   html={`
@@ -293,7 +291,7 @@ import CssPreview from '@/components/CssPreview';
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="スクロール制御付きチャットパネル"
   height={400}
   html={`
@@ -498,7 +496,7 @@ import CssPreview from '@/components/CssPreview';
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="スクロール制御付きサイドバーナビゲーション"
   height={380}
   html={`

@@ -3,8 +3,6 @@ title: Tight Token Strategy
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Tailwind CSS ships with an enormous default token set. The spacing scale alone includes values like `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `11`, `12`, `14`, `16`, `20`, `24`, `28`, `32`, `36`, `40`, `44`, `48`, `52`, `56`, `60`, `64`, `72`, `80`, `96` — that is over 30 numeric steps for spacing. Multiply this by colors, font sizes, border radii, and other categories, and the available utility space becomes massive.
@@ -198,7 +196,7 @@ Every spacing value communicates its axis (horizontal vs vertical) and its relat
 
 The following demo shows the same card layout built two ways. The left card uses the tight semantic token approach; the right card uses arbitrary numeric spacing values, simulating how inconsistency creeps in when any value is allowed.
 
-<CssPreview client:load
+<CssPreview
   title="Semantic Tokens vs Arbitrary Values"
   html={`    <div class="demo-container">
       <div class="demo-column">
@@ -326,7 +324,7 @@ In the "Arbitrary values" card, three different developers each picked slightly 
 
 ### Demo: Page Layout with Semantic Spacing
 
-<CssPreview client:load
+<CssPreview
   title="Page Layout with Tight Tokens"
   html={`    <div class="page">
       <header class="page-header">
@@ -452,11 +450,11 @@ Defining a tight token set is half the work. The other half is preventing raw va
 
 For detailed token strategies in specific categories:
 
-- [Color Token Patterns](./color-tokens) — Semantic color scales, brand colors, state colors, and surface layers (see also [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy) for the underlying architecture)
-- [Typography Token Patterns](./typography-tokens) — Font size, line-height, font-weight, and letter-spacing token strategies
-- [Token Preview](./token-preview) — Visual reference of all available tokens
-- [Component Tokens & Arbitrary Values](./component-tokens) — When to use system tokens vs arbitrary values
-- [Two-Tier Size Strategy](../two-tier-size-strategy/) — Why width/height sizing skips the abstract layer and uses semantic theme tokens directly
+- [Color Token Patterns](./color-tokens.mdx) — Semantic color scales, brand colors, state colors, and surface layers (see also [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy.mdx) for the underlying architecture)
+- [Typography Token Patterns](./typography-tokens.mdx) — Font size, line-height, font-weight, and letter-spacing token strategies
+- [Token Preview](./token-preview.mdx) — Visual reference of all available tokens
+- [Component Tokens & Arbitrary Values](./component-tokens.mdx) — When to use system tokens vs arbitrary values
+- [Two-Tier Size Strategy](../two-tier-size-strategy.mdx) — Why width/height sizing skips the abstract layer and uses semantic theme tokens directly
 
 ## References
 

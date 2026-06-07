@@ -3,8 +3,6 @@ title: テーブルセルの幅制御
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 テキスト列と画像列、ステータスバッジ、アクションボタンが混在するテーブルは、幅が予測しにくいレンダリングになりがちです。ブラウザの自動テーブルレイアウトアルゴリズムはコンテンツに基づいてスペースを配分するため、テキストが多い列は利用可能なスペースを埋めるように広がり、画像列は必要以上のスペースを取ってしまいます。AI エージェントはこれを `<td>` 要素に `width` を設定して修正しようとしますが、ブラウザはそれをあくまで「目安」として扱い、頻繁に無視します。結果として、列が広すぎたり狭すぎたりし、「この列はコンテンツ幅ぴったりにしたい」「最低でも 200px、でも最大はそれ以上不要」といったことを確実に指定する手段がなくなってしまいます。
@@ -60,7 +58,7 @@ table {
 
 最も一般的なパターンです。画像、ステータス、アクションなどの特定の列をコンテンツ幅に縮小し、テキスト列が残りのスペースを取るようにします。
 
-<CssPreview client:load
+<CssPreview
   title="width: 0 — 列をコンテンツ幅に縮小"
   height={280}
   html={`    <table class="demo-table">
@@ -146,7 +144,7 @@ Avatar 列と Status 列はそれぞれの内容（画像とバッジ）にぴ�
 
 名前列のように常に 180px 以上の幅を保って読みやすくしたい場合など、最小幅を保証したい列には、固定幅を持つインナー `<div>` を使います。
 
-<CssPreview client:load
+<CssPreview
   title="インナー div — 最小列幅の強制"
   height={300}
   html={`    <table class="demo-table">
@@ -225,7 +223,7 @@ Product 列は（ヘッダーの `cell-sizer` div によって設定された）
 
 すべてのテクニックを組み合わせた現実的なデータテーブルです。固定幅の ID 列、アバターとアクション用の縮小列、可変のテキスト列を含んでいます。
 
-<CssPreview client:load
+<CssPreview
   title="組み合わせ — 固定幅・縮小・可変幅列"
   height={310}
   html={`    <table class="demo-table">
@@ -323,7 +321,7 @@ Product 列は（ヘッダーの `cell-sizer` div によって設定された）
 
 `table-layout: fixed` を使うとすべての列を完全に制御できますが、すべての列のサイズを指定する必要があります。`<col>` 要素を使って幅を宣言的に設定します。
 
-<CssPreview client:load
+<CssPreview
   title="table-layout: fixed と &lt;col&gt; 要素"
   height={260}
   html={`    <table class="fixed-table">

@@ -3,8 +3,6 @@ title: コンポーネントトークンと任意の値
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 タイトトークン戦略でコンポーネントを構築する際、チームは繰り返し同じ疑問に直面します：**「必要な値がトークンセットにない — 新しいトークンを追加すべきか？」**
@@ -119,7 +117,7 @@ import CssPreview from '@/components/CssPreview';
 
 このカードコンポーネントは、標準的なスペーシングとカラーにシステムトークンを使い、コンポーネント固有のグリッドレイアウトと装飾的なアイコンサイジングに任意の値を使っています。コメントでトークンシステムからの値と任意の値を区別しています。
 
-<CssPreview client:load
+<CssPreview
   title="コンポーネント内のシステムトークン + 任意の値"
   html={`    <div class="card-demo">
       <div class="card-demo__header">
@@ -280,7 +278,7 @@ import CssPreview from '@/components/CssPreview';
 
 同じ任意の値が複数のコンポーネントで繰り返し現れる場合、それをシステムトークンに昇格させるシグナルです。このデモは、頻繁に使用されるカード幅が任意の値から名前付きトークンに昇格されたプライシングレイアウトを示しています。
 
-<CssPreview client:load
+<CssPreview
   title="トークン昇格のビフォー・アフター"
   html={`    <div class="promo-demo">
       <div class="promo-demo__section">
@@ -446,7 +444,7 @@ import CssPreview from '@/components/CssPreview';
 
 このデモは、プロダクションプロジェクトの現実的なコンポーネントをシミュレートしています。システムトークンが標準的なスペーシング、カラー、タイポグラフィをすべて処理します。任意の値はコンポーネント固有のレイアウトグリッドと装飾的な詳細を処理します。
 
-<CssPreview client:load
+<CssPreview
   title="プロダクションコンポーネント：トークン + 任意の値"
   html={`    <div class="prod-demo">
       <div class="prod-demo__section">

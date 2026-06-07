@@ -3,8 +3,6 @@ title: Advanced Custom Properties
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 CSS custom properties (variables) are widely used, but most developers and AI agents only scratch the surface — defining simple color or size tokens on `:root` and referencing them with `var()`. Advanced patterns like the space-toggling trick, fallback chains, and computed property relationships are rarely leveraged, leading to unnecessary JavaScript for conditional styling, rigid theming systems, and duplicated declarations.
@@ -61,7 +59,7 @@ body {
 
 ### Fallback Chains for Theming
 
-Create layered configuration systems where a component checks for progressively broader defaults. This is the mechanism behind the [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy) — component tokens fall back to theme tokens, which fall back to palette values.
+Create layered configuration systems where a component checks for progressively broader defaults. This is the mechanism behind the [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy.mdx) — component tokens fall back to theme tokens, which fall back to palette values.
 
 ```css
 .button {
@@ -206,7 +204,7 @@ Custom properties have near-universal support (98%+). The `initial` keyword beha
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Space Toggle Trick"
   html={`
     <div class="cards">
@@ -278,7 +276,7 @@ Custom properties have near-universal support (98%+). The `initial` keyword beha
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="Component Custom Property API"
   html={`
     <div class="demo">
@@ -341,8 +339,8 @@ Custom properties have near-universal support (98%+). The `initial` keyword beha
 
 ## Deep Dive
 
-- [Pattern Catalog](./pattern-catalog) — Comprehensive collection of CSS custom property patterns with interactive demos
-- [Theming Recipes](./theming-recipes) — Complete theme system recipes for light/dark mode, brand theming, and component libraries
+- [Pattern Catalog](./pattern-catalog.mdx) — Comprehensive collection of CSS custom property patterns with interactive demos
+- [Theming Recipes](./theming-recipes.mdx) — Complete theme system recipes for light/dark mode, brand theming, and component libraries
 
 ## References
 

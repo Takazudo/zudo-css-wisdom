@@ -3,9 +3,6 @@ title: グラデーションテクニック
 sidebar_position: 7
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 AIエージェントは、背景、テキストフィル、装飾要素にグラデーションを使えばはるかに洗練された見た目になるのに、フラットな単色に頼りがちです。AIがグラデーションを使う場合でも、不調和な色の組み合わせを選んだり、滑らかなトランジションのための知覚的色空間の使用を見落としたり、レイヤードグラデーション、ハードストップパターン、グラデーションテキストなどの高度なテクニックを見逃したりします。
@@ -220,7 +217,7 @@ CSSには3つのグラデーション関数 — `linear-gradient()`、`radial-gr
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="線形グラデーション"
   html={`    <div class="gradient-box"></div>`}
   css={`
@@ -237,7 +234,7 @@ CSSには3つのグラデーション関数 — `linear-gradient()`、`radial-gr
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="放射状グラデーション"
   html={`    <div class="radial-box"></div>`}
   css={`
@@ -260,7 +257,7 @@ CSSには3つのグラデーション関数 — `linear-gradient()`、`radial-gr
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="円錐グラデーションのカラーホイール"
   html={`    <div class="conic-wrapper"><div class="conic-wheel"></div></div>`}
   css={`
@@ -282,7 +279,7 @@ CSSには3つのグラデーション関数 — `linear-gradient()`、`radial-gr
     `}
   height={240} />
 
-<CssPreview client:load
+<CssPreview
   title="レイヤードメッシュグラデーション"
   html={`    <div class="mesh"></div>`}
   css={`
@@ -310,7 +307,7 @@ CSSには3つのグラデーション関数 — `linear-gradient()`、`radial-gr
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="グラデーションテキスト（background-clip: text）"
   html={`    <div class="text-wrapper"><h1 class="gradient-text">Gradient Heading</h1></div>`}
   css={`
@@ -337,7 +334,7 @@ CSSには3つのグラデーション関数 — `linear-gradient()`、`radial-gr
 
 ## 詳細解説
 
-- [CSSのみのパターンライブラリ](./css-pattern-library) — グラデーションのみで構築されたCSS装飾パターンのコレクション：チェッカーボード、ストライプ、ドット、ウェーブなど
+- [CSSのみのパターンライブラリ](./css-pattern-library.mdx) — グラデーションのみで構築されたCSS装飾パターンのコレクション：チェッカーボード、ストライプ、ドット、ウェーブなど
 
 ## AIがよくやるミス
 
@@ -363,14 +360,14 @@ Tailwindはグラデーションの方向に `bg-gradient-to-*`、カラース�
 
 ### 線形グラデーション
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: 線形グラデーション"
   html={`    <div class="h-[200px] bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"></div>`}
   height={220} />
 
 ### グラデーションカード
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: グラデーションカード"
   html={`    <div class="flex gap-3 p-4 bg-slate-900 min-h-[200px] items-center justify-center">
       <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 text-white w-40">
@@ -390,7 +387,7 @@ Tailwindはグラデーションの方向に `bg-gradient-to-*`、カラース�
 
 ### グラデーションテキスト
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: グラデーションテキスト"
   html={`    <div class="flex justify-center items-center h-[200px] bg-slate-950">
       <h1 class="text-5xl font-extrabold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">

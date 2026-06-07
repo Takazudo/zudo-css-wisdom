@@ -4,8 +4,6 @@ sidebar_position: 5
 description: セマンティックな z-index トークン、単一の真実のソースからのコード生成、グローバル／ローカル階層の使い分け、生 z-index を禁ずる lint ルール。
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 サイトのオーバーレイが5種類を超えたあたり――モーダル、ドロワー、ポップオーバー、ツールバー、ツールチップ――で、z-index は手作業の宝くじになります。新しいオーバーレイが増えるたびに値が押し上げられていき、`10`、`20`、`99`、`100`、`9999`。1年もすれば、コードベースには `z-index: 1`、`z-index: 21`、`z-index: 100`、`z-index: 99999` が混在し、検証手段のない `/* must be above modal */` というコメントが残ります。
@@ -58,7 +56,7 @@ z-index 階層を、**単一の TypeScript 真実のソース**から生成さ�
 2. **単一名前空間** ―― 機能や文脈で分割しない、フラットな階層リスト1本。（z-index は本質的に1つの順序問題です。文脈ごとに分けるべき密度トークンとは違います。）
 3. **TS 真実のソースからのコード生成** ―― CSS ブロックも、スタイルガイドの表も、TypeScript 定数も、すべて1つのファイルから派生します。ドリフトは構造的に起こり得ません。
 
-<CssPreview client:load
+<CssPreview
   title="Semantic Tier Tokens vs Magic Numbers"
   height={340}
   html={`    <div class="ztk-demo">
@@ -140,7 +138,9 @@ Tailwind のデフォルト `z-0` / `z-10` / `z-20` / `z-30` / `z-40` / `z-50` �
 数値スケールを駆動していた2つのコスト――リファクタ痛と暗記税――は、モデルがコードベース全体に渡って自信を持ってリネームできるようになった瞬間に崩壊します。読みやすさ、grep のしやすさ、コードレビュー、オンボーディング、どの軸を取ってもセマンティックな名前が勝ります。
 
 :::tip[マイグレーション手順]
+
 プロジェクトがすでに Tailwind 数値スケール（`z-10`/`z-20`/...）に乗っている場合は、各数値ユーティリティをセマンティックトークンへマッピングし、AI 支援で1回のリネームパスを通します。コンポーネントを1つずつ移行してはいけません――半分だけ移行されたコードベースは、純粋などちらの状態よりも推論しづらくなります。
+
 :::
 
 ## 単一名前空間か複数名前空間か
@@ -217,7 +217,9 @@ export const Z_INDEX_TIERS: ZIndexTier[] = [
 スタイルガイドのページは `Z_INDEX_TIERS` を TS ファイルから直接 import し、表をレンダリングします。データの第二コピーが存在しないので、表が古くなることはありません。
 
 :::note[なぜ別 CSS ファイルではなくマーカーブロックなのか]
+
 生成 CSS を `App.css` のマーカー間に配置すれば、`App.css` の残り部分は手書きのまま保てます。`tokens-z-index.css` を別ファイルに分けても動きますが、マーカー方式はファイル数を抑えつつ、`App.css` を読む人に「このブロックは生成物だ」と一目で伝えます。
+
 :::
 
 ## グローバル vs ローカルトークン
@@ -250,7 +252,7 @@ export const Z_INDEX_TIERS: ZIndexTier[] = [
 
 子が無関係な UI（例：ページツールバーの上に出るべきポップオーバー）の上にレンダリングされる必要があるなら、それはローカルではありません――グローバル階層であり、名前付きスケールに置くべきです。
 
-<CssPreview client:load
+<CssPreview
   title="Local Promotion Inside a Stacking Context"
   height={300}
   html={`    <div class="zlocal-demo">
@@ -312,10 +314,12 @@ export const Z_INDEX_TIERS: ZIndexTier[] = [
     }`} />
 
 :::note[--z-local-N は再利用可能]
+
 同じ `--z-local-1` トークンが、すべての isolated な親に対して通用します。`--z-card-bg` や `--z-modal-content` のようなローカル個別トークンは不要です――ローカル階層は匿名のヘルパーであり、コンポーネントごとのセマンティック値ではありません。
+
 :::
 
-<CssPreview client:load
+<CssPreview
   title="Sibling-Ordered Global Overlays"
   height={320}
   html={`    <div class="zsib-demo">
@@ -399,7 +403,9 @@ export const Z_INDEX_TIERS: ZIndexTier[] = [
 マルチパス linter パターン（生のカラーリテラル、ゾーン認識セマンティックトークン、他のトークンファミリー向けのマッチする強制ルール）の全体像については [Design Token Lint](../architecture/design-token-lint.mdx) を参照してください。Pass 3 が、上記で文書化した生 z-index ルールをカバーします。
 
 :::info[プリプッシュ配線]
+
 `pnpm check:z-index`（コード生成のドリフト）と lint ルール（生 `z-index:` 整数）の両方をプリプッシュフックに追加します。ドリフトチェックは古い生成 CSS を捕まえ、lint チェックは新規違反を捕まえます。両者の組み合わせで PR 間の腐敗を防ぎます。
+
 :::
 
 ## 判断ツリー: 新しいオーバーレイはどこに属するか

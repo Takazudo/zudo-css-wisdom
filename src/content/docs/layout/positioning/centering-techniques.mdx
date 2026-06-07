@@ -3,9 +3,6 @@ title: Centering Techniques
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 Centering elements is one of the most fundamental CSS tasks, yet AI agents frequently produce overcomplicated or inappropriate solutions. Common mistakes include using `text-align: center` on non-inline elements, applying `transform: translate(-50%, -50%)` when flexbox or grid would suffice, stacking multiple centering techniques on top of each other, and reaching for `position: absolute` when the layout does not require it.
@@ -142,7 +139,7 @@ This technique is still valid but is rarely the best choice in modern CSS. It ca
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox Centering"
   html={`
     <div class="flex-center">
@@ -167,7 +164,7 @@ This technique is still valid but is rarely the best choice in modern CSS. It ca
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="Grid place-items: center"
   html={`
     <div class="grid-center">
@@ -236,7 +233,7 @@ Tailwind provides concise utility classes for all centering techniques.
 
 ### Flexbox Centering
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Flexbox Centering"
   html={`    <div class="flex justify-center items-center h-[200px] bg-blue-50">
       <div class="px-6 py-4 bg-blue-500 text-white rounded-lg font-semibold">
@@ -247,7 +244,7 @@ Tailwind provides concise utility classes for all centering techniques.
 
 ### Grid Centering
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Grid place-items-center"
   html={`    <div class="grid place-items-center h-[200px] bg-green-50">
       <div class="px-6 py-4 bg-green-500 text-white rounded-lg font-semibold">
@@ -258,7 +255,7 @@ Tailwind provides concise utility classes for all centering techniques.
 
 ### Horizontal Centering with mx-auto
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: mx-auto Centering"
   html={`    <div class="p-6 bg-slate-100">
       <div class="mx-auto w-fit bg-violet-500 text-white px-6 py-4 rounded-lg font-semibold">

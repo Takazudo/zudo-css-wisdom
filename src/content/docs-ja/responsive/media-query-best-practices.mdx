@@ -4,8 +4,6 @@ description: ページレベルのレイアウトやユーザー設定の検出�
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 AIエージェントはメディアクエリ（media query）をレスポンシブ対応のデフォルト（かつ唯一の）ツールとして使います。任意のデバイスベースのブレークポイントを多用し、ユーザー設定クエリ（`prefers-reduced-motion`、`prefers-color-scheme`、`prefers-contrast`）を無視し、機能クエリ（`@supports`）も使いません。また、デスクトップファーストのスタイルを書いてからモバイル向けにすべてをオーバーライドする傾向があり、CSSが肥大化します。
@@ -14,7 +12,7 @@ AIエージェントはメディアクエリ（media query）をレスポンシ�
 
 メディアクエリはレスポンシブデザインのための多くのツールの一つとして使うべきです。ページレベルのレイアウト変更やユーザー設定の検出に使いましょう。デバイス固有のブレークポイントよりもコンテンツ駆動のブレークポイントを優先し、モバイルファーストのアプローチを採用しましょう。
 
-<CssPreview client:load
+<CssPreview
   title="モバイルファーストレイアウト — ビューポートボタンでブレークポイントを確認"
   html={`
     <div class="layout">

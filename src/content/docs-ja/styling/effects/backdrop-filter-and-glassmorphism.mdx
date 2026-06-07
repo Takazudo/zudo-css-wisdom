@@ -3,9 +3,6 @@ title: バックドロップフィルターとグラスモーフィズム
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 グラスモーフィズム（glassmorphism）は、AppleのiOSやmacOSで広まったすりガラス風の美しいデザインで、`backdrop-filter: blur()` と半透明の背景を組み合わせて実現します。AIエージェントはこの実装でよく間違いを犯します。要素自体にブラーをかけてしまう、完全に不透明な背景を使ってブラー効果を隠してしまう、Safariに必要な `-webkit-` プレフィックスを忘れる、あるいはブラーすべき視覚的なコンテンツがない単色背景の上にエフェクトを適用してしまう、といったケースです。
@@ -179,7 +176,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="すりガラスカード"
   html={`    <div class="vibrant-bg"><div class="glass-card"><h2>Frosted Glass</h2><p>Content is readable over a blurred, colorful background.</p></div></div>`}
   css={`
@@ -219,7 +216,7 @@ import TailwindPreview from '@/components/TailwindPreview';
     `}
   height={280} />
 
-<CssPreview client:load
+<CssPreview
   title="グラスモーフィズムパネル（ダークテーマ）"
   html={`    <div class="vibrant-bg"><div class="glass-panel"><h3>Settings</h3><div class="item"><span>Notifications</span><span class="toggle">ON</span></div><div class="item"><span>Dark Mode</span><span class="toggle">ON</span></div><div class="item"><span>Auto-save</span><span class="toggle off">OFF</span></div></div></div>`}
   css={`
@@ -302,7 +299,7 @@ Tailwindは、カスタムCSSを書かずにグラスモーフィズム効果を
 
 ### すりガラスカード
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: すりガラスカード"
   html={`    <div class="min-h-[280px] flex justify-center items-center p-6" style="background: radial-gradient(circle at 20% 80%, hsl(280deg 80% 60% / 0.8), transparent 50%), radial-gradient(circle at 80% 20%, hsl(200deg 80% 60% / 0.8), transparent 50%), radial-gradient(circle at 50% 50%, hsl(340deg 80% 50% / 0.5), transparent 60%), linear-gradient(135deg, hsl(220deg 60% 20%), hsl(280deg 60% 30%));">
       <div class="backdrop-blur-xl bg-white/15 border border-white/25 rounded-2xl p-8 max-w-xs text-white">
@@ -314,7 +311,7 @@ Tailwindは、カスタムCSSを書かずにグラスモーフィズム効果を
 
 ### ダークガラスパネル
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: ダークグラスモーフィズムパネル"
   html={`    <div class="min-h-[300px] flex justify-center items-center p-6" style="background: radial-gradient(circle at 70% 30%, hsl(330deg 80% 50% / 0.6), transparent 50%), radial-gradient(circle at 30% 70%, hsl(180deg 80% 50% / 0.5), transparent 50%), linear-gradient(135deg, #0f172a, #1e1b4b);">
       <div class="backdrop-blur-2xl backdrop-saturate-[1.8] bg-slate-900/40 border border-white/10 rounded-2xl p-6 w-72 text-white shadow-[0_8px_32px_hsl(0deg_0%_0%/0.3)]">

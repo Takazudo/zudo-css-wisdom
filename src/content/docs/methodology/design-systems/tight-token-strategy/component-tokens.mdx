@@ -3,8 +3,6 @@ title: Component Tokens & Arbitrary Values
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 When building components with a tight token strategy, teams encounter a recurring question: **"The value I need isn't in our token set — should I add a new token?"**
@@ -119,7 +117,7 @@ Both single underscore (`--_`) and double underscore (`--__`) conventions exist.
 
 This card component uses system tokens for its standard spacing and colors, but arbitrary values for its component-specific grid layout and decorative icon sizing. Comments show which values come from the token system and which are arbitrary.
 
-<CssPreview client:load
+<CssPreview
   title="System Tokens + Arbitrary Values in a Component"
   html={`<div class="card-demo">
   <div class="card-demo__header">
@@ -280,7 +278,7 @@ In the code, system tokens appear where the value follows the project's spacing 
 
 When the same arbitrary value keeps appearing across components, it's a signal to promote it to a system token. This demo shows a pricing layout where a frequently-used card width has been promoted from an arbitrary value to a named token.
 
-<CssPreview client:load
+<CssPreview
   title="Before and After Token Promotion"
   html={`<div class="promo-demo">
   <div class="promo-demo__section">
@@ -446,7 +444,7 @@ In the "before" version, three developers each picked slightly different padding
 
 This demo simulates a realistic component from a production project. System tokens handle all the standard spacing, colors, and typography. Arbitrary values handle the component-specific layout grid and decorative details.
 
-<CssPreview client:load
+<CssPreview
   title="Production Component: Tokens + Arbitrary Values"
   html={`<div class="prod-demo">
   <div class="prod-demo__section">

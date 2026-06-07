@@ -3,8 +3,6 @@ title: "@property"
 sidebar_position: 6
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Standard CSS custom properties are untyped — the browser treats them as arbitrary strings. This means you cannot animate or transition custom properties (e.g., smoothly transitioning a gradient), the browser cannot validate their values, and inheritance behavior cannot be controlled. AI agents rarely use `@property` and instead resort to JavaScript animations or complex workarounds for effects that `@property` makes trivial.
@@ -209,7 +207,7 @@ Global support exceeds 93%. Firefox added support in mid-2024, making `@property
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Animated Gradient with @property — Hover to see"
   html={`
     <div class="gradient-box">
@@ -263,7 +261,7 @@ Global support exceeds 93%. Firefox added support in mid-2024, making `@property
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="Rotating Gradient Angle with @property"
   html={`
     <div class="rotating-gradient"></div>

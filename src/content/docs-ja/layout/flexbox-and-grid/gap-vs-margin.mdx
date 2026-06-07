@@ -3,9 +3,6 @@ title: gap と margin の使い分け
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 要素間のスペーシングは最もよくあるCSSタスクの1つですが、AIエージェントは flex や grid コンテナ内でも `gap` が正しいツールであるにもかかわらず、あらゆる状況で `margin` を使いがちです。margin ベースのスペーシングにはいくつかの問題があります：アイテムが隣接する場所でマージンが二重になる、first/last child のワークアラウンドが必要、ブロックフローでのマージンの相殺、アイテムが折り返す際の不均一なスペーシングなどです。`gap` プロパティは flexbox、grid、マルチカラムレイアウトで利用可能で、これらの問題をすべて解決します。
@@ -66,7 +63,7 @@ flex、grid、またはマルチカラムコンテナ内の兄弟アイテム**�
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="flex の gap と margin の比較"
   html={`    <div class="label">With margin (extra space on last item):</div>
     <div class="row-margin">
@@ -182,7 +179,7 @@ flex、grid、またはマルチカラムコンテナ内の兄弟アイテム**�
 
 すべてのカードは水平・垂直方向にぴったり 1.5rem のスペースを持ちます。margin のワークアラウンドは不要です。
 
-<CssPreview client:load
+<CssPreview
   title="grid の gap: 均一なスペーシング"
   html={`    <div class="card-grid">
       <div class="card">Card 1</div>
@@ -279,7 +276,7 @@ gap と margin は異なる目的を持ち、一緒に使えます：
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="マージン相殺のデモ"
   html={`    <div class="demo">
       <div class="label">Block flow (margins collapse):</div>
@@ -386,7 +383,7 @@ Tailwind は flex や grid コンテナの `gap-*` ユーティリティで、`g
 
 ### flex の gap
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: gap 付きの flex"
   html={`    <div class="p-4">
       <p class="text-sm font-semibold text-slate-600 mb-2">Flex with gap-2.5:</p>
@@ -401,7 +398,7 @@ Tailwind は flex や grid コンテナの `gap-*` ユーティリティで、`g
 
 ### grid の gap
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: gap 付きの grid"
   html={`    <div class="grid grid-cols-3 gap-3 p-2">
       <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center text-sm">Card 1</div>

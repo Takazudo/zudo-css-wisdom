@@ -3,8 +3,6 @@ title: Overscroll Behavior
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 When a user scrolls to the end of a nested scrollable area — a modal, sidebar, dropdown, or chat panel — the browser "chains" the scroll event to the nearest scrollable ancestor. The background page suddenly starts scrolling beneath the overlay. This is called **scroll chaining**, and it is one of the most common UX bugs in web applications.
@@ -35,7 +33,7 @@ The most commonly needed value. It prevents scroll chaining so that scrolling st
 
 Goes further than `contain` by also suppressing native overscroll effects like the rubber-band bounce or pull-to-refresh. Use this when you want scrolling to stop completely at the boundary with no visual feedback. Useful for embedded app-like interfaces.
 
-<CssPreview client:load
+<CssPreview
   title="Scroll Chaining Problem (no fix)"
   height={350}
   html={`
@@ -112,7 +110,7 @@ Goes further than `contain` by also suppressing native overscroll effects like t
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="Scroll Chaining Fixed with overscroll-behavior: contain"
   height={350}
   html={`
@@ -189,7 +187,7 @@ Goes further than `contain` by also suppressing native overscroll effects like t
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="contain vs none — Side by Side"
   height={350}
   html={`
@@ -293,7 +291,7 @@ Goes further than `contain` by also suppressing native overscroll effects like t
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="Chat Panel with Contained Scroll"
   height={400}
   html={`
@@ -498,7 +496,7 @@ Goes further than `contain` by also suppressing native overscroll effects like t
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="Sidebar Navigation with Contained Scroll"
   height={380}
   html={`

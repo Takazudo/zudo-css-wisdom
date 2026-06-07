@@ -3,8 +3,6 @@ title: Multi Namespace Token Strategy
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 A website starts small — a blog with article pages. The design team creates tokens under a single namespace:
@@ -59,7 +57,7 @@ The token set doubles in size. Every axis now has both "article" and "dense" var
 
 As the site adds more contexts (marketing landing pages, email templates, embedded widgets), the problem compounds. A single namespace tries to serve every design context, and the token set becomes a bloated list of variations.
 
-<CssPreview client:load
+<CssPreview
   title="Single Namespace: Token Bloat as Contexts Multiply"
   height={360}
   html={`    <div class="bloat-demo">
@@ -232,7 +230,7 @@ Shared tokens (colors, font families, breakpoints) that apply across all context
 @import "./tokens-myadmin.css";
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Separated Namespaces: Each Context Has Its Own Focused Token Set"
   height={380}
   html={`    <div class="sep-demo">
@@ -396,7 +394,7 @@ Shared tokens (colors, font families, breakpoints) that apply across all context
 
 The same page framework rendered with two different token namespaces. Article tokens produce generous, readable spacing. Admin tokens produce a dense, efficient layout.
 
-<CssPreview client:load
+<CssPreview
   title="Article Context (myweb-) vs Admin Context (myadmin-)"
   height={420}
   html={`    <div class="ctx-demo">
@@ -571,7 +569,7 @@ The same page framework rendered with two different token namespaces. Article to
 
 Not every page variation needs its own namespace. The split makes sense when design rules — spacing rhythm, font size scale, density — are fundamentally different between contexts.
 
-<CssPreview client:load
+<CssPreview
   title="Same Namespace vs Separate Namespace: When to Split"
   height={320}
   html={`    <div class="split-demo">
@@ -698,7 +696,7 @@ Not every page variation needs its own namespace. The split makes sense when des
 
 Each namespace produces its own set of Tailwind utility classes. Developers working in a specific context use only that context's namespace prefix.
 
-<CssPreview client:load
+<CssPreview
   title="Namespace Prefixes in Tailwind Utility Classes"
   height={300}
   html={`    <div class="usage-demo">

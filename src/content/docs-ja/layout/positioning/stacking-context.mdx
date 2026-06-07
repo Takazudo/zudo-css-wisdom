@@ -3,8 +3,6 @@ title: スタッキングコンテキスト
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 スタッキングコンテキスト（stacking context）はCSSで最も誤解されている概念です。AIエージェントは、要素が他の要素の後ろに表示される理由を理解せずに、`z-index` の値を途方もない数値（99999）に引き上げることを繰り返します。根本的な原因はほぼ常に、要素が異なるスタッキングコンテキストに属しているということであり、z-indexをいくら上げても親のスタッキングコンテキストから抜け出すことはできません。
@@ -61,7 +59,7 @@ import CssPreview from '@/components/CssPreview';
 
 この例では、`.dropdown` は `z-index: 99999` を持っていますが、`.main-content` の後ろに表示されます。これは `.sidebar` が `z-index: 1` でスタッキングコンテキストを作成しているためです。ドロップダウンはそのスタッキングコンテキスト内に閉じ込められています。`.main-content`（z-index: 2）の視点からは、`.sidebar` グループ全体のz-indexは1です。
 
-<CssPreview client:load
+<CssPreview
   title="スタッキングコンテキスト: z-indexバグ（壊れた状態）"
   html={`    <div class="container">
       <div class="sidebar">
@@ -131,7 +129,7 @@ import CssPreview from '@/components/CssPreview';
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="スタッキングコンテキスト: z-indexバグ（修正後）"
   html={`    <div class="container">
       <div class="sidebar">
@@ -208,7 +206,7 @@ import CssPreview from '@/components/CssPreview';
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="スタッキングコンテキスト: isolation: isolate"
   html={`    <div class="demo-area">
       <div class="card">

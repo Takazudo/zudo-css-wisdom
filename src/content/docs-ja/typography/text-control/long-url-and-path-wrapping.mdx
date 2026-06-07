@@ -4,8 +4,6 @@ description: 長い URL・ファイルパス・パッケージ識別子を、本
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 サイドバー、テーブル、チャットバブル、コールアウトボックスなどの幅の狭いコンテナには、ブラウザにとって折り返し位置が判断できないような長い一塊のトークンが日常的に流し込まれます。
@@ -59,7 +57,7 @@ C:\Users\Example\AppData\Local\Temp\build-artifact-2026-04-24.log
 <code>@scope/<wbr>org-name/<wbr>packages/<wbr>feature-module/<wbr>src/<wbr>widget.tsx</code>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="D1 — 240px カラムでの4つの折り返し戦略"
   height={520}
   defaultOpen={false}
@@ -141,7 +139,7 @@ C:\Users\Example\AppData\Local\Temp\build-artifact-2026-04-24.log
 
 `plain` セルは水平方向にあふれます。`break-all` は任意の文字位置で折り返すため、URLは読めません。`anywhere` も似たように任意の位置で折り返しますが、オーバーフローが起こる場合のみ発動します。`smart-break` は `/`、`?`、`&` の後できれいに折り返します。
 
-<CssPreview client:load
+<CssPreview
   title="D2 — 狭いサイドバーでの wbr 注入あり/なしの同じパス"
   height={340}
   defaultOpen={false}
@@ -257,7 +255,7 @@ C:\Users\Example\AppData\Local\Temp\build-artifact-2026-04-24.log
 | `C:\Users\Example\logs` | Yes — Windowsドライブ |
 | `?q=hello&lang=ja` | Yes — クエリ形 |
 
-<CssPreview client:load
+<CssPreview
   title="D3 — isPathLike ゲート: 本文はそのまま、パスには折り返し候補を挿入"
   height={380}
   defaultOpen={false}
@@ -349,7 +347,7 @@ C:\Users\Example\AppData\Local\Temp\build-artifact-2026-04-24.log
 
 コードブロックに `word-break: break-all` を持ち出してはいけません — 1行ごとに識別子の途中でコードが粉々になります。
 
-<CssPreview client:load
+<CssPreview
   title="D5 — 同じ注入済みコンテンツに対する overflow-wrap: break-word と anywhere"
   height={380}
   defaultOpen={false}
@@ -442,7 +440,7 @@ HTMLを出力できない面:
 
 経験則としては、HTMLを出力できるなら `<wbr>` を使ってください。`U+200B` はテキスト専用面にのみ使います。次のメンテナが単純な文字列に戻して折り返し能力を失わないように、コードコメントに判断の理由を記録しておきましょう。
 
-<CssPreview client:load
+<CssPreview
   title="D4 — U+200B によるプレーンテキスト面での折り返し"
   height={260}
   defaultOpen={false}

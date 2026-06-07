@@ -3,9 +3,6 @@ title: Prose Heading Spacing
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 Markdown-to-HTML converters produce flat sequences of block elements — paragraphs, lists, tables, and headings. A common spacing strategy is to give every block element the same bottom margin for uniform rhythm. Headings then get additional top margin so readers perceive section boundaries.
@@ -23,7 +20,7 @@ Each heading carries its own large top margin. When they stack, the accumulated 
 
 MDX compounds this because component wrappers and admonitions can interrupt the expected heading-to-content flow, making rigid margin rules fragile.
 
-<CssPreview client:load
+<CssPreview
   title="Consecutive Heading Problem — Accumulated Top Margins"
   html={`
 <div class="prose-demo">
@@ -142,7 +139,7 @@ The flow utility uses the lobotomized owl selector (`* + *`) scoped to a contain
 
 This is the most robust approach. Spacing is owned by one margin direction only (`margin-block-start`), so it works identically in block flow, flex, and grid — no margin collapse dependency.
 
-<CssPreview client:load
+<CssPreview
   title="Flow Utility — Consecutive Headings Tightened"
   html={`
 <div class="flow-demo">
@@ -258,7 +255,7 @@ When `h2` is followed by `h3`, the `h3`'s top margin becomes `0`. Only the `h2`'
 
 The trade-off: this zeros the top margin of **any** element after a heading, not just other headings. That means the first paragraph after a heading is always tight to the heading — which is usually desirable, but removes the ability to fine-tune that gap independently.
 
-<CssPreview client:load
+<CssPreview
   title="Tailwind Typography Style — heading + * Resets Top Margin"
   html={`
 <div class="tw-demo">
@@ -365,7 +362,7 @@ This approach is precise — it only adjusts spacing between heading pairs, leav
 
 The trade-off: this strategy still depends on both headings having their own margins (top and bottom). In flex or grid containers where margins do not collapse, the gap between consecutive headings remains larger than in block flow. Use the flow utility (Strategy 1) or the Tailwind style (Strategy 2) when the prose container may be a flex or grid column.
 
-<CssPreview client:load
+<CssPreview
   title=":has() — Reduce Bottom Margin When Heading Follows"
   html={`
 <div class="has-demo">
@@ -456,7 +453,7 @@ This matters because markdown content containers are increasingly rendered insid
 .prose-flow > * + * { margin-block-start: var(--flow-space, 1em); }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Margin Collapse — Block Flow vs Flex Container"
   html={`
 <div class="collapse-demo">
@@ -591,7 +588,7 @@ The combined approach treats all consecutive heading pairs identically. When the
 
 The `:where()` wrapper keeps specificity flat, so declaration order controls which rule wins. Place pair-specific overrides **after** the catch-all consecutive heading rule.
 
-<CssPreview client:load
+<CssPreview
   title="Pair-Specific Overrides — Uniform vs Tuned Consecutive Headings"
   html={`
 <div class="pair-demo">
@@ -790,7 +787,7 @@ This does not handle the consecutive heading problem. For that, the arbitrary va
 
 This works but is difficult to read and maintain. Prefer the CSS `@layer` approach or `@tailwindcss/typography` over long arbitrary variants.
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: @tailwindcss/typography Handles Consecutive Headings"
   plugins={["typography"]}
   html={`

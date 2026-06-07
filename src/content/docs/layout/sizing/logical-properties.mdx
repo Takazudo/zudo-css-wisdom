@@ -3,8 +3,6 @@ title: Logical Properties
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 CSS was originally designed with physical directions: `top`, `right`, `bottom`, `left`. These work for left-to-right (LTR) languages but break in right-to-left (RTL) languages like Arabic and Hebrew, and in vertical writing modes like Japanese. AI agents almost always generate physical properties (`margin-left`, `padding-right`, `border-top`) even when logical alternatives exist. This creates layouts that require manual mirroring for internationalization (i18n), which is error-prone and produces duplicate CSS.
@@ -42,7 +40,7 @@ By using `margin-inline`, `padding-block`, `border-inline-start`, and similar pr
 
 In LTR, these produce identical results. In RTL, the logical version automatically places the border on the right side (the start of the inline axis in RTL).
 
-<CssPreview client:load
+<CssPreview
   title="margin-inline vs margin-left/right"
   html={`    <div class="demo">
       <div class="label">margin-left + margin-right (physical):</div>
@@ -208,7 +206,7 @@ This positions the dropdown below its parent (`top: 100%` in LTR) and aligned to
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="padding-block Usage"
   html={`    <div class="demo">
       <div class="box">

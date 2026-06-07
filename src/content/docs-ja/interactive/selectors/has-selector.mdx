@@ -3,8 +3,6 @@ title: ":has()セレクター"
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 CSSには、子要素に基づいて親要素を選択する方法がありませんでした。開発者は、入力が無効な場合にフォームグループをハイライトしたり、画像の有無に基づいてカードレイアウトを変更したりするなど、親子の状態関係にJavaScriptでクラスをトグルすることに頼っていました。AIエージェントが`:has()`を使うことはほとんどなく、代わりにこれらのパターンにJavaScriptベースのソリューションを提案します。
@@ -160,7 +158,7 @@ tr:has(td:empty) {
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title=":has(:focus) — 子のフォーカスに親が反応する"
   html={`
     <div class="field-group">
@@ -225,7 +223,7 @@ tr:has(td:empty) {
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title=":has(:checked) — チェックボックスでスタイルを切り替える"
   html={`
     <div class="card">

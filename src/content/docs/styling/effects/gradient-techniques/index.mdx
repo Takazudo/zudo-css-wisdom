@@ -3,9 +3,6 @@ title: Gradient Techniques
 sidebar_position: 7
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 AI agents tend to reach for flat solid colors when backgrounds, text fills, or decorative elements would look significantly more polished with gradients. When AI does use gradients, they often pick harsh color pairings, fail to use perceptual color spaces for smooth transitions, and miss advanced techniques like layered gradients, hard-stop patterns, or gradient text.
@@ -220,7 +217,7 @@ Multiple gradients can be stacked using comma-separated `background` values. Lat
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Linear Gradient"
   html={`    <div class="gradient-box"></div>`}
   css={`
@@ -237,7 +234,7 @@ Multiple gradients can be stacked using comma-separated `background` values. Lat
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="Radial Gradient"
   html={`    <div class="radial-box"></div>`}
   css={`
@@ -260,7 +257,7 @@ Multiple gradients can be stacked using comma-separated `background` values. Lat
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="Conic Gradient Color Wheel"
   html={`    <div class="conic-wrapper"><div class="conic-wheel"></div></div>`}
   css={`
@@ -282,7 +279,7 @@ Multiple gradients can be stacked using comma-separated `background` values. Lat
     `}
   height={240} />
 
-<CssPreview client:load
+<CssPreview
   title="Layered Mesh Gradient"
   html={`    <div class="mesh"></div>`}
   css={`
@@ -310,7 +307,7 @@ Multiple gradients can be stacked using comma-separated `background` values. Lat
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="Gradient Text (background-clip: text)"
   html={`    <div class="text-wrapper"><h1 class="gradient-text">Gradient Heading</h1></div>`}
   css={`
@@ -337,7 +334,7 @@ Multiple gradients can be stacked using comma-separated `background` values. Lat
 
 ## Deep Dive
 
-- [CSS-Only Pattern Library](./css-pattern-library) — A collection of CSS-only decorative patterns built entirely with gradients: checkerboards, stripes, dots, waves, and more
+- [CSS-Only Pattern Library](./css-pattern-library.mdx) — A collection of CSS-only decorative patterns built entirely with gradients: checkerboards, stripes, dots, waves, and more
 
 ## Common AI Mistakes
 
@@ -363,14 +360,14 @@ Tailwind provides gradient utilities via `bg-gradient-to-*` for direction and `f
 
 ### Linear Gradient
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Linear Gradient"
   html={`    <div class="h-[200px] bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"></div>`}
   height={220} />
 
 ### Gradient Cards
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Gradient Cards"
   html={`    <div class="flex gap-3 p-4 bg-slate-900 min-h-[200px] items-center justify-center">
       <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 text-white w-40">
@@ -390,7 +387,7 @@ Tailwind provides gradient utilities via `bg-gradient-to-*` for direction and `f
 
 ### Gradient Text
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Gradient Text"
   html={`    <div class="flex justify-center items-center h-[200px] bg-slate-950">
       <h1 class="text-5xl font-extrabold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
