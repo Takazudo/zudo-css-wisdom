@@ -20,12 +20,26 @@ src/content/docs/claude-agents/
 src/content/docs/claude-md/
 src/content/docs/claude-skills/
 
-# --- Scaffold-internal artefacts (zudo-doc defaults) ---
+# --- Build output ---
 
 node_modules
 dist
-.astro
+.zfb
+.zfb-build
 
-# Tauri build artifacts
-src-tauri/target
-src-tauri/gen
+# macOS
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Cloudflare Wrangler
+.wrangler/
