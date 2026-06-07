@@ -68,6 +68,14 @@ const localeRecord = Object.fromEntries(
 );
 
 const integrationPlugins = [
+  // Mirror the consumed @takazudo/zudo-doc dist out of node_modules (preBuild)
+  // so Tailwind reliably generates the package's static utility classes — see
+  // plugins/sync-zudo-doc-classes-plugin.mjs. Must run for every build, so it
+  // is unconditional and listed first.
+  {
+    name: "./plugins/sync-zudo-doc-classes-plugin.mjs",
+    options: {},
+  },
   ...(settings.claudeResources
     ? [
         {
