@@ -118,10 +118,11 @@ export function HeadWithDefaults({
           clamp() width. Mirrors the sibling sidebar-toggle restore
           script emitted from the page's afterSidebar slot. */}
       {settings.sidebarResizer && <script dangerouslySetInnerHTML={{ __html: SIDEBAR_RESIZER_RESTORE_SCRIPT }} />}
-      {/* favicon set — withBase() handles the configured base path prefix */}
+      {/* favicon — withBase() handles the configured base path prefix.
+          public/favicon.ico is a multi-size .ico (16/32/48px), so a single
+          `sizes="any"` link covers all targets; no separate PNG icons are
+          shipped (the 16x16/32x32 PNG links were unbacked → 404). */}
       <link rel="icon" href={withBase("/favicon.ico")} sizes="any" />
-      <link rel="icon" type="image/png" sizes="32x32" href={withBase("/favicon-32x32.png")} />
-      <link rel="icon" type="image/png" sizes="16x16" href={withBase("/favicon-16x16.png")} />
       {canonical !== undefined && <link rel="canonical" href={canonical} />}
     </>
   );
