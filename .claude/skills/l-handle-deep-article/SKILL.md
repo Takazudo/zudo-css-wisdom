@@ -2,7 +2,7 @@
 name: l-handle-deep-article
 description: >-
   Create or convert CSS best-practices articles into "deep articles" with sub-pages in the zcss
-  Astro site. Use when: (1) An article topic has enough depth to warrant "see more" reference
+  zfb site. Use when: (1) An article topic has enough depth to warrant "see more" reference
   sub-pages, (2) Converting a flat .mdx article into a category with index + child pages, (3) Adding
   deep reference content to an existing article, (4) User says 'deep article', 'add sub-pages',
   'expand article', or 'add reference pages'.
@@ -57,7 +57,7 @@ sidebar_position: 1
 
 import CssPreview from '@/components/CssPreview';
 
-# Sub-page Title
+## Sub-page Title
 
 (CssPreview demos and content)
 ```
@@ -68,4 +68,4 @@ import CssPreview from '@/components/CssPreview';
 - Sub-pages can be reference-oriented (tables, catalogs, recipes)
 - Follow all CSS/demo conventions from `CLAUDE.md`
 - File naming: kebab-case
-- After conversion, regenerate css-wisdom index: `pnpm run generate:css-wisdom`
+- After conversion, regenerate css-wisdom index: `pnpm generate:css-wisdom`

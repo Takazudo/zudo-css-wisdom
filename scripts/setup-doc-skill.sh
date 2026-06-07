@@ -134,7 +134,7 @@ The user has new information and wants to add or update documentation in this re
    Mermaid diagrams, and \`<HtmlPreview>\` blocks identical — only translate
    surrounding prose. Exception: pages with \`generated: true\` skip translation.
 6. **Format**: Run \`pnpm format:md\` to format the new/changed MDX files.
-7. **Verify**: Run \`pnpm build\` to confirm the site builds correctly.
+7. **Verify**: Run \`pnpm b4push\` to confirm the site builds correctly.
 
 ## Documentation Structure
 

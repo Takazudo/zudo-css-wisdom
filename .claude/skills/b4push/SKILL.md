@@ -18,9 +18,9 @@ pnpm b4push
 
 ## What It Checks
 
-1. **Type checking** — `pnpm check` (astro sync + tsc --noEmit)
-2. **Build** — `pnpm build` (full Astro production build)
-3. **Link check** — `pnpm run check:links` (scan dist/ for broken internal links)
+1. **Type checking** — `pnpm check` (zfb check)
+2. **Build** — `pnpm build` (full zfb production build)
+3. **Link check** — `pnpm run check:links -- --strict-broken --strict-absolute --allowlist=.check-links-allowlist`
 
 ## When to Run
 
@@ -30,8 +30,8 @@ pnpm b4push
 
 ## Link Check Details
 
-The link checker (`scripts/check-links.js --strict`) scans built HTML in `dist/` for:
+The link checker (`scripts/check-links.js`) scans built HTML in `dist/` for:
 - Broken internal links (href pointing to non-existent pages)
-- Absolute links in MDX source that bypass the base path (`/pj/zcss/`)
+- Absolute links in MDX source that bypass the base path
 
-Runs in strict mode — exits with error on any broken link.
+Runs in `--strict-broken --strict-absolute` mode — exits with error on broken links or absolute-path violations. Known exceptions go in `.check-links-allowlist`.

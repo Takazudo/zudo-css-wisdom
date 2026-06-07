@@ -4,14 +4,14 @@ CSS best practices documentation site for AI coding agents. Curated techniques a
 
 AIコーディングエージェント向けのCSSベストプラクティスドキュメントサイトです。厳選されたCSS技法とパターンを、ライブCssPreviewデモとともに提供します。
 
-**Live site:** [zudo-css.pages.dev](https://zudo-css.pages.dev/pj/zcss/)
+**Live site:** [zudo-css.takazudomodular.com](https://zudo-css.takazudomodular.com/)
 
 ## Tech Stack / 技術スタック
 
-- **Astro 5** — static site generator with Content Collections / コンテンツコレクション対応の静的サイトジェネレーター
+- **zfb (zudo-doc)** — framework powering content, routing, and build / コンテンツ・ルーティング・ビルドを担うフレームワーク
 - **MDX** — content format with interactive components / インタラクティブコンポーネント対応のコンテンツ形式
-- **Tailwind CSS v4** — utility-first styling via `@tailwindcss/vite`
-- **React 19** — interactive islands (TOC, sidebar, color scheme picker) / インタラクティブアイランド（目次、サイドバー、カラースキーム切替）
+- **Tailwind CSS v4** — utility-first styling
+- **Preact** — component rendering (SSR + client islands) / コンポーネントレンダリング（SSR + クライアントアイランド）
 - **Shiki** — code highlighting with dual-theme support / デュアルテーマ対応のコードハイライト
 - **Cloudflare Pages** — deployment via GitHub Actions / GitHub Actionsによるデプロイ
 
@@ -20,12 +20,10 @@ AIコーディングエージェント向けのCSSベストプラクティスド
 ```
 src/content/docs/       # MDX articles by category (English) / カテゴリ別MDX記事（英語）
 src/content/docs-ja/    # Japanese locale articles / 日本語ロケール記事
-src/components/         # CssPreview, PreviewBase, TailwindPreview, etc.
+src/components/         # CssPreview, TailwindPreview, and shim components
 src/config/             # Settings, color schemes, sidebars, i18n / 設定、カラースキーム、サイドバー、国際化
-src/layouts/            # Astro layouts / Astroレイアウト
-src/pages/              # Astro page routes / Astroページルーティング
-src/plugins/            # Rehype plugins / Rehypeプラグイン
-src/integrations/       # Astro integrations (search, doc-history, sitemap) / Astroインテグレーション
+pages/                  # zfb page routes / zfbページルーティング
+plugins/                # Rehype/remark plugins / Rehype/remarkプラグイン
 src/styles/             # Global CSS (Tailwind v4 + design tokens) / グローバルCSS
 ```
 
@@ -48,10 +46,10 @@ Requires **Node.js >= 20** and **pnpm**.
 
 ```bash
 pnpm install
-pnpm dev              # Dev server → http://css-bp.localhost:8811
+pnpm dev              # Dev server (kills port 4321, starts zfb dev)
 pnpm build            # Production build → dist/
 pnpm preview          # Preview production build
-pnpm check            # Astro type checking
+pnpm check            # Type checking (zfb check)
 pnpm b4push           # Run all quality checks before pushing
 ```
 

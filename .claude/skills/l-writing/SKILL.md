@@ -163,6 +163,8 @@ import CssPreview from '@/components/CssPreview';
 import TailwindPreview from '@/components/TailwindPreview';
 ```
 
+Both components are available as zfb-shim wrappers at `@/components/CssPreview` and `@/components/TailwindPreview`. They wrap the upstream `HtmlPreviewWrapper` / `TailwindPreviewWrapper` — no `client:load` directive is needed or valid in zfb MDX.
+
 ### Headings
 
 - Article titles use `h1` (the `# Title` at the top). All sections use `h2` (`##`) or `h3` (`###`).
@@ -201,7 +203,7 @@ Available types: `note`, `tip`, `info`, `warning`, `danger`. Use `note` and `inf
 ### CssPreview in MDX
 
 ```mdx
-<CssPreview client:load
+<CssPreview
   title="Flexbox Centering"
   html={`
 <div class="flex-center">
