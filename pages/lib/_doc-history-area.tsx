@@ -67,6 +67,17 @@ interface DocHistoryAreaProps {
    * view-source GitHub URL. Omit to suppress the view-source link.
    */
   contentDir?: string;
+  /**
+   * True when this locale page falls back to the base EN collection
+   * (i.e. the slug has no translation for the active locale). When true,
+   * the history data-path derivations use defaultLocale so the island
+   * fetches the correct bare-slug JSON and the SSR manifest lookup hits
+   * the bare key — both of which only exist for EN-origin files.
+   * Display labels (t() calls) still use the active locale so JA users
+   * see JA labels on fallback pages. Omit (or false) for translated pages
+   * and all other call sites (EN route, tag pages) — behavior unchanged.
+   */
+  isFallback?: boolean;
 }
 
 /**
@@ -93,6 +104,7 @@ export function DocHistoryArea({
   locale,
   entrySlug,
   contentDir,
+  isFallback,
 }: DocHistoryAreaProps): VNode | null {
   if (!settings.docHistory) return null;
 
@@ -106,11 +118,18 @@ export function DocHistoryArea({
   // collectContentFiles walk in packages/doc-history-server. (#1891)
   const historySlug = toHistorySlug(slug);
 
+  // On EN-fallback locale pages the history data exists only at the bare
+  // (non-locale-prefixed) path — the prebuild/server writes locale-prefixed
+  // keys/paths only for files physically present in the locale collection.
+  // Use defaultLocale for data lookups when isFallback is true; keep locale
+  // for all display label calls (t()) so JA users see JA labels.
+  const effectiveHistoryLocale = isFallback ? defaultLocale : locale;
+
   // Look up the build-time manifest entry for this page. The composedSlug
   // matches the key written by the prebuild step: bare slug for the default
   // locale, "<localeKey>/<slug>" for non-default locales.
   const composedSlug =
-    locale === defaultLocale ? historySlug : `${locale}/${historySlug}`;
+    effectiveHistoryLocale === defaultLocale ? historySlug : `${effectiveHistoryLocale}/${historySlug}`;
   type MetaEntry = { author: string; createdDate: string; updatedDate: string };
   const meta = (docHistoryMeta as Record<string, MetaEntry>)[composedSlug];
 
@@ -120,7 +139,8 @@ export function DocHistoryArea({
   const historyLabel = t("doc.history", locale);
 
   // Real-component props — locale omitted for the default locale.
-  const docHistoryLocale = locale === defaultLocale ? undefined : locale;
+  // Use effectiveHistoryLocale so fallback pages fetch the bare (non-ja/) path.
+  const docHistoryLocale = effectiveHistoryLocale === defaultLocale ? undefined : effectiveHistoryLocale;
   const docHistoryBasePath = settings.base ?? "/";
 
   // Build the SSR fallback with only the sr-only metadata block so the

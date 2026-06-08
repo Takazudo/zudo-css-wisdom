@@ -46,8 +46,10 @@ export default function IndexPage(): JSX.Element {
   const categoryOrder = getCategoryOrder();
   const groupedTree = groupSatelliteNodes(tree, categoryOrder);
 
+  // Drop category_no_page index files so the count matches the number of tag
+  // pages actually built (the tag routes exclude them too).
   const tagCount = collectTags(
-    navDocs,
+    navDocs.filter((d) => !d.data.category_no_page),
     (id, data) => data.slug ?? toRouteSlug(id),
   ).size;
 

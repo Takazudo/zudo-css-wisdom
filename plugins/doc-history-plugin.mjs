@@ -9,8 +9,10 @@
 //               directly. Honours `SKIP_DOC_HISTORY=1` via `env: process.env`.
 //
 //   postBuild — invokes `runDocHistoryPostBuild` to write
-//               `<outDir>/doc-history/<slug>.json` files. Also honours
-//               `SKIP_DOC_HISTORY=1` (the runner returns early when set).
+//               `<outDir>/doc-history/<slug>.json` files. Skipped by default
+//               on local builds (opt in with `GEN_DOC_HISTORY=1`); always runs
+//               in CI; `SKIP_DOC_HISTORY=1` suppresses it everywhere. The
+//               gating lives in `shouldGeneratePostBuild` (#1986).
 //
 //   devMiddleware — reverse-proxies `/doc-history/*` requests to the
 //               standalone `@takazudo/zudo-doc-history-server` on port 4322.

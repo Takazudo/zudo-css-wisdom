@@ -21,9 +21,9 @@ import type { NavNode as V2NavNode } from "@takazudo/zudo-doc/nav-indexing/types
 import {
   buildNavTree,
   findNode,
+  firstRoutedHref,
 } from "@/utils/docs";
 import { defaultLocale, type Locale } from "@/config/i18n";
-import { docsUrl } from "@/utils/base";
 import { resolveNavSource } from "./_nav-source-docs";
 
 export interface CategoryNavWrapperProps {
@@ -39,8 +39,9 @@ export interface CategoryNavWrapperProps {
    * of "claude", not children). Each slug is resolved to its nav node; nodes
    * not found in the tree are silently skipped.
    *
-   * For nodes with noPage=true (no index.mdx), the href falls back to the
-   * auto-generated category index URL via docsUrl(slug, lang).
+   * A `category_no_page` category has no route of its own, so its card links to
+   * the first routed descendant page (via firstRoutedHref); categories with no
+   * reachable page are skipped rather than emitting a dead link.
    */
   categories?: string[];
   /**
@@ -61,8 +62,8 @@ export interface CategoryNavWrapperProps {
  * - `categories`: resolves an explicit list of top-level slugs as cards.
  *   Use this when the target categories are siblings in the nav tree rather
  *   than children of a common parent (e.g. claude-md / claude-skills are
- *   top-level peers of claude, not children of it). Nodes with noPage=true
- *   get their href computed via docsUrl() since auto-index pages exist.
+ *   top-level peers of claude, not children of it). A noPage category card
+ *   links to its first routed descendant page (it has no route of its own).
  *
  * Returns null when no visible children are resolved.
  */
@@ -85,14 +86,17 @@ export function CategoryNavWrapper({
   let children: V2NavNode[];
 
   if (categories !== undefined) {
-    // Explicit slug list mode: resolve each slug to its nav node and build
-    // a card for it. noPage nodes have no href in the tree but their
-    // auto-generated category index page is reachable via docsUrl().
+    // Explicit slug list mode: resolve each slug to its nav node and build a
+    // card for it. A `category_no_page` category has no route of its own
+    // (collectAutoIndexNodes skips noPage nodes), so its card links to the
+    // first routed descendant page; categories with no reachable page are
+    // skipped rather than emitting a dead link.
     children = categories
       .map((slug): V2NavNode | null => {
         const node = findNode(tree, slug);
         if (!node) return null;
-        const href = node.href ?? docsUrl(slug, locale);
+        const href = node.href ?? firstRoutedHref(node);
+        if (!href) return null;
         return {
           label: node.label,
           description: node.description,

@@ -8,6 +8,24 @@
 @import "@takazudo/zdtp/styles.css";
 
 /* ========================================
+ * @takazudo/zudo-doc package safelist
+ *
+ * @takazudo/zudo-doc ships NO precompiled CSS — its header/sidebar/doclayout/
+ * admonition styles are static Tailwind class literals in its compiled dist
+ * JS, so a CONSUMER must generate those classes itself. The package ships a
+ * build-generated safelist at `dist/safelist.css` (an `@source inline(...)`
+ * of every class token it emits, exported as `./safelist.css`,
+ * zudolab/zudo-doc#1993/#1994). Importing it via the module resolver is
+ * reliable across all consumer environments — same code path as the
+ * `@import "@takazudo/zdtp/styles.css"` above — and auto-syncs on package
+ * upgrade. This replaces the old, unreliable approach of @source-ing the
+ * package dist out of node_modules (Tailwind v4 does not reliably traverse
+ * pnpm's symlinked node_modules, dropping ~28% of the package's classes).
+ * ======================================== */
+
+@import "@takazudo/zudo-doc/safelist.css";
+
+/* ========================================
  * Tailwind v4 content sources
  *
  * Without a `.git` directory in the project root Tailwind v4's content
@@ -31,20 +49,9 @@
 @source "src/hooks/**/*.{tsx,ts,jsx,js}";
 @source "src/utils/**/*.{tsx,ts,jsx,js}";
 @source "pages/**/*.{tsx,ts,jsx,js}";
-/* Consumed framework package classes. @takazudo/zudo-doc ships NO precompiled
- * CSS — its header/sidebar/doclayout/admonition styles are static Tailwind
- * class literals embedded in its compiled dist JS, so a CONSUMER must generate
- * them itself. Tailwind v4's scanner is unreliable for node_modules paths even
- * via an explicit @source (it special-cases node_modules and dropped ~28% of
- * the package's classes — sticky offsets, dropdown shadow/rounded, spacing
- * tokens, hover states). Fix: a preBuild step mirrors the package dist OUT of
- * node_modules to zudo-doc-tw-sources/ (gitignored) and we @source THAT copy —
- * Tailwind's own scanner stays the source of truth, so the generated set can't
- * drift and no hand safelist must be maintained. The mirror is re-derived from
- * the installed dist on every build/dev, so it is dep-bump-safe. See
- * scripts/sync-zudo-doc-classes.mjs (root cause A of
- * Takazudo/zudo-front-builder#884). */
-@source "zudo-doc-tw-sources/**/*.{js,mjs}";
+/* Note: the consumed @takazudo/zudo-doc package utilities are covered by the
+ * `@import "@takazudo/zudo-doc/safelist.css"` above — these @source directives
+ * cover this consumer's own code only. */
 
 /* ========================================
  * Design Token System
@@ -142,7 +149,8 @@
   --spacing-hsp-xl: 1.5rem;     /* 24px — generous padding */
   --spacing-hsp-2xl: 2rem;      /* 32px — large padding */
 
-  /* Vertical spacing (7 steps) */
+  /* Vertical spacing (8 steps) */
+  --spacing-vsp-3xs: 0.25rem;     /* 4px — hairline gap */
   --spacing-vsp-2xs: 0.4375rem;   /* 7px — tight gap */
   --spacing-vsp-xs: 0.875rem;    /* 14px — small gap */
   --spacing-vsp-sm: 1.25rem;     /* 20px — compact gap */
@@ -161,6 +169,16 @@
 
   /* Image overlay button chrome */
   --spacing-image-overlay-inset: 0.5rem;  /* 8px — overlay button corner inset + internal padding */
+
+  /* ========================================
+   * Elevation — the tight `@import "tailwindcss/utilities"` (no default
+   * @theme) drops Tailwind's default shadow scale, so `shadow-*` utilities
+   * generate nothing. Re-add the one elevation the package components use:
+   * header and version-switcher dropdown panels apply `shadow-lg`. Value is
+   * Tailwind v4's default shadow-lg; the black is intentionally
+   * theme-independent (a drop shadow is absence of light, not a themed color).
+   * ======================================== */
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   /* ========================================
    * Typography
