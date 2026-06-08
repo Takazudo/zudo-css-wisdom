@@ -35,8 +35,8 @@ scripts/run-b4push.sh
 src/config/i18n.ts
 
 # global.css carries the zcss design tokens (Default Dark/Light, p0–p15 palette,
-# @theme) plus the @source node_modules scan + @source inline(...) safelist for
-# the consumed @takazudo/zudo-doc bracket/responsive utilities.
+# @theme) plus `@import "@takazudo/zudo-doc/safelist.css"` for the consumed
+# package utilities.
 src/styles/global.css
 
 # theme-toggle.tsx: zcss pins `ThemeToggle.displayName = "ThemeToggle"` (+ a

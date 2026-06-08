@@ -33,6 +33,13 @@ export interface DocsEntry {
     standalone?: boolean;
     slug?: string;
     generated?: boolean;
+    /** Category metadata on a directory's index.mdx (frontmatter form of
+     *  `_category_.json` `noPage`): non-linked sidebar header + excluded from
+     *  routes/sitemap/search. Frontmatter wins over the sidecar. */
+    category_no_page?: boolean;
+    /** Frontmatter form of `_category_.json` `sortOrder` — child sort
+     *  direction. Frontmatter wins over the sidecar. */
+    category_sort_order?: "asc" | "desc";
   };
   rendered?: RenderedContent;
   filePath?: string;

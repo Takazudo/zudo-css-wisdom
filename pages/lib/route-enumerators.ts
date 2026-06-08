@@ -60,6 +60,10 @@ export function enumerateDocsRoutes(locale: string): string[] {
   const tree = buildNavTree(navDocs, locale as Locale, categoryMeta);
 
   for (const doc of allDocs) {
+    // A `category_no_page` index.mdx is metadata-only — no route, so no sitemap
+    // URL. Same exclusion the doc-route paths() apply (zfb retains every .mdx
+    // as a collection entry, so the skip must be explicit).
+    if (doc.data.category_no_page === true) continue;
     // Canonical route slug via the one shared rule (@/utils/slug). `doc.id` is
     // already `toRouteSlug(doc.slug)` (bridged through stripIndexSuffix in
     // pages/_data.ts), so a bare root index.mdx is "" here → `/docs/` — the
@@ -100,17 +104,24 @@ export function enumerateTagsRoutes(locale: string): string[] {
   urls.push(withBase(tagsBase));
 
   // Collect tags from the same merged doc set the tag pages use.
-  // Filter unlisted + draft — mirrors the tag [tag].tsx pages which do the same.
+  // Filter unlisted + draft + category_no_page — mirrors the tag [tag].tsx
+  // pages so the sitemap lists exactly the tag pages that get built (a
+  // category_no_page index has no route, so a tag it carries must not coin a
+  // tag page that links back to it). The category_no_page drop happens AFTER
+  // the locale merge so a locale override carrying the flag first wins the
+  // merge — pre-merge filtering would let the unflagged base doc resurface.
   let docs: DocsEntry[];
   if (locale === defaultLocale) {
-    docs = loadDocs("docs").filter((d) => !d.data.unlisted && !d.data.draft);
+    docs = loadDocs("docs").filter(
+      (d) => !d.data.unlisted && !d.data.draft && !d.data.category_no_page,
+    );
   } else {
     const result = mergeLocaleDocs({
       baseDocs: loadDocs("docs").filter((d) => !d.data.draft),
       localeDocs: loadDocs(`docs-${locale}`).filter((d) => !d.data.draft),
       applyDefaultLocaleOnlyFilter: true,
     });
-    docs = result.docs;
+    docs = result.docs.filter((d) => !d.data.category_no_page);
   }
 
   const tagMap = collectTags(docs, (id, data) => data.slug ?? toRouteSlug(id));
@@ -157,6 +168,8 @@ export function enumerateVersionedRoutes(
     const tree = buildNavTree(navDocs, "en", categoryMeta);
 
     for (const doc of allDocs) {
+      // category_no_page index.mdx → no route, no sitemap URL (see paths()).
+      if (doc.data.category_no_page === true) continue;
       const slug = doc.data.slug ?? toRouteSlug(doc.id);
       urls.push(versionedDocsUrl(slug, version.slug));
     }
@@ -178,6 +191,8 @@ export function enumerateVersionedRoutes(
     const tree = buildNavTree(navDocs, locale as Locale, categoryMeta);
 
     for (const doc of allDocs) {
+      // category_no_page index.mdx → no route, no sitemap URL (see paths()).
+      if (doc.data.category_no_page === true) continue;
       const slug = doc.data.slug ?? toRouteSlug(doc.id);
       urls.push(versionedDocsUrl(slug, version.slug, locale as string));
     }

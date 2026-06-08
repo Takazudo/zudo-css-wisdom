@@ -21,4 +21,6 @@ export const DEFAULT_FRONTMATTER_IGNORE_KEYS: string[] = [
   "standalone",
   "slug",
   "generated",
+  "category_no_page",
+  "category_sort_order",
 ];

@@ -118,6 +118,10 @@ export function paths(): Array<{
 
     // Regular doc pages
     for (const entry of allDocs) {
+      // A `category_no_page` index.mdx is metadata-only — kept in the nav tree
+      // for breadcrumbs but emits no route (zfb retains every .mdx as a
+      // collection entry, so the skip must be explicit).
+      if (entry.data.category_no_page === true) continue;
       // Canonical route slug via the one shared rule (@/utils/slug). `entry.id`
       // is already `toRouteSlug(entry.slug)` (bridgeEntries → stripIndexSuffix →
       // toRouteSlug), so this is identical to the previous `entry.id` form for
@@ -259,6 +263,7 @@ export default function LocaleDocsPage(props: PageArgs): JSX.Element {
             locale={locale}
             entrySlug={props.entry.slug}
             contentDir={contentDir}
+            isFallback={isFallback}
           />
         ) : null
       }

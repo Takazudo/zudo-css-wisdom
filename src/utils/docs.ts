@@ -70,8 +70,17 @@ function navTreeCacheKey(
     : "_";
   return `${lang}:${metaKey}:${docs
     .map((d) => {
-      const { sidebar_position, sidebar_label, title, description, unlisted, standalone, slug } =
-        d.data;
+      const {
+        sidebar_position,
+        sidebar_label,
+        title,
+        description,
+        unlisted,
+        standalone,
+        slug,
+        category_no_page,
+        category_sort_order,
+      } = d.data;
       return JSON.stringify([
         d.id,
         sidebar_position,
@@ -81,6 +90,8 @@ function navTreeCacheKey(
         unlisted,
         standalone,
         slug,
+        category_no_page,
+        category_sort_order,
       ]);
     })
     .sort()
@@ -197,7 +208,9 @@ function toNavNodes(
   for (const child of parent.children.values()) {
     const doc = child.doc;
     const meta = categoryMeta?.get(child.fullPath);
-    const sortOrder = meta?.sortOrder ?? "asc";
+    // Frontmatter wins over the `_category_.json` sidecar when both exist.
+    const noPage = doc?.data.category_no_page ?? meta?.noPage;
+    const sortOrder = doc?.data.category_sort_order ?? meta?.sortOrder ?? "asc";
     const children = toNavNodes(child, lang, categoryMeta, sortOrder);
 
     nodes.push({
@@ -206,12 +219,16 @@ function toNavNodes(
         doc?.data.sidebar_label ?? doc?.data.title ?? meta?.label ?? toTitleCase(child.segment),
       description: doc?.data.description ?? meta?.description,
       position: doc?.data.sidebar_position ?? meta?.position ?? 999,
-      href: meta?.noPage
+      href: noPage
         ? undefined
         : doc || children.length > 0
           ? docsUrl(child.fullPath, lang)
           : undefined,
-      hasPage: !!doc,
+      // A `category_no_page` index.mdx is metadata-only — force hasPage false so
+      // it matches a `_category_.json` noPage category (no backing file): a
+      // non-linked header that flattenTree drops from prev/next. Otherwise the
+      // route-excluded slug would surface as a 404 pagination target.
+      hasPage: !!doc && noPage !== true,
       children,
       sortOrder,
     });
@@ -300,6 +317,25 @@ export function findNode(nodes: NavNode[], slug: string): NavNode | undefined {
     if (node.slug === slug) return node;
     const found = findNode(node.children, slug);
     if (found) return found;
+  }
+  return undefined;
+}
+
+/**
+ * Return the href of the first routed descendant (a node with `hasPage` and an
+ * `href`), walking children depth-first in order. Returns undefined when the
+ * subtree has no routed page.
+ *
+ * Used by CategoryNav's `categories=` mode to give a `category_no_page` card a
+ * real destination: such a category has no route of its own (collectAutoIndexNodes
+ * skips noPage nodes), so a card linking to its own slug URL would be a dead
+ * link. Linking to the first child page keeps the route surface unchanged.
+ */
+export function firstRoutedHref(node: NavNode): string | undefined {
+  for (const child of node.children) {
+    if (child.hasPage && child.href) return child.href;
+    const nested = firstRoutedHref(child);
+    if (nested) return nested;
   }
   return undefined;
 }
