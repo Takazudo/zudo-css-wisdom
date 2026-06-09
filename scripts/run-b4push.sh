@@ -7,10 +7,11 @@ set -euo pipefail
 #   1. Format check (mdx)  (mdx-formatter --check; config in .mdx-formatter.json)
 #   2. Pin parity check    (pure-Node, reads package.json only)
 #   3. Template drift check (needs node_modules — create-zudo-doc devDep)
-#   4. Type checking       (zfb check)
-#   5. Build               (zfb build)
-#   6. HTML validation     (html-validate dist/**/*.html)
-#   7. Link check          (check:links --strict-broken --strict-absolute)
+#   4. Unit tests          (vitest run scripts/ — pure, no dist needed)
+#   5. Type checking       (zfb check)
+#   6. Build               (zfb build)
+#   7. HTML validation     (html-validate dist/**/*.html)
+#   8. Link check          (check:links --strict-broken --strict-absolute)
 #
 # Env overrides for non-interactive use:
 #   B4PUSH_SKIP_HTML_VALIDATE=1  — skip HTML validation (step 6)
@@ -18,7 +19,7 @@ set -euo pipefail
 
 START_TIME=$(date +%s)
 FAILURES=()
-TOTAL_STEPS=7
+TOTAL_STEPS=8
 CURRENT_STEP=0
 
 step() {
@@ -67,7 +68,17 @@ else
   fail "Template drift check"
 fi
 
-# ── Step 4: Type checking ─────────────────────────────
+# ── Step 4: Unit tests ────────────────────────────────
+# Pure vitest unit tests under scripts/__tests__/ (no dist/ needed). Guards the
+# port-rotation helper (incl. its WSL2 connect-timeout behavior) and check-links.
+step "Unit tests (test:unit)"
+if (cd "$ROOT_DIR" && pnpm test:unit); then
+  pass "Unit tests passed"
+else
+  fail "Unit tests"
+fi
+
+# ── Step 5: Type checking ─────────────────────────────
 step "Type checking (zfb check)"
 if (cd "$ROOT_DIR" && pnpm check); then
   pass "Type checking passed"
@@ -75,7 +86,7 @@ else
   fail "Type checking"
 fi
 
-# ── Step 5: Build ─────────────────────────────────────
+# ── Step 6: Build ─────────────────────────────────────
 step "Build (zfb build)"
 if (cd "$ROOT_DIR" && pnpm build); then
   pass "Build passed"
@@ -83,7 +94,7 @@ else
   fail "Build"
 fi
 
-# ── Step 6: HTML validation ───────────────────────────
+# ── Step 7: HTML validation ───────────────────────────
 step "HTML validation (html-validate)"
 if [[ "${B4PUSH_SKIP_HTML_VALIDATE:-}" == "1" ]]; then
   skip "HTML validation (B4PUSH_SKIP_HTML_VALIDATE=1)"
@@ -95,7 +106,7 @@ else
   fi
 fi
 
-# ── Step 7: Link check ────────────────────────────────
+# ── Step 8: Link check ────────────────────────────────
 #
 # Strict on broken links + absolute MDX-source warnings.
 # Allowlist file at `.check-links-allowlist` carries known exceptions.

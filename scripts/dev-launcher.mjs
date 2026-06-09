@@ -37,6 +37,17 @@ const PREFERRED_PORT = Number(process.env.DEV_PORT) || 3000;
 // (e.g. reachable from a Windows host under WSL2) — this preserves the original
 // bare-`zfb dev --host` intent under zfb next.36's value-required `--host`
 // (see Takazudo/zudo-front-builder#891 for the bare-flag ergonomics proposal).
+//
+// KNOWN LIMITATION (best-effort probe): find-free-port probes the loopback
+// interfaces, but the server binds the IPv4 wildcard (0.0.0.0). If another
+// process is bound ONLY to a specific non-loopback address (e.g. a LAN IP) on
+// the chosen port, the probe sees it as free and zfb's wildcard bind then
+// fails with EADDRINUSE. That is uncommon for dev tooling and fails LOUDLY —
+// zfb prints the bind error and exits, and `child.on('exit')` below propagates
+// the non-zero code — so it surfaces clearly rather than corrupting state; set
+// DEV_PORT to step around it. A robust fix would need a wildcard test-bind,
+// which the connect-probe deliberately avoids (macOS reports such binds free
+// even when the port is held). Tracked for an upstream skill improvement.
 const buildCommand = (port) => ({
   cmd: 'zfb',
   args: ['dev', '--port', String(port), '--host', '0.0.0.0'],
