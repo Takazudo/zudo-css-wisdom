@@ -33,10 +33,12 @@ const childPath = `${binDir}:${process.env.PATH ?? ''}`;
 
 // ── EDIT FOR YOUR PROJECT ──────────────────────────────────────────────────
 const PREFERRED_PORT = Number(process.env.DEV_PORT) || 3000;
-// zfb's dev server takes `--port <n>`. `--host 0.0.0.0` exposes it on the LAN
-// (e.g. reachable from a Windows host under WSL2) — this preserves the original
-// bare-`zfb dev --host` intent under zfb next.36's value-required `--host`
-// (see Takazudo/zudo-front-builder#891 for the bare-flag ergonomics proposal).
+// zfb's dev server takes `--port <n>`. Bare `--host` (no value) exposes it on
+// the LAN by binding 0.0.0.0 — e.g. reachable from a Windows host under WSL2.
+// zfb resolves a value-less `--host` to 0.0.0.0 via clap `default_missing_value`
+// (shipped in zfb next.37, Takazudo/zudo-front-builder#891). The comment earns
+// its place: a value-less `--host` otherwise reads as "default host", the
+// opposite of LAN-expose.
 //
 // KNOWN LIMITATION (best-effort probe): find-free-port probes the loopback
 // interfaces, but the server binds the IPv4 wildcard (0.0.0.0). If another
@@ -50,7 +52,7 @@ const PREFERRED_PORT = Number(process.env.DEV_PORT) || 3000;
 // even when the port is held). Tracked for an upstream skill improvement.
 const buildCommand = (port) => ({
   cmd: 'zfb',
-  args: ['dev', '--port', String(port), '--host', '0.0.0.0'],
+  args: ['dev', '--port', String(port), '--host'],
   env: {},
 });
 // ───────────────────────────────────────────────────────────────────────────
