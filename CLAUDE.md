@@ -7,7 +7,7 @@ CSS best practices documentation site, built with zudo-doc (zfb framework, MDX, 
 Package manager: **pnpm** (Node.js >= 20).
 
 ```bash
-pnpm dev              # Dev server (kills port 4321, starts zfb dev)
+pnpm dev              # Dev server (port-rotation launcher: probes 3000, walks +1 to first free; DEV_PORT overrides)
 pnpm build            # Production build → dist/
 pnpm preview          # Preview built site
 pnpm check            # Type checking (zfb check)
