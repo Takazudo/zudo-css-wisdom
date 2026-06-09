@@ -5,8 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "predev": "lsof -ti:4321 | xargs -r kill || true",
-    "dev": "zfb dev --host",
+    "dev": "node scripts/dev-launcher.mjs",
     "build": "zfb build",
     "preview": "zfb preview",
     "check": "zfb check",
@@ -20,6 +19,7 @@
     "setup:doc-skill": "bash scripts/setup-doc-skill.sh",
     "generate:css-wisdom": "node scripts/generate-css-wisdom.js",
     "test:e2e": "vitest run e2e/",
+    "test:unit": "vitest run scripts/",
     "deploy": "wrangler deploy"
   },
   "pnpm": {
