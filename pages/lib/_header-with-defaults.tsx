@@ -25,8 +25,8 @@
 //     hides it on pages with hide_sidebar). When `navSection` is defined the
 //     panel gets the full section tree; when undefined (home, 404, tags,
 //     versions) nodes=[] so the panel shows only rootMenuItems.
-//   - ThemeToggle from the package (self-island-wrapped) is always passed to
-//     Header.themeToggle so the ThemeToggle island marker appears in the
+//   - The bare package ThemeToggle (wrapped in Island below) is always passed
+//     to Header.themeToggle so the ThemeToggle island marker appears in the
 //     header on every page — matching the documented header contract.
 //
 // Locale switcher strategy (refs #1453):
@@ -45,68 +45,34 @@ import {
   VersionSwitcher,
   type VersionSwitcherLabels,
 } from "@takazudo/zudo-doc/i18n-version";
-// Don't import ThemeToggle from "@takazudo/zudo-doc/theme" — that barrel
-// also re-exports DesignTokenTweakPanel and ColorTweakExportModal, which
-// transitively pull `src/components/design-token-tweak/*` and the v2 panel
-// modules into the zfb esbuild graph. Those files import `react`, which
-// zfb does not alias to `preact/compat`, so the build fails. Use the host's
-// local ThemeToggle (already on `preact/hooks`) and wrap it in Island here
-// so the SSG output still emits the `data-zfb-island="ThemeToggle"` marker.
-import ThemeToggle from "@/components/theme-toggle";
+// BARE (non-island-wrapped) ThemeToggle (#2012 E2). The `./theme` barrel
+// exports an Island-wrapped variant; this wrapper composes its own Island
+// below, and the bare component avoids nesting an island inside an island.
+// Imported via the local @/components/theme-toggle shim (NOT the package
+// subpath the template uses): zfb's island scanner only registers
+// "use client" modules from project source, so the package import leaves
+// the "ThemeToggle" marker unregistered and the toggle dead after
+// hydration — see the shim's header comment.
+import { ThemeToggle } from "@/components/theme-toggle";
 import SidebarToggle from "@/components/sidebar-toggle";
 import { settings } from "@/config/settings";
 import { defaultLocale, locales, t, type Locale } from "@/config/i18n";
 import { buildGitHubRepoUrl } from "@/utils/github";
 import {
-  buildLocaleLinks,
   docsUrl,
   navHref,
   stripBase,
   versionedDocsUrl,
   withBase,
 } from "@/utils/base";
-import {
-  type NavNode,
-} from "@/utils/docs";
-import { buildSidebarForSection } from "@/utils/sidebar";
 import { filterHeaderRightItems } from "@takazudo/zudo-doc/header";
 import { SearchWidget } from "./_search-widget";
-import { loadNavSourceDocs } from "./_nav-source-docs";
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Walk the nav tree and rewrite each node's `href` to its versioned form.
- *
- * `buildNavTree` always emits hrefs via `docsUrl()`; when the active route
- * lives under `/v/{version}/...` we need the same nodes pointing at the
- * versioned URL so internal nav clicks stay inside the version. Skips
- * nodes without an href (link-only or category placeholders).
- *
- * Intentionally kept as a local copy in this module (not extracted) —
- * T2 only dedupes loadNavSourceDocs; remapVersionedHrefs is out of scope.
- */
-function remapVersionedHrefs(
-  nodes: NavNode[],
-  version: string,
-  nodeLang: Locale,
-): NavNode[] {
-  return nodes.map((node) => {
-    const children =
-      node.children.length > 0
-        ? remapVersionedHrefs(node.children, version, nodeLang)
-        : node.children;
-
-    if (!node.href || node.slug.startsWith("__link__")) {
-      return children !== node.children ? { ...node, children } : node;
-    }
-
-    const newHref = versionedDocsUrl(node.slug, version, nodeLang);
-    return { ...node, href: newHref, children };
-  });
-}
+import {
+  buildRootMenuItems,
+  buildLocaleLinksForNav,
+  buildSidebarNodes,
+  getThemeDefaultMode,
+} from "./_nav-data-prep";
 
 // ---------------------------------------------------------------------------
 // Component
@@ -114,7 +80,7 @@ function remapVersionedHrefs(
 
 export interface HeaderWithDefaultsProps {
   /** Active locale; defaults to the configured defaultLocale. */
-  lang?: Locale;
+  lang?: Locale | string;
   /**
    * Current page URL path (as the layout passes from Astro.url.pathname or
    * the zfb equivalent). Used by the Header to compute the active nav item
@@ -151,27 +117,21 @@ export function HeaderWithDefaults(
   props: HeaderWithDefaultsProps,
 ): JSX.Element {
   const {
-    lang = defaultLocale,
+    lang: langProp = defaultLocale,
     currentPath = "",
     currentVersion,
     currentSlug,
     navSection,
   } = props;
+  // Route params arrive as `string`; cast to Locale since keys of settings.locales
+  // are always valid locale codes. The prop accepts `Locale | string` so callers
+  // without a Locale variable don't need to cast (e.g. _tag-pages.tsx).
+  const lang = langProp as Locale;
 
-  // Root-menu items for the mobile sidebar's "back to menu" list.
-  // Mirrors the data-prep in _sidebar-with-defaults.tsx.
-  const rootMenuItems = settings.headerNav.map((item) => ({
-    label: item.labelKey
-      ? t(item.labelKey as Parameters<typeof t>[0], lang)
-      : item.label,
-    href: navHref(item.path, lang, currentVersion),
-    children: item.children?.map((child) => ({
-      label: child.labelKey
-        ? t(child.labelKey as Parameters<typeof t>[0], lang)
-        : child.label,
-      href: navHref(child.path, lang, currentVersion),
-    })),
-  }));
+  // Root-menu items, locale links, sidebar nodes, and theme mode — all
+  // delegated to the shared _nav-data-prep helpers so header and sidebar
+  // wrappers stay in sync without duplicating the logic.
+  const rootMenuItems = buildRootMenuItems(lang, currentVersion);
 
   // Build the mobile sidebar toggle unconditionally — SidebarToggle is rendered
   // on every page (refs #1453); the host CSS hides it where unneeded. When navSection is
@@ -182,21 +142,11 @@ export function HeaderWithDefaults(
 
   // Locale-switcher links in the mobile sidebar footer — only when
   // multiple locales are configured (mirrors _sidebar-with-defaults.tsx).
-  const localeLinks =
-    locales.length > 1 ? buildLocaleLinks(currentPath, lang) : undefined;
+  const localeLinks = buildLocaleLinksForNav(currentPath, lang, locales.length);
 
-  const themeDefaultMode = settings.colorMode
-    ? settings.colorMode.defaultMode
-    : undefined;
+  const themeDefaultMode = getThemeDefaultMode();
 
-  let sidebarNodes: NavNode[] = [];
-  if (navSection !== undefined) {
-    const { navDocs, categoryMeta } = loadNavSourceDocs(lang, currentVersion);
-    const rawNodes = buildSidebarForSection(navDocs, lang, navSection, categoryMeta);
-    sidebarNodes = currentVersion
-      ? remapVersionedHrefs(rawNodes, currentVersion, lang)
-      : rawNodes;
-  }
+  const sidebarNodes = buildSidebarNodes(lang, navSection, currentVersion);
 
   // Wrap SidebarToggle (hamburger button + slide-in aside + SidebarTree) in
   // Island so the SSG output carries the full tree HTML AND the
@@ -211,8 +161,25 @@ export function HeaderWithDefaults(
   // nested as a JSX child its data was dropped during hydration and
   // SidebarToggle re-rendered with `children=undefined`, wiping the SSR
   // tree DOM. zudolab/zudo-doc#1355 wave 13.5.
+  //
+  // C4 — media-gated hydration.  zfb only supports load|idle|visible
+  // strategies (no "media" strategy; matchMedia inside the component is too
+  // late — props are already emitted, bundle already downloaded).
+  // Upstream feature request: Takazudo/zudo-front-builder#969.
+  //
+  // Best achievable downstream: when="visible" + all SidebarToggle children
+  // are lg:hidden, so on desktop the Island wrapper div has zero rendered
+  // dimensions.  IntersectionObserver fires isIntersecting=false on desktop
+  // (zero-size element) → Preact hydrate() is never called.  On mobile (and
+  // on desktop→mobile resize) the children become visible, the element gains
+  // size, IO fires isIntersecting=true, and hydration completes normally.
+  //
+  // Residual: data-props JSON (~2.4 KB) is still emitted in the SSR HTML on
+  // every page regardless of viewport, because it is serialised at build time
+  // and not gated by media. Eliminating it requires a zfb "media" hydration
+  // strategy — tracked in Takazudo/zudo-front-builder#969.
   const sidebarToggle = Island({
-    when: "load",
+    when: "visible",
     children: (
       <SidebarToggle
         nodes={sidebarNodes}
@@ -225,15 +192,12 @@ export function HeaderWithDefaults(
     ),
   }) as unknown as VNode;
 
-  // Wrap the host's local ThemeToggle in Island({when:"load"}) so the SSG
+  // Wrap the bare ThemeToggle in Island({when:"load"}) so the SSG
   // output emits a data-zfb-island="ThemeToggle" marker the hydration
-  // runtime can find — matching the documented header contract. The v2
-  // package's <ThemeToggle> already does this internally, but importing it
-  // forces the v2 theme barrel into the bundle (see import note at the top
-  // of this file).
+  // runtime can find — matching the documented header contract.
   const themeToggle = Island({
     when: "load",
-    children: <ThemeToggle />,
+    children: <ThemeToggle defaultMode={themeDefaultMode} />,
   }) as unknown as VNode;
 
   // Locale-aware search widget. Renders the full dialog markup in SSR
@@ -269,7 +233,9 @@ export function HeaderWithDefaults(
     );
     // "Latest" entry links to the current page in the latest (unversioned)
     // docs when a slug is available, or falls back to the versions index page.
-    const latestUrl = currentSlug
+    // Null check, not truthiness: "" is the canonical root-index slug (#1891)
+    // and must produce real per-version root URLs.
+    const latestUrl = currentSlug != null
       ? docsUrl(currentSlug, lang)
       : versionsPageUrl;
 
@@ -278,7 +244,7 @@ export function HeaderWithDefaults(
     // index — matching the documented version-switcher contract.
     const versionUrls: Record<string, string> = {};
     for (const v of settings.versions) {
-      versionUrls[v.slug] = currentSlug
+      versionUrls[v.slug] = currentSlug != null
         ? versionedDocsUrl(currentSlug, v.slug, lang)
         : versionsPageUrl;
     }

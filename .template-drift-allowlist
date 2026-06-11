@@ -26,36 +26,28 @@ pages/_mdx-components.ts
 # the favicon set (.ico + 16/32 png).
 pages/lib/_head-with-defaults.tsx
 
+# _header-with-defaults.tsx: imports ThemeToggle via the local
+# src/components/theme-toggle.tsx shim instead of the template's
+# "@takazudo/zudo-doc/theme-toggle" subpath — zfb's island scanner does not
+# register "use client" modules inside node_modules, so the package import
+# leaves the header's ThemeToggle marker unregistered (dead toggle after
+# hydration). Remove when zfb can register package islands.
+pages/lib/_header-with-defaults.tsx
+
 # run-b4push.sh is intentionally the zcss gate set (format-free; pin-parity +
 # template-drift + typecheck + build + html-validate + link-check).
 scripts/run-b4push.sh
-
-# i18n.ts adds the search.placeholder / search.shortcutHint UI strings (EN+JA)
-# that the scaffold default omits.
-src/config/i18n.ts
 
 # global.css carries the zcss design tokens (Default Dark/Light, p0–p15 palette,
 # @theme) plus `@import "@takazudo/zudo-doc/safelist.css"` for the consumed
 # package utilities.
 src/styles/global.css
 
-# theme-toggle.tsx: zcss pins `ThemeToggle.displayName = "ThemeToggle"` (+ a
-# "use client" first line) to avoid the esbuild ThemeToggle2 island-marker
-# collision (mirrors zudo-doc#1446).
-src/components/theme-toggle.tsx
-
-# sidebar-toggle.tsx: zcss ships the data-props variant (nodes/currentSlug/
-# rootMenuItems/localeLinks/themeDefaultMode → <SidebarTree>) to fix the empty
-# mobile drawer.
-src/components/sidebar-toggle.tsx
-
-# sidebar-tree.tsx: minor type-cast difference only —
-# `(e.target as HTMLInputElement).value` vs the template's `e.target.value`.
+# sidebar-tree.tsx: single type-cast difference —
+# `(e.target as HTMLInputElement).value` vs the template's `e.target.value`,
+# which fails `tsc --noEmit` under zcss's TS setup (template ships untyped
+# EventTarget access; reported upstream).
 src/components/sidebar-tree.tsx
-
-# rehype-heading-links.ts: comment-only drift — our copy retains the
-# pre-migration doc comments; behaviorally identical to the template plugin.
-src/plugins/rehype-heading-links.ts
 
 # tsconfig.json: zcss adds the @/components/CssPreview + @/components/TailwindPreview
 # path aliases and adjusts `exclude` (e2e, scripts/**/__tests__).

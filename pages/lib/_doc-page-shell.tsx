@@ -32,6 +32,7 @@ import { DocBodyEnd } from "./_doc-body-end";
 import { DocPager } from "./_doc-pager";
 import type { BreadcrumbItem } from "@/utils/docs";
 import type { VersionBannerLabels } from "@takazudo/zudo-doc/i18n-version";
+import type { Locale } from "@/config/i18n";
 import type { extractHeadings } from "./_extract-headings";
 
 /** Slots and parameters that vary between the 4 doc routes. */
@@ -161,7 +162,7 @@ export function DocPageShell(props: DocPageShellProps): JSX.Element {
       versionBannerLabels={versionBannerLabels}
       headerOverride={
         <HeaderWithDefaults
-          lang={locale}
+          lang={locale as Locale}
           currentSlug={props.slug}
           navSection={navSection}
           currentVersion={currentVersion}
@@ -176,7 +177,7 @@ export function DocPageShell(props: DocPageShellProps): JSX.Element {
       sidebarOverride={
         <SidebarWithDefaults
           currentSlug={props.slug}
-          lang={locale}
+          lang={locale as Locale}
           navSection={navSection}
           currentVersion={currentVersion}
           currentPath={currentPath}

@@ -61,6 +61,16 @@ interface DocMetainfoAreaProps {
   slug: string;
   /** Active locale string, e.g. "en", "ja". */
   locale: string;
+  /**
+   * True when this locale page falls back to the base EN collection
+   * (i.e. the slug has no translation for the active locale). When true,
+   * the manifest lookup uses defaultLocale so the visible block resolves
+   * the bare-slug key — the only key that exists for EN-origin files —
+   * matching the dropdown's `effectiveHistoryLocale` derivation in
+   * _doc-history-area.tsx. Display formatting (dates + labels) still uses
+   * the active locale so JA users see JA formatting on fallback pages.
+   */
+  isFallback?: boolean;
 }
 
 /**
@@ -76,7 +86,7 @@ interface DocMetainfoAreaProps {
  * HTML from build-time data and has no client JS footprint. It sits
  * between `<h1>` and the description `<p>` (doc-metainfo placement).
  */
-export function DocMetainfoArea({ slug, locale }: DocMetainfoAreaProps): VNode | null {
+export function DocMetainfoArea({ slug, locale, isFallback }: DocMetainfoAreaProps): VNode | null {
   if (!settings.docMetainfo) return null;
 
   // Doc-history storage sentinel ("" -> "index"): a root index page has the
@@ -87,10 +97,20 @@ export function DocMetainfoArea({ slug, locale }: DocMetainfoAreaProps): VNode |
   // @/utils/slug `toHistorySlug` and _doc-history-area.tsx. (#1891)
   const historySlug = toHistorySlug(slug);
 
+  // On EN-fallback locale pages the manifest only has the bare
+  // (non-locale-prefixed) key — the prebuild writes locale-prefixed keys
+  // only for files physically present in the locale collection. Use
+  // defaultLocale for the data lookup when isFallback is true, mirroring
+  // `effectiveHistoryLocale` in _doc-history-area.tsx so the visible block
+  // and the dropdown agree. Display formatting keeps the active locale.
+  const effectiveHistoryLocale = isFallback ? defaultLocale : locale;
+
   // Key format: bare slug for default locale, "<locale>/<slug>" for others.
   // Matches the prebuild step's composedSlug logic (pre-build.ts).
   const composedSlug =
-    locale === defaultLocale ? historySlug : `${locale}/${historySlug}`;
+    effectiveHistoryLocale === defaultLocale
+      ? historySlug
+      : `${effectiveHistoryLocale}/${historySlug}`;
 
   type MetaEntry = { author: string; createdDate: string; updatedDate: string };
   const meta = (docHistoryMeta as Record<string, MetaEntry>)[composedSlug];

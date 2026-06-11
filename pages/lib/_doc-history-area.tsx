@@ -56,7 +56,8 @@ interface DocHistoryAreaProps {
   /**
    * Raw zfb entry slug (relative path without extension), e.g.
    * "getting-started/intro" or "getting-started/index". Appended with
-   * ".mdx" to form the file path passed to buildGitHubSourceUrl.
+   * the source extension from the build-time manifest (".mdx" fallback)
+   * to form the file path passed to buildGitHubSourceUrl.
    * Omit for auto-index pages (no underlying MDX file) — sourceUrl
    * will be suppressed automatically.
    */
@@ -130,7 +131,13 @@ export function DocHistoryArea({
   // locale, "<localeKey>/<slug>" for non-default locales.
   const composedSlug =
     effectiveHistoryLocale === defaultLocale ? historySlug : `${effectiveHistoryLocale}/${historySlug}`;
-  type MetaEntry = { author: string; createdDate: string; updatedDate: string };
+  type MetaEntry = {
+    author: string;
+    createdDate: string;
+    updatedDate: string;
+    /** Source file extension (".mdx" | ".md") — optional in older manifests. */
+    ext?: string;
+  };
   const meta = (docHistoryMeta as Record<string, MetaEntry>)[composedSlug];
 
   // Locale-aware labels for the SSR fallback.
@@ -156,7 +163,11 @@ export function DocHistoryArea({
   const createdDate = meta?.createdDate;
   const updatedDate = meta?.updatedDate;
 
-  const fallback: VNode = (
+  // Explicit type annotation omitted: inferred JSX return is structurally
+  // compatible with zfb's VNode (the ssrFallback prop target). Preact's
+  // VNode<{}> generic form is not directly assignable to zfb's VNode at the
+  // type level even though the runtime shapes are identical.
+  const fallback = (
     <div class="sr-only">
       {author && <span>{author}</span>}
       <span>
@@ -188,11 +199,16 @@ export function DocHistoryArea({
   // Compute the view-source GitHub URL host-side so the v2 BodyFootUtilArea
   // component stays oblivious to project settings. Gate on
   // bodyFootUtilArea.viewSourceLink, and require both entrySlug and contentDir
-  // (auto-index pages pass neither).
+  // (auto-index pages pass neither). The real source extension comes from the
+  // build-time manifest (`ext`, written by pre-build.ts) — the content walkers
+  // accept both .mdx and .md, so hardcoding ".mdx" produced broken view-source
+  // URLs for .md pages. ".mdx" remains the fallback for entries without a
+  // manifest record (untracked files, SKIP_DOC_HISTORY=1, stale manifests).
   const utilSettings = settings.bodyFootUtilArea;
+  const sourceExt = meta?.ext ?? ".mdx";
   const sourceUrl =
     utilSettings && utilSettings.viewSourceLink && entrySlug && contentDir
-      ? buildGitHubSourceUrl(contentDir, entrySlug + ".mdx")
+      ? buildGitHubSourceUrl(contentDir, entrySlug + sourceExt)
       : null;
 
   // Resolve the i18n label host-side; pass the result so the v2 component

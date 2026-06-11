@@ -33,6 +33,17 @@ interface DocContentHeaderProps {
    * Only relevant for locale-prefixed and versioned-locale routes.
    */
   isFallback?: boolean;
+  /**
+   * Version slug when rendering a versioned route (e.g. "1.0"); undefined =
+   * latest. On versioned pages the date block and tag chips are hidden —
+   * the doc-history-meta manifest is built only from the LATEST content
+   * dirs, so a bare versioned slug would resolve to the latest file's
+   * Created/Updated/Author (wrong data), and tag chips would link to latest
+   * tag routes that may not exist for version-only tags (404). Mirrors the
+   * #1916 reduced-chrome stance that already hides doc history on
+   * versioned pages.
+   */
+  version?: string;
 }
 
 /**
@@ -50,6 +61,7 @@ export function DocContentHeader({
   slug,
   locale,
   isFallback = false,
+  version,
 }: DocContentHeaderProps): JSX.Element {
   return (
     <>
@@ -57,11 +69,19 @@ export function DocContentHeader({
 
       {/* Build-time date block (Created / Updated / Author).
           doc-metainfo placement — between <h1> and description.
-          Data from `.zfb/doc-history-meta.json` (esbuild-inlined, no fs). */}
-      <DocMetainfoArea slug={slug} locale={locale} />
+          Data from `.zfb/doc-history-meta.json` (esbuild-inlined, no fs).
+          Hidden on versioned pages — the manifest only covers latest
+          content dirs, so a versioned slug would show the LATEST file's
+          dates (see the `version` prop doc above). */}
+      {!version && (
+        <DocMetainfoArea slug={slug} locale={locale} isFallback={isFallback} />
+      )}
 
-      {/* Page-level tag chips — matching doc-tags placement (#1658). */}
-      <DocTagsArea slug={slug} locale={locale} tags={entry.data.tags} />
+      {/* Page-level tag chips — matching doc-tags placement (#1658).
+          Hidden on versioned pages: tag routes are built from latest
+          frontmatter only, so a version-only tag chip would 404 (see the
+          `version` prop doc above). */}
+      {!version && <DocTagsArea slug={slug} locale={locale} tags={entry.data.tags} />}
 
       {/* Fallback notice for non-translated pages */}
       {isFallback && !entry.data.generated && (

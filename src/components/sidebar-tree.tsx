@@ -7,7 +7,9 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "preact/hooks"
 import type { NavNode } from "@/utils/docs";
 import type { LocaleLink } from "@/types/locale";
 import { INDENT, BASE_PAD, connectorLeft, ConnectorLines, CategoryLinkIcon } from "./tree-nav-shared";
-import ThemeToggle from "@/components/theme-toggle";
+// BARE ThemeToggle (#2012 E2) — this footer toggle renders inside the
+// SidebarToggle island, so it must NOT bring its own island wrapper.
+import { ThemeToggle } from "@takazudo/zudo-doc/theme-toggle";
 import { smartBreakToHtml } from "@/utils/smart-break";
 
 function ToggleChevron({ isExpanded, className }: { isExpanded: boolean; className?: string }) {
@@ -61,7 +63,9 @@ function findActiveSlug(nodes: NavNode[], pathname: string): string | undefined 
   for (const node of nodes) {
     if (node.href && normalizePath(node.href) === pathname) return node.slug;
     const found = findActiveSlug(node.children, pathname);
-    if (found) return found;
+    // "" is the canonical root-index slug (#1891) — a truthiness check
+    // would discard a legitimate root match.
+    if (found !== undefined) return found;
   }
   return undefined;
 }
@@ -246,8 +250,10 @@ export default function SidebarTree({ nodes, currentSlug, rootMenuItems, backToM
   }
 
   // Top page: show only header nav links, no doc tree or filter.
-  // Derived from activeSlug (runtime-synced) so it stays correct across View Transitions.
-  if (!activeSlug && rootMenuItems) {
+  // Derived from activeSlug (runtime-synced) so it stays correct across View
+  // Transitions. Must be an undefined check, not truthiness: "" is the
+  // canonical root-index doc slug (#1891) and gets the full tree.
+  if (activeSlug === undefined && rootMenuItems) {
     return (
       <nav>
         {rootMenuItems.map((item) => (

@@ -34,12 +34,17 @@ import { DocTags } from "@takazudo/zudo-doc/metainfo";
  *
  * Inlined from _footer-with-defaults.tsx `tagHref` — not extracted to avoid
  * ripple (spec rule: no opportunistic refactor on tagHref extraction).
+ *
+ * The tag segment is URL-encoded at the href site only — route params stay
+ * raw, so the built output dir keeps the raw tag name and the server decodes
+ * the percent-encoded href back to it (e.g. "type:guide" → "type%3Aguide").
  */
 function tagHref(tag: string, locale: string): string {
+  const encoded = encodeURIComponent(tag);
   const path =
     locale === defaultLocale
-      ? `/docs/tags/${tag}`
-      : `/${locale}/docs/tags/${tag}`;
+      ? `/docs/tags/${encoded}`
+      : `/${locale}/docs/tags/${encoded}`;
   return withBase(path);
 }
 

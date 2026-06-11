@@ -29,7 +29,7 @@ export default function DesktopSidebarToggle() {
   // to <html> from localStorage *before* this island mounts, so the
   // visual state stays correct; we only need to sync this island's
   // React state to the persisted preference after hydration. Same
-  // pattern as src/components/theme-toggle.tsx (commit 9aebd8e).
+  // pattern as packages/zudo-doc/src/theme-toggle/index.tsx (commit 9aebd8e).
   const [visible, setVisible] = useState<boolean>(true);
   // Tracks whether the hydration sync (below) has run. The persistence
   // effect below skips the very first mount so we don't overwrite the

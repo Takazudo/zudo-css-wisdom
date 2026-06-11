@@ -41,18 +41,33 @@ export const SEARCH_WIDGET_SCRIPT = /* javascript */ `(function () {
     return query.trim().split(/\\s+/).filter(Boolean);
   }
 
+  // scoreEntry reads pre-lowercased fields (_titleLc, _descLc, _bodyLc)
+  // set by prepareLc() at index-load time. Terms arrive already lowercased
+  // from search() so no per-call toLowerCase() is needed.
   function scoreEntry(entry, terms) {
     var score = 0;
-    var titleLower = (entry.title || "").toLowerCase();
-    var bodyLower = (entry.body || "").toLowerCase();
-    var descLower = (entry.description || "").toLowerCase();
+    var titleLc = entry._titleLc;
+    var descLc  = entry._descLc;
+    var bodyLc  = entry._bodyLc;
     for (var i = 0; i < terms.length; i++) {
-      var t = terms[i].toLowerCase();
-      if (titleLower.indexOf(t) !== -1) score += 3;
-      if (descLower.indexOf(t) !== -1) score += 2;
-      if (bodyLower.indexOf(t) !== -1) score += 1;
+      var t = terms[i];
+      if (titleLc.indexOf(t) !== -1) score += 3;
+      if (descLc.indexOf(t) !== -1)  score += 2;
+      if (bodyLc.indexOf(t) !== -1)  score += 1;
     }
     return score;
+  }
+
+  // Pre-lowercase the searched fields on each entry once at load time so that
+  // scoreEntry() does not re-lowercase the entire ~162 KB index on every
+  // debounced keystroke.  Original-case fields are preserved for display.
+  function prepareLc(entries) {
+    for (var i = 0; i < entries.length; i++) {
+      var e = entries[i];
+      e._titleLc = (e.title       || "").toLowerCase();
+      e._descLc  = (e.description || "").toLowerCase();
+      e._bodyLc  = (e.body        || "").toLowerCase();
+    }
   }
 
   function highlightTerms(text, terms) {
@@ -99,6 +114,7 @@ export const SEARCH_WIDGET_SCRIPT = /* javascript */ `(function () {
       this._countNarrow = null;
       this._entries = null;
       this._loading = false;
+      this._indexUnavailable = false;
       this._debounce = null;
       this._currentQuery = "";
       this._allResults = [];
@@ -231,6 +247,7 @@ export const SEARCH_WIDGET_SCRIPT = /* javascript */ `(function () {
         })
         .then(function(data) {
           self._entries = Array.isArray(data) ? data : (data.entries || []);
+          prepareLc(self._entries);
           self._loading = false;
           // If user already typed, search now
           if (self._input && self._input.value.trim()) {
@@ -239,7 +256,10 @@ export const SEARCH_WIDGET_SCRIPT = /* javascript */ `(function () {
         })
         .catch(function() {
           self._loading = false;
-          // Index unavailable — silently degrade
+          self._indexUnavailable = true;
+          if (self._results) {
+            self._results.innerHTML = "<p class=\\"text-small text-muted\\">Search unavailable</p>";
+          }
         });
     }
 
@@ -264,7 +284,10 @@ export const SEARCH_WIDGET_SCRIPT = /* javascript */ `(function () {
         return;
       }
 
-      var terms = parseTerms(query);
+      // Lowercase the query terms once here so scoreEntry() can do plain
+      // indexOf() against pre-lowercased entry fields without repeating
+      // toLowerCase() across the entire index on every keystroke.
+      var terms = parseTerms(query).map(function(t) { return t.toLowerCase(); });
       var scored = [];
       for (var i = 0; i < this._entries.length; i++) {
         var s = scoreEntry(this._entries[i], terms);

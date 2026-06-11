@@ -21,7 +21,7 @@
 //   - route-enumerators.ts (sitemap) and the MDX nav wrappers
 // each picking the `NavSourceVariant` matching its filter needs.
 
-import { defaultLocale, type Locale } from "@/config/i18n";
+import { defaultLocale, getLocaleConfig, type Locale } from "@/config/i18n";
 import { settings } from "@/config/settings";
 import {
   loadCategoryMeta,
@@ -84,7 +84,7 @@ export type NavSourceDocs = {
   categoryMeta: Map<string, CategoryMeta>;
   /** Slugs that came from the locale collection (for isFallback). Empty for
    *  default-locale / single-collection cases. */
-  localeSlugSet: Set<string>;
+  localeSlugSet: ReadonlySet<string>;
 };
 
 /**
@@ -124,7 +124,11 @@ export function resolveNavSource(
   //     pages in sync. Otherwise (default locale, or the version not configured
   //     for this locale) fall back to the version's EN base collection.
   if (currentVersion) {
-    const versionConfig = settings.versions?.find((v) => v.slug === currentVersion);
+    // `versions` is `VersionConfig[] | false` — `false?.find` would throw
+    // (optional chaining only short-circuits on null/undefined).
+    const versionConfig = Array.isArray(settings.versions)
+      ? settings.versions.find((v) => v.slug === currentVersion)
+      : undefined;
     const localeDir = versionConfig?.locales?.[lang]?.dir;
     if (lang !== defaultLocale && localeDir) {
       return resolveVersionedLocaleSource(
@@ -138,7 +142,7 @@ export function resolveNavSource(
     const docs = stableDocs(`docs-v-${currentVersion}`);
     const categoryMeta = loadCategoryMeta(versionConfig?.docsDir ?? settings.docsDir);
     const navDocs = stableNavDocs(docs);
-    return { docs, navDocs, categoryMeta, localeSlugSet: EMPTY_SLUG_SET as Set<string> };
+    return { docs, navDocs, categoryMeta, localeSlugSet: EMPTY_SLUG_SET };
   }
 
   // --- Default locale: the "docs" collection directly.
@@ -146,7 +150,7 @@ export function resolveNavSource(
     const docs = stableDocs("docs");
     const categoryMeta = loadCategoryMeta(settings.docsDir);
     const navDocs = stableNavDocs(docs);
-    return { docs, navDocs, categoryMeta, localeSlugSet: EMPTY_SLUG_SET as Set<string> };
+    return { docs, navDocs, categoryMeta, localeSlugSet: EMPTY_SLUG_SET };
   }
 
   // --- Non-default locale: locale-first merge with EN fallback.
@@ -163,7 +167,7 @@ export function resolveNavSource(
   );
   const docs = merged.docs;
 
-  const localeDir = settings.locales[lang]?.dir ?? settings.docsDir;
+  const localeDir = getLocaleConfig(lang)?.dir ?? settings.docsDir;
   const categoryMeta = stableMergeCategoryMeta(settings.docsDir, localeDir);
   const navDocs = stableNavDocs(docs);
 

@@ -51,13 +51,14 @@ export function buildInlineVersionSwitcher(
   const versionsPageUrl = withBase(
     isNonDefaultLocale ? `/${locale}/docs/versions` : "/docs/versions",
   );
-  const latestUrl = slug ? docsUrl(slug, locale) : versionsPageUrl;
+  // The docs root index has the canonical empty slug "" (#1891), and
+  // docsUrl("")/versionedDocsUrl("") resolve to the per-version docs roots —
+  // so an empty slug must NOT fall back to the versions page.
+  const latestUrl = docsUrl(slug, locale);
 
   const versionUrls: Record<string, string> = {};
   for (const v of settings.versions) {
-    versionUrls[v.slug] = slug
-      ? versionedDocsUrl(slug, v.slug, locale)
-      : versionsPageUrl;
+    versionUrls[v.slug] = versionedDocsUrl(slug, v.slug, locale);
   }
 
   const labels: VersionSwitcherLabels = {

@@ -12,6 +12,7 @@
 
 import { getCollection } from "zfb/content";
 import type { CollectionEntry } from "zfb/content";
+import type { DocsData } from "@/config/docs-schema";
 import type { DocsEntry } from "@/types/docs-entry";
 import type { DocPageEntry } from "./lib/doc-page-props";
 import { toRouteSlug } from "@/utils/slug";
@@ -22,30 +23,16 @@ import { toRouteSlug } from "@/utils/slug";
 
 /**
  * Frontmatter shape shared by all docs collections (EN, locale, versioned).
- * Matches the zod schema in zfb.config.ts field-for-field.
- * `.passthrough()` equivalent: the index signature [key: string]: unknown
- * keeps custom frontmatter keys available (e.g. for frontmatter-preview).
+ *
+ * Re-exported alias for `DocsData` (the `z.infer`-derived type from
+ * `src/config/docs-schema.ts`) so call sites that import `ZfbDocsData` from
+ * `pages/_data` continue to work without changes.
+ *
+ * The `[key: string]: unknown` index signature comes from `.passthrough()` on
+ * the zod schema — custom frontmatter keys remain accessible downstream (e.g.
+ * for frontmatter-preview) without extra casting.
  */
-export type ZfbDocsData = {
-  title: string;
-  description?: string;
-  category?: string;
-  sidebar_position?: number;
-  sidebar_label?: string;
-  tags?: string[];
-  search_exclude?: boolean;
-  pagination_next?: string | null;
-  pagination_prev?: string | null;
-  draft?: boolean;
-  unlisted?: boolean;
-  hide_sidebar?: boolean;
-  hide_toc?: boolean;
-  doc_history?: boolean;
-  standalone?: boolean;
-  slug?: string;
-  generated?: boolean;
-  [key: string]: unknown;
-};
+export type ZfbDocsData = DocsData;
 
 /**
  * zfb collection entry augmented with the `id` and `collection` fields that

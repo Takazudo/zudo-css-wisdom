@@ -30,8 +30,8 @@ import { defaultLocale } from "@/config/i18n";
 import { tagVocabulary } from "@/config/tag-vocabulary";
 import { collectTags } from "@/utils/tags";
 import { toRouteSlug } from "@/utils/slug";
-import { loadDocs } from "../_data";
 import { mergeLocaleDocs } from "./locale-merge";
+import { stableDocs, memoizeDerived } from "./_nav-source-cache";
 import type { DocsEntry } from "@/types/docs-entry";
 
 // ---------------------------------------------------------------------------
@@ -51,12 +51,18 @@ function localizeHref(href: string, lang: string): string {
   return resolveHref(href);
 }
 
-/** Build the base-prefixed tag detail page href for the given locale. */
+/**
+ * Build the base-prefixed tag detail page href for the given locale.
+ * The tag segment is URL-encoded at the href site only — route params stay
+ * raw, so the built output dir keeps the raw tag name and the server decodes
+ * the percent-encoded href back to it (e.g. "type:guide" → "type%3Aguide").
+ */
 function tagHref(tag: string, lang: string): string {
+  const encoded = encodeURIComponent(tag);
   const path =
     lang === defaultLocale
-      ? `/docs/tags/${tag}`
-      : `/${lang}/docs/tags/${tag}`;
+      ? `/docs/tags/${encoded}`
+      : `/${lang}/docs/tags/${encoded}`;
   return withBase(path);
 }
 
@@ -110,15 +116,22 @@ export function FooterWithDefaults({
   let tagColumns: FooterTagColumn[] = [];
 
   if (taglist?.enabled) {
-    // Load docs synchronously (zfb ADR-004 — synchronous content snapshot).
-    let docs: DocsEntry[];
-    if (lang === defaultLocale) {
-      // category_no_page index files build no route — drop them so the footer
-      // taglist matches the tag-route pages (which all now filter too).
-      docs = loadDocs("docs").filter(
-        (d) => !d.data.draft && !d.data.unlisted && !d.data.category_no_page,
-      );
-    } else {
+    // Memoize docs loading and tag aggregation on the snapshot-anchored stable
+    // docs identity — same pattern as _nav-source-cache — so this block runs
+    // once per locale per build, not once per page render.
+    const allTags = (() => {
+      if (lang === defaultLocale) {
+        const baseDocs = stableDocs("docs");
+        return memoizeDerived([baseDocs], "footerTaglist;default", () => {
+          // category_no_page index files build no route — drop them so the
+          // footer taglist matches the tag-route pages (which all now filter too).
+          const docs: DocsEntry[] = baseDocs.filter(
+            (d) => !d.data.draft && !d.data.unlisted && !d.data.category_no_page,
+          );
+          const tagMap = collectTags(docs, (id, data) => data.slug ?? toRouteSlug(id));
+          return [...tagMap.values()].sort((a, b) => a.tag.localeCompare(b.tag, lang));
+        });
+      }
       // Apply the default-locale-only filter so the footer taglist only counts
       // tags that have a locale-routable tag page — matching the tag-route
       // pages ([tag].tsx / tags/index.tsx) and enumerateTagsRoutes, which all
@@ -127,21 +140,19 @@ export function FooterWithDefaults({
       // prefix pages. category_no_page is dropped for the same reason — AFTER
       // the merge, so a locale override carrying the flag first wins the merge
       // (pre-merge filtering would let the unflagged base doc resurface).
-      const result = mergeLocaleDocs({
-        baseDocs: loadDocs("docs").filter((d) => !d.data.draft),
-        localeDocs: loadDocs(`docs-${lang}`).filter((d) => !d.data.draft),
-        applyDefaultLocaleOnlyFilter: true,
+      const baseDocs = stableDocs("docs");
+      const localeDocs = stableDocs(`docs-${lang}`);
+      return memoizeDerived([baseDocs, localeDocs], `footerTaglist;${lang}`, () => {
+        const result = mergeLocaleDocs({
+          baseDocs: baseDocs.filter((d) => !d.data.draft),
+          localeDocs: localeDocs.filter((d) => !d.data.draft),
+          applyDefaultLocaleOnlyFilter: true,
+        });
+        const docs: DocsEntry[] = result.docs.filter((d) => !d.data.category_no_page);
+        const tagMap = collectTags(docs, (id, data) => data.slug ?? toRouteSlug(id));
+        return [...tagMap.values()].sort((a, b) => a.tag.localeCompare(b.tag, lang));
       });
-      docs = result.docs.filter((d) => !d.data.category_no_page);
-    }
-
-    const tagMap = collectTags(
-      docs,
-      (id, data) => data.slug ?? toRouteSlug(id),
-    );
-    const allTags = [...tagMap.values()].sort((a, b) =>
-      a.tag.localeCompare(b.tag, lang),
-    );
+    })();
 
     const vocabularyActive =
       Boolean(settings.tagVocabulary) && settings.tagGovernance !== "off";

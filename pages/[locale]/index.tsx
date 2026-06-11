@@ -16,7 +16,7 @@
 //   → collectTags()    → tag section
 
 import { settings } from "@/config/settings";
-import { t } from "@/config/i18n";
+import { t, getLocaleConfig, type Locale } from "@/config/i18n";
 import { withBase } from "@/utils/base";
 import {
   buildNavTree,
@@ -71,16 +71,16 @@ export default function LocaleIndexPage({ params }: PageArgs): JSX.Element {
   // instance). categoryMeta is intentionally locale-dir-only here — this page
   // historically did NOT merge in base meta (unlike the locale doc route), so
   // we keep that exact behavior to preserve output.
-  const { navDocs } = resolveNavSource(locale, undefined, {
+  const { navDocs } = resolveNavSource(locale as Locale, undefined, {
     applyDefaultLocaleOnlyFilter: true,
     keepUnlisted: true,
   });
-  const localeConfig = settings.locales[locale];
+  const localeConfig = getLocaleConfig(locale);
   const categoryMeta = localeConfig
     ? loadCategoryMeta(localeConfig.dir)
     : loadCategoryMeta(settings.docsDir);
 
-  const tree = buildNavTree(navDocs, locale, categoryMeta);
+  const tree = buildNavTree(navDocs, locale as Locale, categoryMeta);
   const categoryOrder = getCategoryOrder();
   const groupedTree = groupSatelliteNodes(tree, categoryOrder);
 
@@ -103,7 +103,7 @@ export default function LocaleIndexPage({ params }: PageArgs): JSX.Element {
       noindex={settings.noindex}
       hideSidebar={true}
       hideToc={true}
-      headerOverride={<HeaderWithDefaults lang={locale} currentPath={withBase(`/${locale}/`)} />}
+      headerOverride={<HeaderWithDefaults lang={locale as Locale} currentPath={withBase(`/${locale}/`)} />}
       footerOverride={<FooterWithDefaults lang={locale} />}
       bodyEndComponents={<BodyEndIslands basePath={settings.base ?? "/"} />}
     >
