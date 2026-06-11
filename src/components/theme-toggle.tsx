@@ -12,8 +12,9 @@
 // consumers). This local module is the scanner-visible named binding; it
 // delegates rendering to the real package component.
 //
-// Remove once zfb can register node_modules islands (reported upstream via
-// the zcss 0.2.1 upgrade report).
+// Remove once zfb can register node_modules islands — workaround for
+// https://github.com/Takazudo/zudo-front-builder/issues/999 (scanner gap)
+// and https://github.com/zudolab/zudo-doc/issues/2048 (template fallout).
 import {
   ThemeToggle as ZudoDocThemeToggle,
   type ThemeToggleProps,
