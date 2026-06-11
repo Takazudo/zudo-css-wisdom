@@ -87,10 +87,13 @@ echo "Checking feature template files..."
 #                       `@takazudo/zudo-doc/integrations/claude-resources` via
 #                       the plugin, so the vendored src/integrations/* copies
 #                       are intentionally absent — see allowlist)
-#   sidebar-resizer -> sidebarResizer (draggable sidebar)
 #   sidebar-toggle  -> sidebarToggle  (collapsible sidebar toggle)
 #   image-enlarge   -> imageEnlarge   (click-to-zoom images)
-for feature in i18n llmsTxt docHistory bodyFootUtil claudeResources sidebarResizer sidebarToggle imageEnlarge; do
+#
+# sidebar-resizer: feature still enabled in zcss, but create-zudo-doc 0.2.1
+# stopped shipping a sidebarResizer template dir (impl moved into
+# @takazudo/zudo-doc package exports), so there is nothing to compare.
+for feature in i18n llmsTxt docHistory bodyFootUtil claudeResources sidebarToggle imageEnlarge; do
   feature_dir="$FEATURES_DIR/$feature"
   files_dir="$feature_dir/files"
   if [[ ! -d "$files_dir" ]]; then

@@ -35,14 +35,13 @@ import type { JSX } from "preact";
 // reaches the rendered tree).
 import { Island } from "@takazudo/zfb";
 import SidebarTree from "@/components/sidebar-tree";
-import { settings } from "@/config/settings";
 import { defaultLocale, locales, t, type Locale } from "@/config/i18n";
-import { buildLocaleLinks, navHref, versionedDocsUrl } from "@/utils/base";
 import {
-  type NavNode,
-} from "@/utils/docs";
-import { buildSidebarForSection } from "@/utils/sidebar";
-import { loadNavSourceDocs } from "./_nav-source-docs";
+  buildRootMenuItems,
+  buildLocaleLinksForNav,
+  buildSidebarNodes,
+  getThemeDefaultMode,
+} from "./_nav-data-prep";
 
 export interface SidebarWithDefaultsProps {
   /** Slug of the active doc page, used to highlight the current entry. */
@@ -59,34 +58,6 @@ export interface SidebarWithDefaultsProps {
    * `Astro.url.pathname`; in zfb the page module passes it explicitly.
    */
   currentPath?: string;
-}
-
-/**
- * Walk the nav tree and rewrite each node's `href` to its versioned form.
- *
- * `buildNavTree` always emits hrefs via `docsUrl()`; when the active route
- * lives under `/v/{version}/...` we need the same nodes pointing at the
- * versioned URL so internal nav clicks stay inside the version. Skips
- * nodes without an href (link-only or category placeholders).
- */
-function remapVersionedHrefs(
-  nodes: NavNode[],
-  version: string,
-  nodeLang: Locale,
-): NavNode[] {
-  return nodes.map((node) => {
-    const children =
-      node.children.length > 0
-        ? remapVersionedHrefs(node.children, version, nodeLang)
-        : node.children;
-
-    if (!node.href || node.slug.startsWith("__link__")) {
-      return children !== node.children ? { ...node, children } : node;
-    }
-
-    const newHref = versionedDocsUrl(node.slug, version, nodeLang);
-    return { ...node, href: newHref, children };
-  });
 }
 
 /**
@@ -117,35 +88,21 @@ export function SidebarWithDefaults(
     currentPath = "",
   } = props;
 
-  // Root-menu items derived from headerNav (mobile back-to-menu list).
-  // The Astro template fed labelKey through `t(...)` and computed hrefs
-  // with `navHref()`; mirror that exactly so the rendered list stays
-  // identical between the A and B sites.
-  const rootMenuItems = settings.headerNav.map((item) => ({
-    label: item.labelKey
-      ? t(item.labelKey as Parameters<typeof t>[0], lang)
-      : item.label,
-    href: navHref(item.path, lang, currentVersion),
-    children: item.children?.map((child) => ({
-      label: child.labelKey
-        ? t(child.labelKey as Parameters<typeof t>[0], lang)
-        : child.label,
-      href: navHref(child.path, lang, currentVersion),
-    })),
-  }));
+  // Root-menu items, sidebar nodes, locale links, and theme mode — all
+  // delegated to the shared _nav-data-prep helpers so header and sidebar
+  // wrappers stay in sync without duplicating the logic.
+  const rootMenuItems = buildRootMenuItems(lang, currentVersion);
 
   const backToMenuLabel = navSection ? t("nav.backToMenu", lang) : undefined;
 
-  const { navDocs, categoryMeta } = loadNavSourceDocs(lang, currentVersion);
-  const rawNodes = buildSidebarForSection(navDocs, lang, navSection, categoryMeta);
-  const nodes = currentVersion
-    ? remapVersionedHrefs(rawNodes, currentVersion, lang)
-    : rawNodes;
+  // emptyWhenUnsectioned=false: the desktop sidebar falls back to the FULL
+  // tree for pages whose slug matches no headerNav categoryMatch (legacy
+  // behavior) — only the header's mobile drawer collapses to root menu.
+  const nodes = buildSidebarNodes(lang, navSection, currentVersion, false);
 
   // Locale-switcher links are only meaningful when more than one locale is
   // configured — matches the Astro template's guard.
-  const localeLinks =
-    locales.length > 1 ? buildLocaleLinks(currentPath, lang) : undefined;
+  const localeLinks = buildLocaleLinksForNav(currentPath, lang, locales.length);
 
   // Wrap <SidebarTree> directly in <Island when="load">. SSR emits the
   // `data-zfb-island="SidebarTree"` marker around the rendered tree, with
@@ -164,9 +121,7 @@ export function SidebarWithDefaults(
         rootMenuItems={rootMenuItems}
         backToMenuLabel={backToMenuLabel}
         localeLinks={localeLinks}
-        themeDefaultMode={
-          settings.colorMode ? settings.colorMode.defaultMode : undefined
-        }
+        themeDefaultMode={getThemeDefaultMode()}
       />
     ),
   }) as unknown as JSX.Element;

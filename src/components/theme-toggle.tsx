@@ -1,106 +1,30 @@
 "use client";
-import { useState, useEffect } from "preact/compat";
 
-const STORAGE_KEY = "zudo-doc-theme";
+// Island-registry shim for the package ThemeToggle (zudo-doc 0.2.1).
+//
+// The header (pages/lib/_header-with-defaults.tsx) wraps <ThemeToggle> in
+// Island({when:"load"}), which emits a data-zfb-island="ThemeToggle" marker.
+// zfb's island scanner only registers "use client" modules from project
+// source — it does not walk into node_modules — so rendering the package
+// component directly from the header leaves the marker without a registry
+// entry and the toggle dead after hydration (works in the zudo-doc monorepo
+// where the component source is local; breaks for published-package
+// consumers). This local module is the scanner-visible named binding; it
+// delegates rendering to the real package component.
+//
+// Remove once zfb can register node_modules islands — workaround for
+// https://github.com/Takazudo/zudo-front-builder/issues/999 (scanner gap)
+// and https://github.com/zudolab/zudo-doc/issues/2048 (template fallout).
+import {
+  ThemeToggle as ZudoDocThemeToggle,
+  type ThemeToggleProps,
+} from "@takazudo/zudo-doc/theme-toggle";
 
-function SunIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="5" />
-      <line x1="12" y1="1" x2="12" y2="3" />
-      <line x1="12" y1="21" x2="12" y2="23" />
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-      <line x1="1" y1="12" x2="3" y2="12" />
-      <line x1="21" y1="12" x2="23" y2="12" />
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-  );
+export function ThemeToggle(props: ThemeToggleProps) {
+  return <ZudoDocThemeToggle {...props} />;
 }
-
-function MoonIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  );
-}
-
-interface ThemeToggleProps {
-  defaultMode?: "light" | "dark";
-}
-
-export default function ThemeToggle({ defaultMode = "dark" }: ThemeToggleProps) {
-  // Initial state must match server render to avoid hydration mismatch.
-  // Actual theme is synced from DOM in useEffect below.
-  const [mode, setMode] = useState<"light" | "dark">(defaultMode);
-
-  useEffect(() => {
-    const actual =
-      (document.documentElement.getAttribute("data-theme") as
-        | "light"
-        | "dark") || defaultMode;
-    if (actual !== mode) {
-      setMode(actual);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function toggle() {
-    const next = mode === "dark" ? "light" : "dark";
-    setMode(next);
-    document.documentElement.setAttribute("data-theme", next);
-    document.documentElement.style.colorScheme = next;
-    localStorage.setItem(STORAGE_KEY, next);
-    // Clear both v1 and v2 tweak state so the new scheme's palette takes effect.
-    localStorage.removeItem("zudo-doc-tweak-state");
-    localStorage.removeItem("zudo-doc-tweak-state-v2");
-    window.dispatchEvent(new CustomEvent("color-scheme-changed"));
-  }
-
-  const nextMode = mode === "dark" ? "light" : "dark";
-
-  return (
-    <button
-      onClick={toggle}
-      aria-label={`Switch to ${nextMode} mode`}
-      className="text-muted hover:text-fg transition-colors p-hsp-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
-    >
-      {mode === "dark" ? <SunIcon /> : <MoonIcon />}
-    </button>
-  );
-}
-
-// Pin the island marker name to "ThemeToggle" regardless of esbuild's
-// identifier deduplication. Both this host component and the v2 package's
-// ThemeToggle share the plain name "ThemeToggle"; when both land in the same
-// SSR bundle (the package's is pulled in via @takazudo/zudo-doc/header), esbuild
-// renames one to "ThemeToggle2", making Island's captureComponentName() emit
-// "ThemeToggle2" — a name that has no entry in the island manifest, so the
-// toggle never hydrates. Setting displayName explicitly makes Island() read the
-// attribute-level name (displayName takes precedence over .name) and emit the
-// correct data-zfb-island="ThemeToggle" marker, which matches the registry key
-// the package registers. zudolab/zudo-doc#1446.
+// Stable marker name even if a bundler pass rewrites the function name
+// (mirrors the ThemeToggle2 esbuild collision guard, zudo-doc#1446).
 ThemeToggle.displayName = "ThemeToggle";
+
+export default ThemeToggle;

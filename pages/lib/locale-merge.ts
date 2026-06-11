@@ -94,7 +94,7 @@ export interface MergeLocaleDocsResult<T extends DocsEntry = DocsEntry> {
    * Useful for callers that need to determine whether a page is a fallback
    * (i.e. `isFallback = !localeSlugSet.has(slug)`).
    */
-  localeSlugSet: Set<string>;
+  localeSlugSet: ReadonlySet<string>;
 }
 
 /**

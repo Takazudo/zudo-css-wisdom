@@ -20,8 +20,7 @@
 
 import type { JSX } from "preact";
 import { OgTags, TwitterCard } from "@takazudo/zudo-doc/head";
-// Inlined from @takazudo/zudo-doc sidebar-resizer-init.tsx (SIDEBAR_RESIZER_RESTORE_SCRIPT) — the published 0.1.0 dist doesn't export it yet; keep in sync if the clamp bounds [192,448] change.
-const SIDEBAR_RESIZER_RESTORE_SCRIPT = `(function(){try{var w=localStorage.getItem("zudo-doc-sidebar-width");if(!w)return;var n=parseFloat(w);if(!isFinite(n))return;if(n<192)n=192;else if(n>448)n=448;document.documentElement.style.setProperty("--zd-sidebar-w",n+"px");}catch(e){}})();`;
+import { SIDEBAR_RESIZER_RESTORE_SCRIPT } from "@takazudo/zudo-doc/sidebar-resizer";
 // Don't import ColorSchemeProvider from "@takazudo/zudo-doc/theme" — that
 // barrel also re-exports DesignTokenTweakPanel + ColorTweakExportModal, which
 // transitively pull `src/components/design-token-tweak/*` and the v2 panel
@@ -97,7 +96,10 @@ export function HeadWithDefaults({
       <OgTags
         title={composeMetaTitle(title)}
         description={description}
+        ogType="website"
+        ogUrl={canonical}
         ogImage={ogImageUrl}
+        ogSiteName={settings.siteName}
       />
       {/* og:image:width / og:image:height / og:image:alt — not in OgTags API;
           emitted here directly to avoid expanding the shared HeadProps surface.

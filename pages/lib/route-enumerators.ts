@@ -71,10 +71,10 @@ export function enumerateDocsRoutes(locale: string): string[] {
     // safety re-application of the same rule (idempotent on the already-
     // stripped id); kept so this enumerator's slug derivation reads as a
     // single explicit call to the canonical helper.
-    urls.push(docsUrl(doc.data.slug ?? toRouteSlug(doc.id), locale as string));
+    urls.push(docsUrl(doc.data.slug ?? toRouteSlug(doc.id), locale as Locale));
   }
   for (const node of collectAutoIndexNodes(tree)) {
-    urls.push(docsUrl(node.slug, locale as string));
+    urls.push(docsUrl(node.slug, locale as Locale));
   }
 
   return [...new Set(urls)];
@@ -127,10 +127,14 @@ export function enumerateTagsRoutes(locale: string): string[] {
   const tagMap = collectTags(docs, (id, data) => data.slug ?? toRouteSlug(id));
 
   for (const tag of tagMap.keys()) {
+    // Tag segment URL-encoded — these URLs feed the sitemap, which must
+    // carry well-formed encoded URLs (e.g. "type:guide" → "type%3Aguide").
+    // Route params (the page paths() functions) stay raw.
+    const encoded = encodeURIComponent(tag);
     const tagPath =
       locale === defaultLocale
-        ? `/docs/tags/${tag}`
-        : `/${locale}/docs/tags/${tag}`;
+        ? `/docs/tags/${encoded}`
+        : `/${locale}/docs/tags/${encoded}`;
     urls.push(withBase(tagPath));
   }
 
@@ -194,10 +198,10 @@ export function enumerateVersionedRoutes(
       // category_no_page index.mdx → no route, no sitemap URL (see paths()).
       if (doc.data.category_no_page === true) continue;
       const slug = doc.data.slug ?? toRouteSlug(doc.id);
-      urls.push(versionedDocsUrl(slug, version.slug, locale as string));
+      urls.push(versionedDocsUrl(slug, version.slug, locale as Locale));
     }
     for (const node of collectAutoIndexNodes(tree)) {
-      urls.push(versionedDocsUrl(node.slug, version.slug, locale as string));
+      urls.push(versionedDocsUrl(node.slug, version.slug, locale as Locale));
     }
   }
 
@@ -222,7 +226,7 @@ export function enumerateVersionedRoutes(
  * slash). The sitemap renderer prefixes each with settings.siteUrl.
  */
 export function enumerateAllRoutes(): Map<string, string> {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0] ?? "";
   const routes = new Map<string, string>();
 
   function add(url: string): void {

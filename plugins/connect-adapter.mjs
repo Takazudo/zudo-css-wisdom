@@ -1,3 +1,4 @@
+// @ts-check
 // Adapter from Connect-style middleware (`(req, res, next) => void`) to
 // the request-response shape zfb's `devMiddleware` lifecycle hook
 // expects (`(req: ZfbDevMiddlewareRequest) => Promise<ZfbDevMiddlewareResponse | undefined>`).
@@ -16,7 +17,18 @@
 // the v2 integration package keeps its Connect-style API surface so
 // non-zfb embedders (Astro, plain Vite, a unit test) continue to work.
 
+/** @import { ZfbDevMiddlewareRequest, ZfbDevMiddlewareResponse } from "@takazudo/zfb/plugins" */
+
 import { Buffer } from "node:buffer";
+
+/**
+ * Connect-style middleware: `(req, res, next) => void`.
+ * The req/res parameters are typed as `any` here because this adapter
+ * intentionally passes a plain-object shim that structurally satisfies the
+ * subset of `IncomingMessage` / `ServerResponse` that the v2 integration
+ * middlewares actually access — not the full Node.js types.
+ * @typedef {(req: any, res: any, next: (err?: unknown) => void) => void} ConnectMiddleware
+ */
 
 /**
  * Convert a Connect-style middleware to a zfb devMiddleware handler.
@@ -37,6 +49,9 @@ import { Buffer } from "node:buffer";
  *   - Binary bodies (Buffer / Uint8Array) → encoded as base64 and
  *     flagged `bodyEncoding: "base64"` so the JSON envelope round-trip
  *     stays loss-less.
+ *
+ * @param {ConnectMiddleware} middleware
+ * @returns {(zfbReq: ZfbDevMiddlewareRequest) => Promise<ZfbDevMiddlewareResponse | undefined>}
  */
 export function connectToZfbHandler(middleware) {
   return (zfbReq) => {
@@ -57,9 +72,14 @@ export function connectToZfbHandler(middleware) {
       // today (`statusCode`, `setHeader`, `getHeader`, `end`) — extend
       // here if a future middleware needs more.
       let statusCode = 200;
+      /** @type {Record<string, string>} */
       const headers = {};
       let settled = false;
 
+      /**
+       * @param {string | Buffer | Uint8Array | null | undefined} body
+       * @returns {void}
+       */
       const finish = (body) => {
         if (settled) return;
         settled = true;
@@ -67,6 +87,7 @@ export function connectToZfbHandler(middleware) {
         // axum's expectation (`Record<string, string>` of arbitrary
         // case). Last-wins on collision; with `setHeader` callers this
         // shouldn't happen.
+        /** @type {Record<string, string>} */
         const normalisedHeaders = {};
         for (const [k, v] of Object.entries(headers)) {
           normalisedHeaders[k.toLowerCase()] = String(v);
@@ -93,12 +114,18 @@ export function connectToZfbHandler(middleware) {
         get statusCode() {
           return statusCode;
         },
+        /** @param {number} v */
         set statusCode(v) {
           statusCode = v;
         },
+        /**
+         * @param {string} name
+         * @param {string | number | readonly string[]} value
+         */
         setHeader(name, value) {
-          headers[name] = value;
+          headers[name] = String(value);
         },
+        /** @param {string} name */
         getHeader(name) {
           // Header lookup is case-insensitive in Node's real
           // ServerResponse — mirror that so middlewares that probe an
@@ -113,11 +140,13 @@ export function connectToZfbHandler(middleware) {
         get headersSent() {
           return settled;
         },
+        /** @param {string | Buffer | Uint8Array | null | undefined} [body] */
         end(body) {
           finish(body);
         },
       };
 
+      /** @param {unknown} [err] */
       const next = (err) => {
         if (settled) return;
         if (err) {

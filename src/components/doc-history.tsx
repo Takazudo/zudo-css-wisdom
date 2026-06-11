@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "preact/compat";
-import { diffLines } from "diff";
+import type { Change } from "diff";
 import type { DocHistoryData, DocHistoryEntry } from "@/types/doc-history";
 import { SmartBreak } from "@/utils/smart-break";
 
@@ -104,8 +104,10 @@ interface DiffRow {
   type: "context" | "removed" | "added" | "changed";
 }
 
+type DiffChanges = Change[];
+
 function buildSideBySideRows(
-  changes: ReturnType<typeof diffLines>,
+  changes: DiffChanges,
 ): DiffRow[] {
   const rows: DiffRow[] = [];
   let leftNum = 0;
@@ -177,11 +179,24 @@ function DiffViewer({
   onBack: () => void;
   showBackButton: boolean;
 }) {
-  const changes = useMemo(
-    () => diffLines(selection.older.content, selection.newer.content),
-    [selection.older.content, selection.newer.content],
+  const [changes, setChanges] = useState<DiffChanges | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Lazy-load diff — only needed after History → Compare. This keeps the
+    // module out of the eager islands bundle.
+    import("diff").then(({ diffLines }) => {
+      if (!cancelled) {
+        setChanges(diffLines(selection.older.content, selection.newer.content));
+      }
+    });
+    return () => { cancelled = true; };
+  }, [selection.older.content, selection.newer.content]);
+
+  const rows = useMemo(
+    () => (changes ? buildSideBySideRows(changes) : []),
+    [changes],
   );
-  const rows = useMemo(() => buildSideBySideRows(changes), [changes]);
 
   return (
     <div className="flex flex-col h-full">
@@ -207,8 +222,13 @@ function DiffViewer({
         </div>
       </div>
 
-      {/* Side-by-side diff */}
-      <div className="flex-1 overflow-auto">
+      {/* Side-by-side diff — shows a loading state while the diff module lazy-loads */}
+      {!changes && (
+        <div className="flex-1 flex items-center justify-center py-vsp-xl">
+          <p className="text-small text-muted">Loading diff…</p>
+        </div>
+      )}
+      <div className={`flex-1 overflow-auto${!changes ? " hidden" : ""}`}>
         <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: "2.5rem" }} />

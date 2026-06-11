@@ -1,3 +1,4 @@
+// @ts-check
 // zfb plugin module: copy-public.
 //
 // Workaround for upstream zfb gap — `zfb build` does not copy `public/`
@@ -21,15 +22,22 @@
 // `zfb.config.ts`. The `base` option is intentionally unused — see
 // rationale above.
 
+/** @import { ZfbBuildHookContext, ZfbPlugin } from "@takazudo/zfb/plugins" */
+
 import { cp } from "node:fs/promises";
 import { resolve } from "node:path";
 
+/** @type {ZfbPlugin} */
 export default {
   name: "copy-public",
 
+  /** @param {ZfbBuildHookContext} ctx */
   async postBuild(ctx) {
     const { publicDir: publicDirOption } = ctx.options;
-    const publicDir = resolve(ctx.projectRoot, publicDirOption ?? "public");
+    const publicDir = resolve(
+      ctx.projectRoot,
+      typeof publicDirOption === "string" ? publicDirOption : "public",
+    );
     const dest = ctx.outDir;
 
     ctx.logger.info(`copying ${publicDir} → ${dest}`);
@@ -38,7 +46,7 @@ export default {
       recursive: true,
       force: true,
       errorOnExist: false,
-    }).catch((err) => {
+    }).catch((/** @type {NodeJS.ErrnoException} */ err) => {
       if (err.code === "ENOENT") {
         // publicDir does not exist or is empty — treat as no-op.
         ctx.logger.info("public/ not found — skipping copy");

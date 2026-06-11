@@ -1,22 +1,24 @@
 import type { DocsEntry } from "@/types/docs-entry";
-import fs from "node:fs";
-import path from "node:path";
-import { toTitleCase, toRouteSlug } from "@/utils/slug";
 import { docsUrl, withBase } from "@/utils/base";
 import { defaultLocale, type Locale } from "@/config/i18n";
+import {
+  buildSidebarTree,
+  type CategoryMeta,
+  type SidebarNode,
+} from "@takazudo/zudo-doc/sidebar-tree";
 
 /** Filter predicate: true when a doc should appear in navigation (sidebar, index, sitemap). */
 export function isNavVisible(doc: DocsEntry): boolean {
   return !doc.data.unlisted && !doc.data.standalone;
 }
 
-export interface CategoryMeta {
-  label?: string;
-  position?: number;
-  description?: string;
-  sortOrder?: "asc" | "desc";
-  noPage?: boolean;
-}
+// `_category_.json` loading + per-directory memoization live in the shared
+// framework package — the host keeps no parallel copy (#2030 dedup). The
+// package memoizes per resolved (absolute) contentDir, so the returned Map
+// instance is stable per directory — which `stableMergeCategoryMeta` and the
+// identity fast-path below rely on.
+export { loadCategoryMeta } from "@takazudo/zudo-doc/sidebar-tree";
+export type { CategoryMeta } from "@takazudo/zudo-doc/sidebar-tree";
 
 export interface NavNode {
   slug: string;
@@ -30,16 +32,39 @@ export interface NavNode {
   collapsed?: boolean;
 }
 
-interface BuildNode {
-  segment: string;
-  fullPath: string;
-  doc?: DocsEntry;
-  children: Map<string, BuildNode>;
+// Module-level cache — persists across all page renders during a single build.
+//
+// Bounded LRU, cap 64. A production build only ever needs a handful of
+// distinct keys — one per (locale × version × categoryMeta-variant), single
+// digits for this corpus — so 64 never evicts within one build. The cap
+// exists for dev: every content edit under HMR produces a NEW content key
+// (the key embeds nav-affecting frontmatter by design, so edits bust the
+// cache), and before #2030 the Map grew unbounded across a long dev session,
+// each entry holding an O(corpus) key string plus a full tree. With the cap,
+// stale generations age out once 64 fresher keys land. (#1902's WeakMap
+// identity fast-path keeps production hits off this Map entirely.)
+const NAV_TREE_CACHE_MAX = 64;
+const navTreeCache = new Map<string, NavNode[]>();
+
+function navTreeCacheGet(key: string): NavNode[] | undefined {
+  const hit = navTreeCache.get(key);
+  if (hit !== undefined) {
+    // Refresh recency — Map preserves insertion order, so delete+set moves
+    // the entry to the "most recently used" end.
+    navTreeCache.delete(key);
+    navTreeCache.set(key, hit);
+  }
+  return hit;
 }
 
-// Module-level caches — persist across all page renders during a single Astro build.
-const categoryMetaCache = new Map<string, Map<string, CategoryMeta>>();
-const navTreeCache = new Map<string, NavNode[]>();
+function navTreeCacheSet(key: string, value: NavNode[]): void {
+  navTreeCache.delete(key);
+  navTreeCache.set(key, value);
+  if (navTreeCache.size > NAV_TREE_CACHE_MAX) {
+    const oldest = navTreeCache.keys().next().value;
+    if (oldest !== undefined) navTreeCache.delete(oldest);
+  }
+}
 
 // Identity fast-path cache. Keyed on the docs-array reference: when nav-source
 // loaders hand back the SAME stable array instance across the build's many
@@ -99,12 +124,13 @@ function navTreeCacheKey(
 }
 
 /**
- * Build a recursive navigation tree from a flat Astro content collection.
+ * Build a recursive navigation tree from a flat content collection.
  * Mirrors the filesystem: directories become category nodes, files become leaves.
  *
- * Astro 5 glob() strips /index from IDs:
- *   getting-started/index.mdx → ID "getting-started" (category index)
- *   getting-started/intro.mdx → ID "getting-started/intro" (child page)
+ * Since #2030 the tree construction itself is delegated to the shared
+ * framework builder (`buildSidebarTree` in @takazudo/zudo-doc/sidebar-tree);
+ * this function keeps the host-side concerns: the NavNode shape consumed by
+ * every host nav surface, the content-key cache, and the identity fast-path.
  */
 export function buildNavTree(
   docs: DocsEntry[],
@@ -123,60 +149,108 @@ export function buildNavTree(
   }
 
   const cacheKey = navTreeCacheKey(docs, lang, categoryMeta);
-  const cached = navTreeCache.get(cacheKey);
+  const cached = navTreeCacheGet(cacheKey);
   if (cached) {
     rememberIdentity(docs, lang, categoryMeta, cached);
     return cached;
   }
 
-  const root: BuildNode = {
-    segment: "",
-    fullPath: "",
-    children: new Map(),
-  };
+  const sidebarTree = buildSidebarTree(
+    // Pass `{ id, data }` only — NOT the whole entry. zfb entries carry the
+    // raw, un-index-stripped engine slug on the top-level `slug` field
+    // (e.g. "getting-started/index"), and the shared builder prefers
+    // `entry.slug` over the id-derived form; forwarding it would mint wrong
+    // node paths. Omitting it reproduces the legacy host derivation
+    // `data.slug ?? toRouteSlug(id)` (ids arrive pre-stripped via _data.ts).
+    docs.map((d) => ({ id: d.id, data: d.data })),
+    lang,
+    {
+      categoryMeta,
+      buildHref: (slug, locale) => docsUrl(slug, locale),
+      // Host call sites own visibility: nav surfaces pre-filter via
+      // `stableNavDocs(docs.filter(isNavVisible))`, while the breadcrumb tree
+      // intentionally builds from the UNFILTERED list so unlisted pages still
+      // get breadcrumbs. Disable the builder's default unlisted/standalone
+      // filter so neither path changes behavior.
+      isNavVisible: () => true,
+    },
+  );
+  const result = sidebarTree.map(toNavNode);
 
-  for (const doc of docs) {
-    const slug = doc.data.slug ?? toRouteSlug(doc.id);
-    const parts = slug.split("/");
-
-    if (parts.length <= 1) {
-      // Category index: Astro 5 stripped /index → single segment like "guides".
-      // Key by the route slug (honors a custom frontmatter `slug`), not the raw
-      // id — otherwise the sidebar/breadcrumb link diverges from the built route.
-      const segment = parts[0] || doc.id;
-      if (!root.children.has(segment)) {
-        root.children.set(segment, {
-          segment,
-          fullPath: segment,
-          children: new Map(),
-        });
-      }
-      root.children.get(segment)!.doc = doc;
-    } else {
-      // Multi-segment: walk the tree creating intermediate nodes as needed
-      let current = root;
-      for (let i = 0; i < parts.length; i++) {
-        const segment = parts[i] ?? "";
-        const fullPath = parts.slice(0, i + 1).join("/");
-        if (!current.children.has(segment)) {
-          current.children.set(segment, {
-            segment,
-            fullPath,
-            children: new Map(),
-          });
-        }
-        if (i === parts.length - 1) {
-          current.children.get(segment)!.doc = doc;
-        }
-        current = current.children.get(segment)!;
-      }
-    }
+  // Root docs-index entry (derived slug "" — a root index.mdx arrives from
+  // _data.ts bridging as id ""). The shared builder drops empty slugs, but the
+  // legacy host builder minted a top-level node keyed "" (href /docs/) so the
+  // root page stayed present in sidebar/breadcrumb/prev-next data. Re-create
+  // that node here with the exact legacy field derivation, then re-sort with
+  // the same comparator the builder used (stable sort → idempotent for the
+  // already-sorted rest).
+  const rootDoc = findRootIndexDoc(docs);
+  if (rootDoc) {
+    result.push(toRootNavNode(rootDoc, lang, categoryMeta));
+    result.sort((a, b) => {
+      const posCompare = a.position - b.position;
+      if (posCompare !== 0) return posCompare;
+      return a.slug.localeCompare(b.slug);
+    });
   }
 
-  const result = toNavNodes(root, lang, categoryMeta);
-  navTreeCache.set(cacheKey, result);
+  navTreeCacheSet(cacheKey, result);
   rememberIdentity(docs, lang, categoryMeta, result);
   return result;
+}
+
+/** Last entry whose package-derived slug is empty ("") — i.e. the entry the
+ *  shared builder skips. Last one wins, mirroring the legacy builder's
+ *  `node.doc = doc` overwrite. (A bare id "index" is NOT matched here: both
+ *  the legacy and shared builders resolve it to a node keyed "index".) */
+function findRootIndexDoc(docs: DocsEntry[]): DocsEntry | undefined {
+  let found: DocsEntry | undefined;
+  for (const d of docs) {
+    const slug = d.data.slug ?? d.id.replace(/\/index$/, "");
+    if (slug === "") found = d;
+  }
+  return found;
+}
+
+/** Legacy-faithful node for the root docs index (slug ""): no children are
+ *  possible (a multi-segment slug never has an empty first part), label falls
+ *  back through the same chain (title is required, so it always resolves),
+ *  and href is the locale docs root. */
+function toRootNavNode(
+  doc: DocsEntry,
+  lang: Locale,
+  categoryMeta?: Map<string, CategoryMeta>,
+): NavNode {
+  const meta = categoryMeta?.get("");
+  const noPage = doc.data.category_no_page ?? meta?.noPage;
+  const sortOrder = doc.data.category_sort_order ?? meta?.sortOrder ?? "asc";
+  return {
+    slug: "",
+    label: doc.data.sidebar_label ?? doc.data.title ?? meta?.label ?? "",
+    description: doc.data.description ?? meta?.description,
+    position: doc.data.sidebar_position ?? meta?.position ?? 999,
+    href: noPage ? undefined : docsUrl("", lang),
+    hasPage: noPage !== true,
+    children: [],
+    sortOrder,
+  };
+}
+
+/** Map the shared builder's SidebarNode shape onto the host NavNode shape.
+ *  `position` and `sortOrder` defaults mirror the legacy inline builder:
+ *  position falls back to 999 (ties sort alphabetically) and sortOrder is
+ *  always materialized ("asc" unless frontmatter/sidecar set it). */
+function toNavNode(node: SidebarNode): NavNode {
+  return {
+    slug: node.id,
+    label: node.label,
+    description: node.description,
+    position: node.sidebar_position ?? 999,
+    href: node.href,
+    hasPage: node.hasPage,
+    children: node.children.map(toNavNode),
+    sortOrder: node.sortOrder ?? "asc",
+  };
 }
 
 /** Record a (docs-array identity, lang, categoryMeta) → tree mapping for the
@@ -195,55 +269,6 @@ function rememberIdentity(
   if (!slots.some((s) => s.lang === lang && s.categoryMeta === categoryMeta)) {
     slots.push({ lang, categoryMeta, tree });
   }
-}
-
-function toNavNodes(
-  parent: BuildNode,
-  lang: Locale,
-  categoryMeta?: Map<string, CategoryMeta>,
-  parentSortOrder?: "asc" | "desc",
-): NavNode[] {
-  const nodes: NavNode[] = [];
-
-  for (const child of parent.children.values()) {
-    const doc = child.doc;
-    const meta = categoryMeta?.get(child.fullPath);
-    // Frontmatter wins over the `_category_.json` sidecar when both exist.
-    const noPage = doc?.data.category_no_page ?? meta?.noPage;
-    const sortOrder = doc?.data.category_sort_order ?? meta?.sortOrder ?? "asc";
-    const children = toNavNodes(child, lang, categoryMeta, sortOrder);
-
-    nodes.push({
-      slug: child.fullPath,
-      label:
-        doc?.data.sidebar_label ?? doc?.data.title ?? meta?.label ?? toTitleCase(child.segment),
-      description: doc?.data.description ?? meta?.description,
-      position: doc?.data.sidebar_position ?? meta?.position ?? 999,
-      href: noPage
-        ? undefined
-        : doc || children.length > 0
-          ? docsUrl(child.fullPath, lang)
-          : undefined,
-      // A `category_no_page` index.mdx is metadata-only — force hasPage false so
-      // it matches a `_category_.json` noPage category (no backing file): a
-      // non-linked header that flattenTree drops from prev/next. Otherwise the
-      // route-excluded slug would surface as a 404 pagination target.
-      hasPage: !!doc && noPage !== true,
-      children,
-      sortOrder,
-    });
-  }
-
-  // Use the PARENT's sortOrder to sort these sibling nodes
-  const order = parentSortOrder ?? "asc";
-  nodes.sort((a, b) => {
-    const posCompare = a.position - b.position;
-    if (posCompare !== 0) return order === "desc" ? -posCompare : posCompare;
-    const slugCompare = a.slug.localeCompare(b.slug);
-    return order === "desc" ? -slugCompare : slugCompare;
-  });
-
-  return nodes;
 }
 
 /**
@@ -348,8 +373,9 @@ export interface BreadcrumbItem {
 /**
  * Build breadcrumb trail by walking the nav tree.
  *
- * Nav-node hrefs are always the LATEST `docsUrl(slug, lang)` values (see
- * `toNavNodes`). On versioned routes that would make breadcrumbs link back to
+ * Nav-node hrefs are always the LATEST `docsUrl(slug, lang)` values (see the
+ * `buildHref` wiring in `buildNavTree`). On versioned routes that would make
+ * breadcrumbs link back to
  * latest content (#1916 #1). Pass an optional `hrefFor(slug)` to remap each
  * intermediate crumb's href to the route's own URL space (e.g.
  * `versionedDocsUrl`-bound). The home crumb and the current/last crumb carry no
@@ -386,55 +412,4 @@ export function buildBreadcrumbs(
   }
 
   return crumbs;
-}
-
-/**
- * Scan a content directory for _category_.json files and return a map
- * of relative paths to category metadata.
- * Results are memoized by contentDir.
- */
-export function loadCategoryMeta(contentDir: string): Map<string, CategoryMeta> {
-  const cached = categoryMetaCache.get(contentDir);
-  if (cached) return cached;
-  const result = new Map<string, CategoryMeta>();
-  scanDir(contentDir, contentDir, result);
-  categoryMetaCache.set(contentDir, result);
-  return result;
-}
-
-function scanDir(baseDir: string, currentDir: string, result: Map<string, CategoryMeta>): void {
-  let entries: fs.Dirent[];
-  try {
-    entries = fs.readdirSync(currentDir, { withFileTypes: true });
-  } catch {
-    return;
-  }
-
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      const fullPath = path.join(currentDir, entry.name);
-      const categoryFile = path.join(fullPath, "_category_.json");
-      if (fs.existsSync(categoryFile)) {
-        try {
-          const raw = fs.readFileSync(categoryFile, "utf-8");
-          const parsed: unknown = JSON.parse(raw);
-          if (typeof parsed === "object" && parsed !== null) {
-            const obj = parsed as Record<string, unknown>;
-            const meta: CategoryMeta = {
-              label: typeof obj.label === "string" ? obj.label : undefined,
-              position: typeof obj.position === "number" ? obj.position : undefined,
-              description: typeof obj.description === "string" ? obj.description : undefined,
-              sortOrder: obj.sortOrder === "asc" || obj.sortOrder === "desc" ? obj.sortOrder : undefined,
-              noPage: obj.noPage === true ? true : undefined,
-            };
-            const relativePath = path.relative(baseDir, fullPath);
-            result.set(relativePath, meta);
-          }
-        } catch {
-          // skip invalid JSON
-        }
-      }
-      scanDir(baseDir, fullPath, result);
-    }
-  }
 }

@@ -1,3 +1,5 @@
+import type { DocsData } from "@/config/docs-schema";
+
 /**
  * Concrete entry type for docs collections.
  *
@@ -6,6 +8,9 @@
  * but is defined locally now that the project runs on the zfb content
  * engine — collection-name-specific generics are not exposed by zfb, so
  * pages cast collection entries to this shape via `pages/_data.ts`.
+ *
+ * `data` is typed as `DocsData` — the `z.infer`-derived type from
+ * `src/config/docs-schema.ts` — so the field set is maintained in one place.
  */
 // Structural shape of zfb's optional rendered-content payload for a doc
 // entry (kept loose to stay engine-agnostic — pages do not rely on the
@@ -13,34 +18,11 @@
 type RenderedContent = unknown;
 export interface DocsEntry {
   id: string;
+  /** zfb content engine slug (filename without `.md`/`.mdx`; used by toRouteSlug). */
+  slug: string;
   body?: string;
   collection: string;
-  data: {
-    title: string;
-    description?: string;
-    category?: string;
-    sidebar_position?: number;
-    sidebar_label?: string;
-    tags?: string[];
-    search_exclude?: boolean;
-    pagination_next?: string | null;
-    pagination_prev?: string | null;
-    draft?: boolean;
-    unlisted?: boolean;
-    hide_sidebar?: boolean;
-    hide_toc?: boolean;
-    doc_history?: boolean;
-    standalone?: boolean;
-    slug?: string;
-    generated?: boolean;
-    /** Category metadata on a directory's index.mdx (frontmatter form of
-     *  `_category_.json` `noPage`): non-linked sidebar header + excluded from
-     *  routes/sitemap/search. Frontmatter wins over the sidecar. */
-    category_no_page?: boolean;
-    /** Frontmatter form of `_category_.json` `sortOrder` — child sort
-     *  direction. Frontmatter wins over the sidecar. */
-    category_sort_order?: "asc" | "desc";
-  };
+  data: DocsData;
   rendered?: RenderedContent;
   filePath?: string;
 }

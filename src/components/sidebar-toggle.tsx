@@ -3,7 +3,7 @@
 // Use preact hook entrypoints directly — the "react" → "preact/compat" alias
 // lets us consume React-typed components in this Preact app (configured
 // project-wide). Same pattern as src/components/sidebar-tree.tsx and
-// packages/zudo-doc/src/theme/theme-toggle.tsx. Type references via
+// packages/zudo-doc/src/theme-toggle/index.tsx. Type references via
 // the global React namespace still resolve via @types/react.
 import { useState, useEffect } from "preact/hooks";
 import clsx from "clsx";
