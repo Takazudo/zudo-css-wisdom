@@ -56,8 +56,10 @@ tsconfig.json
 # ── Feature islands: enabled feature's real impl overrides the base no-op stub
 # These three files exist in BOTH base/ (no-op stub) and their feature/ dir
 # (real island). zcss has the features enabled, so the production file is the
-# real island — which DIFFs against the base stub in the base/ pass. The real
-# impl matches its feature template; the divergence is base-stub-vs-real only.
+# real island — which DIFFs against the base stub in the base/ pass.
+# doc-history.tsx / image-enlarge.tsx additionally prepend "use client" (the
+# 0.2.1 feature templates omit it, leaving the islands unregistered —
+# zudolab/zudo-doc#2047); drop that divergence when the templates ship it.
 src/components/desktop-sidebar-toggle.tsx
 src/components/doc-history.tsx
 src/components/image-enlarge.tsx
