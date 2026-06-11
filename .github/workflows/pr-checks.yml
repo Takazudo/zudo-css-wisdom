@@ -191,11 +191,17 @@ jobs:
       - name: Build site
         run: CI=true pnpm exec zfb build
 
-      - name: Cache site build output
-        uses: actions/cache/save@v4
+      # Artifact (not actions/cache) for the within-run dist handoff: the cache
+      # service is eventually consistent and downstream restores ~19s after a
+      # successful save missed twice on 2026-06-11 (issue #107). Artifacts are
+      # run-scoped with no propagation lag; 1-day retention since nothing
+      # outside this run ever reads it.
+      - name: Upload site build output
+        uses: actions/upload-artifact@v4
         with:
+          name: dist
           path: dist/
-          key: dist-${{ github.run_id }}
+          retention-days: 1
 
   # ---------------------------------------------------------------------------
   # Job 3: HTML validate (block-in-inline guard)
@@ -221,12 +227,11 @@ jobs:
       - name: Install deps (no scripts)
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Restore dist cache
-        uses: actions/cache/restore@v4
+      - name: Download site build output
+        uses: actions/download-artifact@v4
         with:
+          name: dist
           path: dist/
-          key: dist-${{ github.run_id }}
-          fail-on-cache-miss: true
 
       - name: Run html-validate
         run: pnpm check:html
@@ -255,12 +260,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Restore dist cache
-        uses: actions/cache/restore@v4
+      - name: Download site build output
+        uses: actions/download-artifact@v4
         with:
+          name: dist
           path: dist/
-          key: dist-${{ github.run_id }}
-          fail-on-cache-miss: true
 
       - name: Check links (strict)
         run: node scripts/check-links.js --strict-broken --strict-absolute --allowlist=.check-links-allowlist
@@ -289,12 +293,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Restore dist cache
-        uses: actions/cache/restore@v4
+      - name: Download site build output
+        uses: actions/download-artifact@v4
         with:
+          name: dist
           path: dist/
-          key: dist-${{ github.run_id }}
-          fail-on-cache-miss: true
 
       - name: Run E2E tests
         run: pnpm test:e2e
@@ -312,12 +315,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Restore site build cache
-        uses: actions/cache/restore@v4
+      - name: Download site build output
+        uses: actions/download-artifact@v4
         with:
+          name: dist
           path: dist/
-          key: dist-${{ github.run_id }}
-          fail-on-cache-miss: true
 
       # Guard: assert the built HTML has root-relative asset URLs.
       # base="/" → href="/assets/..." and src="/assets/...".
