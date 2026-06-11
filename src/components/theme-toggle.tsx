@@ -1,30 +1,23 @@
 "use client";
 
-// Island-registry shim for the package ThemeToggle (zudo-doc 0.2.1).
-//
-// The header (pages/lib/_header-with-defaults.tsx) wraps <ThemeToggle> in
-// Island({when:"load"}), which emits a data-zfb-island="ThemeToggle" marker.
-// zfb's island scanner only registers "use client" modules from project
-// source — it does not walk into node_modules — so rendering the package
-// component directly from the header leaves the marker without a registry
-// entry and the toggle dead after hydration (works in the zudo-doc monorepo
-// where the component source is local; breaks for published-package
-// consumers). This local module is the scanner-visible named binding; it
-// delegates rendering to the real package component.
-//
-// Remove once zfb can register node_modules islands — workaround for
-// https://github.com/Takazudo/zudo-front-builder/issues/999 (scanner gap)
-// and https://github.com/zudolab/zudo-doc/issues/2048 (template fallout).
+// Scanner-visible ThemeToggle shim. zfb's island scanner does not register
+// "use client" modules located under node_modules (Takazudo/zudo-front-builder#999),
+// so importing the package ThemeToggle straight into the server-rendered header
+// emits an island marker with no matching registry entry — the toggle renders
+// but never hydrates, on every page (zudolab/zudo-doc#2048). This thin
+// project-source wrapper gives the scanner a local binding to register; it
+// re-wraps the bare (non-island-wrapped) package component unchanged.
+import type { JSX } from "preact";
 import {
   ThemeToggle as ZudoDocThemeToggle,
   type ThemeToggleProps,
 } from "@takazudo/zudo-doc/theme-toggle";
 
-export function ThemeToggle(props: ThemeToggleProps) {
+export function ThemeToggle(props: ThemeToggleProps): JSX.Element {
   return <ZudoDocThemeToggle {...props} />;
 }
-// Stable marker name even if a bundler pass rewrites the function name
-// (mirrors the ThemeToggle2 esbuild collision guard, zudo-doc#1446).
 ThemeToggle.displayName = "ThemeToggle";
+
+export type { ThemeToggleProps };
 
 export default ThemeToggle;

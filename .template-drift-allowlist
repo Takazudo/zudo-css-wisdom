@@ -26,14 +26,6 @@ pages/_mdx-components.ts
 # the favicon set (.ico + 16/32 png).
 pages/lib/_head-with-defaults.tsx
 
-# _header-with-defaults.tsx: imports ThemeToggle via the local
-# src/components/theme-toggle.tsx shim instead of the template's
-# "@takazudo/zudo-doc/theme-toggle" subpath — zfb's island scanner does not
-# register "use client" modules inside node_modules, so the package import
-# leaves the header's ThemeToggle marker unregistered (dead toggle after
-# hydration). Remove when zfb can register package islands.
-pages/lib/_header-with-defaults.tsx
-
 # run-b4push.sh is intentionally the zcss gate set (format-free; pin-parity +
 # template-drift + typecheck + build + html-validate + link-check).
 scripts/run-b4push.sh
@@ -43,12 +35,6 @@ scripts/run-b4push.sh
 # package utilities.
 src/styles/global.css
 
-# sidebar-tree.tsx: single type-cast difference —
-# `(e.target as HTMLInputElement).value` vs the template's `e.target.value`,
-# which fails `tsc --noEmit` under zcss's TS setup (template ships untyped
-# EventTarget access; reported upstream).
-src/components/sidebar-tree.tsx
-
 # tsconfig.json: zcss adds the @/components/CssPreview + @/components/TailwindPreview
 # path aliases and adjusts `exclude` (e2e, scripts/**/__tests__).
 tsconfig.json
@@ -57,9 +43,6 @@ tsconfig.json
 # These three files exist in BOTH base/ (no-op stub) and their feature/ dir
 # (real island). zcss has the features enabled, so the production file is the
 # real island — which DIFFs against the base stub in the base/ pass.
-# doc-history.tsx / image-enlarge.tsx additionally prepend "use client" (the
-# 0.2.1 feature templates omit it, leaving the islands unregistered —
-# zudolab/zudo-doc#2047); drop that divergence when the templates ship it.
 src/components/desktop-sidebar-toggle.tsx
 src/components/doc-history.tsx
 src/components/image-enlarge.tsx

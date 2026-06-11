@@ -1,9 +1,5 @@
 "use client";
 
-// Directive missing from the create-zudo-doc 0.2.1 feature template — without
-// it zfb's island scanner never registers the component and the DocHistory
-// panel ships dead (zudolab/zudo-doc#2047; local tracking zudo-css-wisdom#104).
-// Drop this divergence when the template ships the directive upstream.
 import { useState, useEffect, useCallback, useMemo, useRef } from "preact/compat";
 import type { Change } from "diff";
 import type { DocHistoryData, DocHistoryEntry } from "@/types/doc-history";

@@ -37,6 +37,7 @@ import ClientRouterBootstrap from "@/components/client-router-bootstrap";
 import DesignTokenPanelBootstrap from "@/components/design-token-panel-bootstrap";
 import ImageEnlarge, { ImageEnlargeSsrFallback } from "@/components/image-enlarge";
 import { PageLoadingOverlay } from "@takazudo/zudo-doc/page-loading";
+// @slot:body-end-islands:imports
 
 // Set explicit `displayName` on each default-exported island so zfb's
 // `captureComponentName` produces a stable marker even after the SSR
@@ -51,6 +52,7 @@ import { PageLoadingOverlay } from "@takazudo/zudo-doc/page-loading";
 (DesignTokenPanelBootstrap as { displayName?: string }).displayName =
   "DesignTokenPanelBootstrap";
 (ImageEnlarge as { displayName?: string }).displayName = "ImageEnlarge";
+// @slot:body-end-islands:display-names
 
 /**
  * Default sr-only label rendered as the AiChatModal SSR fallback. This
@@ -196,6 +198,7 @@ export function BodyEndIslands({
       <h2 class="sr-only">AI Assistant</h2>
       {aiChat}
       {imageEnlarge}
+      {/* @slot:body-end-islands:extra-islands */}
     </>
   );
 }

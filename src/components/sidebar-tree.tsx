@@ -288,7 +288,7 @@ export default function SidebarTree({ nodes, currentSlug, rootMenuItems, backToM
             type="text"
             placeholder={filterPlaceholder}
             value={query}
-            onChange={(e) => setQuery((e.target as HTMLInputElement).value)}
+            onChange={(e) => setQuery(e.currentTarget.value)}
             className="bg-transparent text-small outline-none w-full text-fg placeholder:text-muted"
           />
         </div>

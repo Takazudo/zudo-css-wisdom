@@ -1,3 +1,5 @@
+"use client";
+
 // W6A stub — no-op default export.
 //
 // The host (zudo-doc showcase) ships a full AI-chat modal island here. In

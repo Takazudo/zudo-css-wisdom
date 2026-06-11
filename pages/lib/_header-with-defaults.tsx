@@ -45,14 +45,13 @@ import {
   VersionSwitcher,
   type VersionSwitcherLabels,
 } from "@takazudo/zudo-doc/i18n-version";
-// BARE (non-island-wrapped) ThemeToggle (#2012 E2). The `./theme` barrel
-// exports an Island-wrapped variant; this wrapper composes its own Island
-// below, and the bare component avoids nesting an island inside an island.
-// Imported via the local @/components/theme-toggle shim (NOT the package
-// subpath the template uses): zfb's island scanner only registers
-// "use client" modules from project source, so the package import leaves
-// the "ThemeToggle" marker unregistered and the toggle dead after
-// hydration — see the shim's header comment.
+// ThemeToggle via the project-source shim (`@/components/theme-toggle`)
+// rather than the package subpath directly. zfb's island scanner does not
+// register "use client" modules under node_modules (zfb#999), so importing
+// the package component here would emit an island marker with no registry
+// entry and the toggle would never hydrate (zudolab/zudo-doc#2048). The shim
+// re-wraps the bare (non-island-wrapped) package ThemeToggle; this wrapper
+// composes its own Island below, avoiding nesting an island inside an island.
 import { ThemeToggle } from "@/components/theme-toggle";
 import SidebarToggle from "@/components/sidebar-toggle";
 import { settings } from "@/config/settings";
