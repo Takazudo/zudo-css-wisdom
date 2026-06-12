@@ -249,6 +249,9 @@ export const SEARCH_WIDGET_SCRIPT = /* javascript */ `(function () {
           self._entries = Array.isArray(data) ? data : (data.entries || []);
           prepareLc(self._entries);
           self._loading = false;
+          // Clear the unavailable flag BEFORE re-running search so a successful
+          // retry (e.g. via the openDialog() reload path) fully recovers (#2062).
+          self._indexUnavailable = false;
           // If user already typed, search now
           if (self._input && self._input.value.trim()) {
             self.search();
@@ -277,6 +280,20 @@ export const SEARCH_WIDGET_SCRIPT = /* javascript */ `(function () {
       }
 
       if (!this._entries) {
+        // Index failed to load: show the terminal "Search unavailable" state and
+        // stop — do NOT show "Loading search index…" or refetch on every
+        // keystroke (#2062). The openDialog() reload path is the intended retry
+        // trigger. Clear any stale result state/count/sentinel first.
+        if (this._indexUnavailable) {
+          this.teardownSentinel();
+          this._allResults = [];
+          this._shownCount = 0;
+          if (this._results) {
+            this._results.innerHTML = "<p class=\\"text-small text-muted\\">Search unavailable</p>";
+          }
+          this.updateCount();
+          return;
+        }
         if (this._results) {
           this._results.innerHTML = "<p class=\\"text-small text-muted\\">Loading search index\\u2026</p>";
         }

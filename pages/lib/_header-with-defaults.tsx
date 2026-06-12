@@ -45,14 +45,12 @@ import {
   VersionSwitcher,
   type VersionSwitcherLabels,
 } from "@takazudo/zudo-doc/i18n-version";
-// ThemeToggle via the project-source shim (`@/components/theme-toggle`)
-// rather than the package subpath directly. zfb's island scanner does not
-// register "use client" modules under node_modules (zfb#999), so importing
-// the package component here would emit an island marker with no registry
-// entry and the toggle would never hydrate (zudolab/zudo-doc#2048). The shim
-// re-wraps the bare (non-island-wrapped) package ThemeToggle; this wrapper
-// composes its own Island below, avoiding nesting an island inside an island.
-import { ThemeToggle } from "@/components/theme-toggle";
+// The bare (non-island-wrapped) package ThemeToggle, imported straight from
+// the npm subpath: zfb >= 0.1.0-next.39 scans "use client" modules under
+// node_modules (zfb#999/#1001), so the marker registers without the former
+// project-source shim (#2048/#2057). This header composes its own Island
+// below, avoiding nesting an island inside an island.
+import { ThemeToggle } from "@takazudo/zudo-doc/theme-toggle";
 import SidebarToggle from "@/components/sidebar-toggle";
 import { settings } from "@/config/settings";
 import { defaultLocale, locales, t, type Locale } from "@/config/i18n";
