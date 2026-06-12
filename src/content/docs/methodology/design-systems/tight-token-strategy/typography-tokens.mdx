@@ -29,7 +29,7 @@ Consider: your `subheading` token is 20px. Now you need 20px text for a product 
 
 Abstract names like `lg` solve this. Any element that needs 20px text uses `text-lg`. The role comes from context, not the token name.
 
-This parallels the [Three-Tier Color Strategy](../../../../styling/color/three-tier-color-strategy/) and the [Three-Tier Font-Size Strategy](../../../../typography/font-sizing/three-tier-font-size-strategy/): the core layer uses neutral, reusable names. Semantic names like `heading` or `caption` belong in the **theme layer** — as CSS custom properties or component-level tokens that reference core sizes:
+This parallels the [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy.mdx) and the [Three-Tier Font-Size Strategy](../../../typography/font-sizing/three-tier-font-size-strategy.mdx): the core layer uses neutral, reusable names. Semantic names like `heading` or `caption` belong in the **theme layer** — as CSS custom properties or component-level tokens that reference core sizes:
 
 ```css
 /* Core layer (@theme) — abstract, reusable scale */
@@ -547,7 +547,7 @@ A complete article layout using only the 6 abstract font sizes, 3 weights, and 3
 
 ## When to Use
 
-Typography tokens pair naturally with [color tokens](../color-tokens/) and the [spacing strategy](./index.mdx) from the parent article. Together, they form the core of a tight design token system that constrains the three most common sources of visual drift.
+Typography tokens pair naturally with [color tokens](./color-tokens.mdx) and the [spacing strategy](./index.mdx) from the parent article. Together, they form the core of a tight design token system that constrains the three most common sources of visual drift.
 
 Apply typography tokens when:
 
@@ -557,9 +557,9 @@ Apply typography tokens when:
 
 ## Related Articles
 
-- [Three-Tier Font-Size Strategy](../../../../typography/font-sizing/three-tier-font-size-strategy/) — The full conceptual architecture behind these token choices (scale → theme → component)
-- [Three-Tier Color Strategy](../../../../styling/color/three-tier-color-strategy/) — The same three-tier architecture applied to colors
-- [Color Token Patterns](../color-tokens/) — Semantic color scales using the same tight-token approach
+- [Three-Tier Font-Size Strategy](../../../typography/font-sizing/three-tier-font-size-strategy.mdx) — The full conceptual architecture behind these token choices (scale → theme → component)
+- [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy.mdx) — The same three-tier architecture applied to colors
+- [Color Token Patterns](./color-tokens.mdx) — Semantic color scales using the same tight-token approach
 
 ## References
 
