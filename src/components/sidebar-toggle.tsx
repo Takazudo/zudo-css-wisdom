@@ -131,8 +131,15 @@ export default function SidebarToggle({
         onClick={() => setOpen(false)}
       />
 
-      {/* Sidebar panel - mobile only (desktop sidebar is in doc-layout) */}
+      {/* Sidebar panel - mobile only (desktop sidebar is in doc-layout).
+          `inert` when closed: the panel is only visually hidden via
+          `-translate-x-full`, so without `inert` its links/filter/buttons
+          stay in the tab order and accessibility tree while off-screen
+          (zudolab/zudo-doc#2059). `inert={false}` serialises to no attribute,
+          so the SSR (open=false → `inert`) and initial client render stay
+          byte-stable for hydration. */}
       <aside
+        inert={!open}
         className={`
           fixed top-[3.5rem] left-0 z-40 h-[calc(100vh-3.5rem)] w-[16rem] flex flex-col
           border-r border-muted bg-bg transition-transform duration-200

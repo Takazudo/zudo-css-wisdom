@@ -17,9 +17,12 @@
 // keeping the create-zudo-doc template copies byte-identical to the host.
 
 import type { ComponentChildren, JSX, VNode } from "preact";
+import { Island } from "@takazudo/zfb";
 import { settings } from "@/config/settings";
 import type { NavNode } from "@/utils/docs";
 import { DocLayoutWithDefaults } from "@takazudo/zudo-doc/doclayout";
+import { Toc, MobileToc } from "@takazudo/zudo-doc/toc";
+import { getTocTitle } from "./_toc-title";
 import { Breadcrumb } from "@takazudo/zudo-doc/breadcrumb";
 import { NavCardGrid } from "@takazudo/zudo-doc/nav-indexing";
 import { HeadWithDefaults } from "./_head-with-defaults";
@@ -145,6 +148,31 @@ export function DocPageShell(props: DocPageShellProps): JSX.Element {
     docHistorySlot,
   } = props;
 
+  // TOC overrides: mount the package Toc/MobileToc with the host-resolved
+  // locale-aware `tocTitle`. The gating mirrors the package's
+  // `shouldRenderDefaultToc` exactly (`!hideToc && headings.length > 0`) so an
+  // undefined override never silently falls back to the package default with a
+  // different title. Each is wrapped in `<Island when="load">` here (the call
+  // site), matching how the package wraps its own default. Hydrating these
+  // npm-dist "use client" components requires zfb >= 0.1.0-next.39, whose
+  // scanner registers node_modules islands (zfb#999/#1001) — the former
+  // scanner-visible local shims (#2057) are gone; re-adding them would
+  // recreate island marker-name collisions.
+  const tocTitle = getTocTitle(locale);
+  const shouldRenderToc = !hideToc && headings.length > 0;
+  const tocOverride = shouldRenderToc
+    ? (Island({
+        when: "load",
+        children: <Toc headings={headings} title={tocTitle} />,
+      }) as unknown as VNode)
+    : undefined;
+  const mobileTocOverride = shouldRenderToc
+    ? (Island({
+        when: "load",
+        children: <MobileToc headings={headings} title={tocTitle} />,
+      }) as unknown as VNode)
+    : undefined;
+
   return (
     <DocLayoutWithDefaults
       title={composeMetaTitle(title)}
@@ -183,6 +211,8 @@ export function DocPageShell(props: DocPageShellProps): JSX.Element {
           currentPath={currentPath}
         />
       }
+      tocOverride={tocOverride}
+      mobileTocOverride={mobileTocOverride}
       afterSidebar={<SidebarPrepaint />}
       footerOverride={<FooterWithDefaults lang={locale} />}
       bodyEndComponents={<DocBodyEnd />}
