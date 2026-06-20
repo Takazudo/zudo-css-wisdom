@@ -71,7 +71,7 @@ CSS 3Dトランスフォームは、各プロパティに特定の役割があ�
       margin: 40px auto;
       font-family: system-ui, sans-serif;
     }
-    
+
     .card-flip__inner {
       position: relative;
       width: 100%;
@@ -79,12 +79,12 @@ CSS 3Dトランスフォームは、各プロパティに特定の役割があ�
       transform-style: preserve-3d;
       transition: transform 0.6s ease;
     }
-    
+
     .card-flip:hover .card-flip__inner,
     .card-flip:focus-within .card-flip__inner {
       transform: rotateY(180deg);
     }
-    
+
     .card-flip__front,
     .card-flip__back {
       position: absolute;
@@ -97,25 +97,25 @@ CSS 3Dトランスフォームは、各プロパティに特定の役割があ�
       border-radius: 12px;
       padding: 24px;
     }
-    
+
     .card-flip__front {
       background: hsl(220deg 90% 56%);
       color: hsl(0deg 0% 100%);
     }
-    
+
     .card-flip__back {
       background: hsl(160deg 70% 40%);
       color: hsl(0deg 0% 100%);
       transform: rotateY(180deg);
     }
-    
+
     .card-flip__front h3,
     .card-flip__back h3 {
       font-size: 20px;
       font-weight: 700;
       margin: 0 0 8px;
     }
-    
+
     .card-flip__front p,
     .card-flip__back p {
       font-size: 14px;
@@ -157,11 +157,11 @@ CSS 3Dトランスフォームは、各プロパティに特定の役割があ�
       font-family: system-ui, sans-serif;
       height: 100%;
     }
-    
+
     .perspective-demo__group {
       text-align: center;
     }
-    
+
     .perspective-demo__label {
       font-size: 13px;
       font-weight: 600;
@@ -169,15 +169,15 @@ CSS 3Dトランスフォームは、各プロパティに特定の役割があ�
       margin: 0 0 16px;
       font-family: monospace;
     }
-    
+
     .perspective-demo__stage--low {
       perspective: 200px;
     }
-    
+
     .perspective-demo__stage--high {
       perspective: 1000px;
     }
-    
+
     .perspective-demo__box {
       width: 140px;
       height: 140px;
@@ -220,7 +220,7 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       margin: 80px auto;
       font-family: system-ui, sans-serif;
     }
-    
+
     .cube {
       position: relative;
       width: 100%;
@@ -229,11 +229,11 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       transform: rotateX(-20deg) rotateY(-30deg);
       transition: transform 1s ease;
     }
-    
+
     .cube-scene:hover .cube {
       transform: rotateX(-20deg) rotateY(150deg);
     }
-    
+
     .cube__face {
       position: absolute;
       width: 150px;
@@ -247,32 +247,32 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       border: 2px solid hsl(0deg 0% 100% / 0.3);
       border-radius: 4px;
     }
-    
+
     .cube__face--front {
       background: hsl(220deg 80% 55% / 0.9);
       transform: translateZ(75px);
     }
-    
+
     .cube__face--back {
       background: hsl(220deg 80% 55% / 0.9);
       transform: rotateY(180deg) translateZ(75px);
     }
-    
+
     .cube__face--right {
       background: hsl(160deg 65% 45% / 0.9);
       transform: rotateY(90deg) translateZ(75px);
     }
-    
+
     .cube__face--left {
       background: hsl(160deg 65% 45% / 0.9);
       transform: rotateY(-90deg) translateZ(75px);
     }
-    
+
     .cube__face--top {
       background: hsl(40deg 80% 55% / 0.9);
       transform: rotateX(90deg) translateZ(75px);
     }
-    
+
     .cube__face--bottom {
       background: hsl(40deg 80% 55% / 0.9);
       transform: rotateX(-90deg) translateZ(75px);
@@ -327,13 +327,13 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       height: 100%;
       align-items: flex-start;
     }
-    
+
     .origin-demo__group {
       text-align: center;
       flex: 1;
       max-width: 180px;
     }
-    
+
     .origin-demo__label {
       font-size: 12px;
       font-weight: 600;
@@ -341,26 +341,26 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       margin: 0 0 12px;
       font-family: monospace;
     }
-    
+
     .origin-demo__stage {
       perspective: 400px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
-    
+
     .origin-demo__stage--top-left {
       perspective-origin: top left;
     }
-    
+
     .origin-demo__stage--center {
       perspective-origin: center;
     }
-    
+
     .origin-demo__stage--bottom-right {
       perspective-origin: bottom right;
     }
-    
+
     .origin-demo__card {
       width: 100%;
       aspect-ratio: 1;
@@ -375,7 +375,7 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       transform: rotateY(30deg) rotateX(10deg);
       transition: transform 0.4s ease;
     }
-    
+
     .origin-demo__stage:hover .origin-demo__card {
       transform: rotateY(0deg) rotateX(0deg);
     }
@@ -410,7 +410,7 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       margin: 40px auto;
       font-family: system-ui, sans-serif;
     }
-    
+
     .a11y-flip__inner {
       position: relative;
       width: 100%;
@@ -418,12 +418,12 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       transform-style: preserve-3d;
       transition: transform 0.6s ease;
     }
-    
+
     .a11y-flip:hover .a11y-flip__inner,
     .a11y-flip:focus-within .a11y-flip__inner {
       transform: rotateY(180deg);
     }
-    
+
     .a11y-flip__front,
     .a11y-flip__back {
       position: absolute;
@@ -436,68 +436,68 @@ CSSキューブは `translateZ` と `rotateX`/`rotateY` で配置された6つ�
       border-radius: 12px;
       padding: 24px;
     }
-    
+
     .a11y-flip__front {
       background: hsl(250deg 65% 55%);
       color: hsl(0deg 0% 100%);
     }
-    
+
     .a11y-flip__back {
       background: hsl(20deg 85% 55%);
       color: hsl(0deg 0% 100%);
       transform: rotateY(180deg);
     }
-    
+
     .a11y-flip__front h3,
     .a11y-flip__back h3 {
       font-size: 20px;
       font-weight: 700;
       margin: 0 0 8px;
     }
-    
+
     .a11y-flip__front p,
     .a11y-flip__back p {
       font-size: 14px;
       opacity: 0.9;
       margin: 0;
     }
-    
+
     /* Reduced motion: cross-fade instead of 3D rotation */
     @media (prefers-reduced-motion: reduce) {
     .a11y-flip {
       perspective: none;
     }
-    
+
     .a11y-flip__inner {
       transform-style: flat;
       transition: none;
     }
-    
+
     .a11y-flip:hover .a11y-flip__inner,
     .a11y-flip:focus-within .a11y-flip__inner {
       transform: none;
     }
-    
+
     .a11y-flip__front,
     .a11y-flip__back {
       backface-visibility: visible;
       transition: opacity 0.3s ease;
     }
-    
+
     .a11y-flip__front {
       opacity: 1;
     }
-    
+
     .a11y-flip__back {
       opacity: 0;
       transform: none;
     }
-    
+
     .a11y-flip:hover .a11y-flip__front,
     .a11y-flip:focus-within .a11y-flip__front {
       opacity: 0;
     }
-    
+
     .a11y-flip:hover .a11y-flip__back,
     .a11y-flip:focus-within .a11y-flip__back {
       opacity: 1;

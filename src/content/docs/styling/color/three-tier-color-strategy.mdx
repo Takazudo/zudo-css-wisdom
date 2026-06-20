@@ -353,6 +353,7 @@ Theme tokens give **semantic meaning** to palette colors. Instead of "blue-500",
 Sometimes a component needs colors that don't fit into the global theme — a shadow, a product variant color, or a subtle gradient stop. These are **Tier 3** variables: narrowly scoped, defined on the component itself, and referencing either theme or palette tokens.
 
 <Info title="Underscore naming convention">
+
 Use a leading underscore (`--_`) for component-scoped custom properties to signal local scope:
 
 ```css
@@ -363,10 +364,13 @@ Use a leading underscore (`--_`) for component-scoped custom properties to signa
 ```
 
 The `--_` prefix tells readers "this variable is locally scoped to this component" — similar to how `_privateMethod` signals private scope in other languages. This is not a CSS rule — it is a project-level naming convention.
+
 </Info>
 
 <Info title="Tailwind + component-first exception">
+
 In Tailwind + component-first projects (React, Vue, Astro with utility classes), Tier 3 component-scoped CSS custom properties are rarely needed. The component framework itself provides scoping — there are no separate CSS files where these variables would be defined. Tier 3 is primarily relevant for general CSS approaches (BEM, CSS Modules, vanilla CSS).
+
 </Info>
 
 <CssPreview client:load

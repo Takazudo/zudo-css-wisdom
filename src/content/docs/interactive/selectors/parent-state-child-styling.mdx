@@ -41,7 +41,7 @@ Together, these cover every scenario that Tailwind's `group-*` utilities handle,
       gap: 1rem;
       padding: 1.5rem;
     }
-    
+
     .card {
       flex: 1;
       padding: 1.5rem;
@@ -50,40 +50,40 @@ Together, these cover every scenario that Tailwind's `group-*` utilities handle,
       background: white;
       transition: background-color 0.2s ease, border-color 0.2s ease;
     }
-    
+
     .card:hover,
     .card:focus-within {
       background: hsl(220 60% 97%);
       border-color: hsl(220 60% 70%);
     }
-    
+
     .card:focus-visible {
       outline: 2px solid hsl(220 70% 50%);
       outline-offset: 2px;
     }
-    
+
     .card__icon {
       font-size: 1.25rem;
       transition: transform 0.2s ease;
     }
-    
+
     .card:hover .card__icon,
     .card:focus-within .card__icon {
       transform: translateX(4px);
     }
-    
+
     .card__title {
       margin: 0.5rem 0 0.25rem;
       font-size: 1rem;
       color: hsl(220 15% 25%);
       transition: color 0.2s ease;
     }
-    
+
     .card:hover .card__title,
     .card:focus-within .card__title {
       color: hsl(220 70% 50%);
     }
-    
+
     .card__desc {
       margin: 0;
       font-size: 0.8rem;
@@ -150,14 +150,14 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
     .demo {
       padding: 2rem;
     }
-    
+
     .hint {
       font-size: 0.75rem;
       color: hsl(220 10% 55%);
       font-style: italic;
       margin-top: 0.75rem;
     }
-    
+
     .search-bar {
       display: flex;
       align-items: center;
@@ -168,22 +168,22 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
       background: white;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    
+
     .search-bar:focus-within {
       border-color: hsl(220 70% 50%);
       box-shadow: 0 0 0 3px hsl(220 70% 50% / 0.15);
     }
-    
+
     .search-bar__icon {
       font-size: 1.25rem;
       color: hsl(220 10% 60%);
       transition: color 0.2s ease;
     }
-    
+
     .search-bar:focus-within .search-bar__icon {
       color: hsl(220 70% 50%);
     }
-    
+
     .search-bar__input {
       border: none;
       outline: 2px solid transparent;
@@ -192,7 +192,7 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
       background: transparent;
       color: hsl(220 15% 20%);
     }
-    
+
     .search-bar__input::placeholder {
       color: hsl(220 10% 65%);
     }
@@ -263,7 +263,7 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
       gap: 0.5rem;
       padding: 1.5rem;
     }
-    
+
     .option-card {
       display: block;
       border: 2px solid hsl(220 15% 85%);
@@ -271,34 +271,34 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
       cursor: pointer;
       transition: border-color 0.2s ease, background-color 0.2s ease;
     }
-    
+
     .option-card:hover {
       border-color: hsl(220 30% 70%);
     }
-    
+
     .option-card:has(input:checked) {
     border-color: hsl(220 70% 50%);
     background: hsl(220 60% 97%);
     }
-    
+
     .option-card:has(input:focus-visible) {
     outline: 2px solid hsl(220 70% 50%);
     outline-offset: 2px;
     }
-    
+
     .option-card__input {
     position: absolute;
     opacity: 0;
     pointer-events: none;
     }
-    
+
     .option-card__content {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 1rem;
     }
-    
+
     .option-card__indicator {
     width: 1.25rem;
     height: 1.25rem;
@@ -308,11 +308,11 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
     position: relative;
     transition: border-color 0.2s ease;
     }
-    
+
     .option-card:has(input:checked) .option-card__indicator {
     border-color: hsl(220 70% 50%);
     }
-    
+
     .option-card:has(input:checked) .option-card__indicator::after {
     content: "";
     position: absolute;
@@ -320,18 +320,18 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
     border-radius: 50%;
     background: hsl(220 70% 50%);
     }
-    
+
     .option-card__title {
     font-weight: 600;
     font-size: 0.95rem;
     color: hsl(220 15% 25%);
     transition: color 0.2s ease;
     }
-    
+
     .option-card:has(input:checked) .option-card__title {
     color: hsl(220 70% 40%);
     }
-    
+
     .option-card__desc {
     font-size: 0.8rem;
     color: hsl(220 10% 55%);
@@ -377,23 +377,23 @@ For robust interactive components, layer both `:hover` and `:focus-within` so th
     .demo {
       padding: 2rem;
     }
-    
+
     .hint {
       font-size: 0.75rem;
       color: hsl(220 10% 55%);
       font-style: italic;
       margin-top: 1.5rem;
     }
-    
+
     .nav {
       display: flex;
       gap: 0.5rem;
     }
-    
+
     .nav-item {
       position: relative;
     }
-    
+
     .nav-item__btn {
       padding: 0.5rem 1rem;
       border: 1px solid hsl(220 15% 80%);
@@ -403,18 +403,18 @@ For robust interactive components, layer both `:hover` and `:focus-within` so th
       cursor: pointer;
       transition: background-color 0.15s ease, border-color 0.15s ease;
     }
-    
+
     .nav-item:hover .nav-item__btn,
     .nav-item:focus-within .nav-item__btn {
       background: hsl(220 60% 97%);
       border-color: hsl(220 60% 70%);
     }
-    
+
     .nav-item__btn:focus-visible {
       outline: 2px solid hsl(220 70% 50%);
       outline-offset: 2px;
     }
-    
+
     .nav-item__tooltip {
       position: absolute;
       top: calc(100% + 0.5rem);
@@ -430,7 +430,7 @@ For robust interactive components, layer both `:hover` and `:focus-within` so th
       pointer-events: none;
       transition: opacity 0.15s ease, transform 0.15s ease;
     }
-    
+
     .nav-item:hover .nav-item__tooltip,
     .nav-item:focus-within .nav-item__tooltip {
       opacity: 1;
@@ -492,29 +492,29 @@ A classic pattern: show/hide content sections based on a checkbox or radio state
       flex-direction: column;
       gap: 0.5rem;
     }
-    
+
     .accordion__item {
       border: 1px solid hsl(220 15% 85%);
       border-radius: 0.5rem;
       overflow: hidden;
       transition: border-color 0.2s ease;
     }
-    
+
     .accordion__item:has(.accordion__trigger:checked) {
     border-color: hsl(220 60% 70%);
     }
-    
+
     .accordion__item:has(.accordion__trigger:focus-visible) {
     outline: 2px solid hsl(220 70% 50%);
     outline-offset: 2px;
     }
-    
+
     .accordion__trigger {
     position: absolute;
     opacity: 0;
     pointer-events: none;
     }
-    
+
     .accordion__header {
     display: flex;
     align-items: center;
@@ -524,41 +524,41 @@ A classic pattern: show/hide content sections based on a checkbox or radio state
     background: white;
     transition: background-color 0.15s ease;
     }
-    
+
     .accordion__header:hover {
     background: hsl(220 30% 97%);
     }
-    
+
     .accordion__title {
     font-size: 0.9rem;
     font-weight: 600;
     color: hsl(220 15% 25%);
     }
-    
+
     .accordion__chevron {
     font-size: 1.25rem;
     color: hsl(220 10% 55%);
     transition: transform 0.2s ease;
     }
-    
+
     .accordion__item:has(.accordion__trigger:checked) .accordion__chevron {
     transform: rotate(90deg);
     }
-    
+
     .accordion__body {
     display: grid;
     grid-template-rows: 0fr;
     transition: grid-template-rows 0.25s ease;
     }
-    
+
     .accordion__item:has(.accordion__trigger:checked) .accordion__body {
     grid-template-rows: 1fr;
     }
-    
+
     .accordion__body-inner {
     overflow: hidden;
     }
-    
+
     .accordion__body-inner > p {
     margin: 0;
     padding: 0 1rem 1rem;
@@ -605,7 +605,7 @@ This is the CSS equivalent of Tailwind's named groups (`group/card`, `group/foot
       padding: 1.5rem;
       max-width: 320px;
     }
-    
+
     .card {
       border: 1px solid hsl(220 15% 85%);
       border-radius: 0.5rem;
@@ -614,11 +614,11 @@ This is the CSS equivalent of Tailwind's named groups (`group/card`, `group/foot
       transition: border-color 0.2s ease;
       position: relative;
     }
-    
+
     .card:hover {
       border-color: hsl(220 50% 70%);
     }
-    
+
     .card__badge {
       display: inline-block;
       padding: 0.2rem 0.5rem;
@@ -631,45 +631,45 @@ This is the CSS equivalent of Tailwind's named groups (`group/card`, `group/foot
       color: hsl(220 15% 40%);
       transition: background-color 0.2s ease, color 0.2s ease;
     }
-    
+
     /* Outer group: card hover changes badge */
     .card:hover .card__badge {
       background: hsl(220 70% 50%);
       color: white;
     }
-    
+
     .card__title {
       font-size: 1rem;
       margin: 0.75rem 0 0.25rem;
       color: hsl(220 15% 20%);
     }
-    
+
     .card__desc {
       font-size: 0.8rem;
       color: hsl(220 10% 50%);
       line-height: 1.5;
       margin: 0;
     }
-    
+
     .card__footer {
       margin-top: 1rem;
       padding-top: 0.75rem;
       border-top: 1px solid hsl(220 15% 90%);
     }
-    
+
     .card__footer-link {
       font-size: 0.85rem;
       color: hsl(220 70% 50%);
       transition: text-decoration-color 0.15s ease;
       text-decoration: underline transparent;
     }
-    
+
     .card__footer-link:focus-visible {
       outline: 2px solid hsl(220 70% 50%);
       outline-offset: 2px;
       border-radius: 2px;
     }
-    
+
     /* Inner group: footer hover changes link */
     .card__footer:hover .card__footer-link,
     .card__footer:focus-within .card__footer-link {

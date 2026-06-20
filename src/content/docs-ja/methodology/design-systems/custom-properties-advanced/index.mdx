@@ -232,10 +232,10 @@ h2 { --min-size: 1.25; --max-size: 2; }
       grid-template-columns: repeat(3, 1fr);
       gap: 1rem;
     }
-    
+
     .card {
       --is-featured: initial;
-    
+
       background: var(--is-featured) linear-gradient(135deg, #fbbf24, #f59e0b), #f8fafc;
       color: var(--is-featured) #78350f, #334155;
       border: var(--is-featured) 2px solid #f59e0b, 1px solid #e2e8f0;
@@ -243,25 +243,25 @@ h2 { --min-size: 1.25; --max-size: 2; }
       padding: 1.25rem;
       transition: transform 0.2s;
     }
-    
+
     .card.featured {
       --is-featured: ;
       transform: scale(1.05);
       box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
     }
-    
+
     .card h3 {
       margin: 0 0 0.5rem;
       font-size: 1rem;
     }
-    
+
     .card p {
       margin: 0;
       font-size: 0.85rem;
       opacity: 0.8;
       line-height: 1.5;
     }
-    
+
     .hint {
       font-family: system-ui, sans-serif;
       font-size: 0.8rem;
@@ -269,7 +269,7 @@ h2 { --min-size: 1.25; --max-size: 2; }
       text-align: center;
       margin-top: 1rem;
     }
-    
+
     code {
       background: #f1f5f9;
       padding: 0.1rem 0.35rem;
@@ -297,12 +297,12 @@ h2 { --min-size: 1.25; --max-size: 2; }
       flex-wrap: wrap;
       align-items: center;
     }
-    
+
     .badge {
       --_bg: var(--badge-bg, #f1f5f9);
       --_color: var(--badge-color, #475569);
       --_border: var(--badge-border, #e2e8f0);
-    
+
       background: var(--_bg);
       color: var(--_color);
       border: 1px solid var(--_border);
@@ -311,25 +311,25 @@ h2 { --min-size: 1.25; --max-size: 2; }
       font-weight: 600;
       font-size: 0.875rem;
     }
-    
+
     .badge-success {
       --badge-bg: #dcfce7;
       --badge-color: #166534;
       --badge-border: #86efac;
     }
-    
+
     .badge-error {
       --badge-bg: #fee2e2;
       --badge-color: #991b1b;
       --badge-border: #fca5a5;
     }
-    
+
     .badge-info {
       --badge-bg: #dbeafe;
       --badge-color: #1e40af;
       --badge-border: #93c5fd;
     }
-    
+
     .hint {
       font-family: system-ui, sans-serif;
       font-size: 0.8rem;
