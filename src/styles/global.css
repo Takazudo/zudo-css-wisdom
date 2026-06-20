@@ -1,5 +1,66 @@
-@import "tailwindcss/preflight";
+/* Cascade-layer order for the flow-space fix (zudolab/zudo-doc#2082 / #2109):
+ *   zd-preflight  — Tailwind's preflight reset (incl. `* { margin: 0 }`)
+ *   zd-flow       — the .zd-content flow-space margin-top rule (below)
+ *   (unlayered)   — `tailwindcss/utilities` (mt-* etc.) — highest priority
+ * Unlayered always beats any layer, so `mt-*` utilities win over the flow
+ * rule; the flow rule (zd-flow) sits above zd-preflight so it still beats the
+ * preflight `margin: 0` reset and the .zd-content vertical rhythm is preserved.
+ * Preflight is the de-facto lowest-priority origin already, so moving it into
+ * the lowest layer is observably inert for every other author rule (which stay
+ * unlayered and continue to outrank it). */
+@layer zd-preflight, zd-flow;
+@import "tailwindcss/preflight" layer(zd-preflight);
 @import "tailwindcss/utilities";
+
+/* ========================================
+ * @takazudo/zudo-doc package safelist
+ *
+ * The package ships a build-generated safelist at `dist/safelist.css`
+ * (zudolab/zudo-doc#1993). Importing it via the module resolver is
+ * reliable across all consumer environments — the same module-resolver
+ * code path used for any feature stylesheet injected at the
+ * `@slot:global-css:feature-styles` anchor below.
+ *
+ * Why not @source the package dist/ glob? The old approach
+ * (`@source "../../node_modules/@takazudo/zudo-doc/dist/**"`) was
+ * unreliable: pnpm stores packages in a content-addressable store and
+ * surfaces them to node_modules via symlinks. Tailwind v4's file
+ * scanner does not reliably traverse those symlinks, so arbitrary-value
+ * candidates (e.g. `w-[var(--zd-sidebar-w)]`, `h-[calc(100vh-3.5rem)]`)
+ * were intermittently dropped across rebuilds (zudolab/zudo-doc#1971,
+ * #1989). The package-generated `@source inline()` in dist/safelist.css
+ * contains the full set, extracted at package build time — no drift, no
+ * symlink traversal, auto-syncs on package upgrade (zudolab/zudo-doc#1994).
+ * ======================================== */
+
+@import "@takazudo/zudo-doc/safelist.css";
+
+/* Content typography (`.zd-content` rules + admonitions + mermaid layout).
+   Shipped by @takazudo/zudo-doc as the single source of truth — do not inline
+   these rules here (they used to live here and drifted; see
+   zudolab/zudo-doc#2188). The @layer zd-flow order it relies on is declared
+   above (line 11); the safelist import above generates the component utilities
+   its headings/links/etc. depend on. */
+@import "@takazudo/zudo-doc/content.css";
+
+/* ========================================
+ * Tailwind v4 content sources
+ *
+ * Without a `.git` directory in the project root Tailwind v4's content
+ * scanner falls back to explicit @source directives for class detection.
+ * Builds that run outside a git checkout (E2E fixtures, CI containers
+ * that copy the source tree without history, etc.) hit this fallback,
+ * and zfb's default content roots only cover `pages/`. Components live
+ * outside pages/, so these directives ensure the consumer's own code is
+ * always scanned for utility classes. The package's utilities are now
+ * covered by the @import above — these directives cover consumer code only.
+ * ======================================== */
+
+@source "src/components/**/*.{tsx,ts,jsx,js,mdx,md}";
+@source "src/content/**/*.{mdx,md}";
+@source "src/hooks/**/*.{tsx,ts,jsx,js}";
+@source "src/utils/**/*.{tsx,ts,jsx,js}";
+@source "pages/**/*.{tsx,ts,jsx,js}";
 
 /* ========================================
  * Design Token System
@@ -88,7 +149,8 @@
   --spacing-hsp-xl: 1.5rem;     /* 24px — generous padding */
   --spacing-hsp-2xl: 2rem;      /* 32px — large padding */
 
-  /* Vertical spacing (7 steps) */
+  /* Vertical spacing (8 steps) */
+  --spacing-vsp-3xs: 0.25rem;     /* 4px — hairline gap */
   --spacing-vsp-2xs: 0.4375rem;   /* 7px — tight gap */
   --spacing-vsp-xs: 0.875rem;    /* 14px — small gap */
   --spacing-vsp-sm: 1.25rem;     /* 20px — compact gap */
@@ -109,6 +171,16 @@
   --spacing-image-overlay-inset: 0.5rem;  /* 8px — overlay button corner inset + internal padding */
 
   /* ========================================
+   * Elevation — the tight `@import "tailwindcss/utilities"` (no default
+   * @theme) drops Tailwind's default shadow scale, so `shadow-*` utilities
+   * generate nothing. Re-add the one elevation the components use: header
+   * and version-switcher dropdown panels apply `shadow-lg`. Value is
+   * Tailwind v4's default shadow-lg; the black is intentionally
+   * theme-independent (a drop shadow is absence of light, not a themed color).
+   * ======================================== */
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* ========================================
    * Typography
    * ======================================== */
 
@@ -117,7 +189,7 @@
   --text-caption:    var(--text-scale-xs);   /* labels, timestamps */
   --text-small:      var(--text-scale-sm);   /* secondary text, nav items */
   --text-body:       var(--text-scale-md);   /* paragraphs, default */
-  --text-subheading: var(--text-scale-lg);   /* card titles, section labels */
+  --text-title: var(--text-scale-lg);   /* card titles, section labels */
   --text-heading:    var(--text-scale-xl);   /* page headings */
   --text-display:    var(--text-scale-2xl);  /* hero text */
 
@@ -161,6 +233,37 @@
   --breakpoint-xl: 1280px;
 }
 
+/* ========================================
+ * Z-index tiers — semantic, single-namespace scale.
+ *
+ * The @theme block below is GENERATED from src/config/z-index-tokens.ts
+ * (the single source of truth) by `pnpm gen:z-index`. Tailwind v4 reads the
+ * --z-index-<name> theme key and generates a `z-<name>` utility, so e.g.
+ * --z-index-toolbar: 20 produces `.z-toolbar { z-index: 20 }`; raw CSS can
+ * also reference `z-index: var(--z-index-<name>)`. `pnpm check:z-index` fails
+ * on drift. Do NOT hand-edit between the BEGIN/END markers.
+ * ======================================== */
+  /* GENERATED:Z_INDEX_BEGIN
+   * GENERATED:Z_INDEX — do not hand-edit; run pnpm gen:z-index.
+   * Source of truth: src/config/z-index-tokens.ts. Tailwind v4 reads the
+   * --z-index-<name> theme key and generates a z-<name> utility. */
+  @theme {
+    --z-index-content: 0;
+    --z-index-local-1: 1;
+    --z-index-local-2: 2;
+    --z-index-local-3: 3;
+    --z-index-sidebar: 10;
+    --z-index-toolbar: 20;
+    --z-index-dropdown: 30;
+    --z-index-popover: 40;
+    --z-index-modal-backdrop: 50;
+    --z-index-modal: 60;
+    --z-index-toast: 70;
+    --z-index-tooltip: 80;
+    --z-index-drag: 90;
+  }
+  /* GENERATED:Z_INDEX_END */
+
 :root {
   /* Default responsive range; sidebar-resizer.ts allows 192–448px for explicit resizing */
   --zd-sidebar-w: clamp(14rem, 20vw, 22rem);
@@ -187,7 +290,6 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--font-sans);
 }
 
 ::selection {
@@ -205,248 +307,6 @@ body {
 }
 
 /* ========================================
- * Content typography (.zd-content)
- *
- * Direct element styling — no prose plugin.
- * Uses :where() for zero specificity (easy to override).
- * Font size pattern inspired by zpaper: paired size + line-height.
- * ======================================== */
-
-.zd-content {
-  color: var(--color-fg);
-  font-size: var(--text-body);
-  line-height: var(--leading-relaxed);
-}
-
-/* ── Flow spacing (vertical rhythm) ── */
-
-.zd-content > :where(* + *) {
-  margin-top: var(--flow-space, var(--spacing-vsp-md));
-}
-
-/* ── Headings ── */
-
-.zd-content :where(h2) {
-  font-family: var(--font-futura);
-  font-size: var(--text-subheading);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--leading-tight);
-  margin-top: var(--spacing-vsp-2xl);
-  margin-bottom: var(--spacing-vsp-xs);
-  padding-top: var(--spacing-vsp-sm);
-  border-top: 3px solid transparent;
-  border-image: linear-gradient(to right, var(--color-fg), transparent) 1;
-}
-
-.zd-content :where(h3) {
-  font-family: var(--font-futura);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--leading-snug);
-  margin-top: var(--spacing-vsp-xl);
-  margin-bottom: var(--spacing-vsp-xs);
-  padding-top: var(--spacing-vsp-xs);
-  border-top: 2px solid transparent;
-  border-image: linear-gradient(to right, var(--color-muted), transparent) 1;
-}
-
-.zd-content :where(h4) {
-  font-family: var(--font-futura);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--leading-snug);
-  margin-top: var(--spacing-vsp-lg);
-  margin-bottom: var(--spacing-vsp-xs);
-  padding-top: var(--spacing-vsp-xs);
-  border-top: 1px solid transparent;
-  border-image: linear-gradient(to right, var(--color-muted), transparent) 1;
-}
-
-.zd-content :where(h5, h6) {
-  font-family: var(--font-futura);
-  font-size: var(--text-small);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--leading-snug);
-  margin-top: var(--spacing-vsp-md);
-  margin-bottom: var(--spacing-vsp-2xs);
-}
-
-/* ── Heading auto-links ── */
-
-.zd-content :where(h2, h3, h4, h5, h6) .hash-link {
-  text-decoration: none;
-  margin-left: var(--spacing-hsp-sm);
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.zd-content :where(h2, h3, h4, h5, h6) .hash-link::after {
-  content: "#";
-  color: var(--color-accent);
-}
-
-.zd-content :where(h2, h3, h4, h5, h6):hover .hash-link {
-  opacity: 1;
-}
-
-.zd-content :where(h2, h3, h4, h5, h6) .hash-link:focus-visible {
-  opacity: 1;
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-/* Tighten spacing after headings */
-.zd-content :where(h2 + *, h3 + *, h4 + *, h5 + *, h6 + *) {
-  margin-top: 0;
-}
-
-/* ── Paragraphs ── */
-
-.zd-content :where(p) {
-  margin-top: 0;
-  margin-bottom: var(--spacing-vsp-md);
-}
-
-/* ── Links ── */
-
-.zd-content :where(a:not(.block):not([data-site-nav] *)) {
-  color: var(--color-accent);
-  text-decoration: underline;
-}
-
-.zd-content :where(a:not(.block):not([data-site-nav] *):hover) {
-  color: var(--color-accent-hover);
-}
-
-/* ── Bold / Strong ── */
-
-.zd-content :where(strong) {
-  font-weight: var(--font-weight-bold);
-  color: var(--color-fg);
-}
-
-/* ── Lists ── */
-
-.zd-content :where(ul) {
-  list-style-type: disc;
-  padding-left: var(--spacing-hsp-xl);
-  margin-bottom: var(--spacing-vsp-md);
-}
-
-.zd-content :where(ol) {
-  list-style-type: decimal;
-  padding-left: var(--spacing-hsp-xl);
-  margin-bottom: var(--spacing-vsp-md);
-}
-
-.zd-content :where(li) {
-  margin-bottom: var(--spacing-vsp-xs);
-}
-
-.zd-content :where(li::marker) {
-  color: var(--color-muted);
-}
-
-.zd-content :where(li > ul, li > ol) {
-  margin-top: var(--spacing-vsp-xs);
-  margin-bottom: 0;
-}
-
-/* ── Blockquotes ── */
-
-.zd-content :where(blockquote) {
-  border-left: 3px solid var(--color-muted);
-  padding-left: var(--spacing-hsp-lg);
-  color: var(--color-muted);
-  font-style: italic;
-  margin-bottom: var(--spacing-vsp-md);
-}
-
-.zd-content :where(blockquote p) {
-  margin-bottom: var(--spacing-vsp-xs);
-}
-
-/* ── Inline code ── */
-
-.zd-content :where(code:not(pre code)) {
-  font-size: var(--text-small);
-  font-weight: var(--font-weight-medium);
-  font-family: var(--font-mono);
-  background-color: var(--color-code-bg);
-  color: var(--color-code-fg);
-  border-radius: var(--radius-DEFAULT);
-  padding: 2px var(--spacing-hsp-xs);
-}
-
-/* ── Code blocks (pre) ── */
-
-.zd-content :where(pre) {
-  font-size: var(--text-small);
-  line-height: var(--leading-relaxed);
-  border: 1px solid var(--color-muted);
-  padding: var(--spacing-vsp-sm) var(--spacing-hsp-lg);
-  margin-bottom: var(--spacing-vsp-md);
-  overflow-x: auto;
-}
-
-.zd-content :where(pre code) {
-  background: transparent;
-  padding: 0;
-  border: none;
-  color: inherit;
-  font-size: inherit;
-}
-
-/* ── Tables ── */
-
-.zd-content :where(table) {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--text-small);
-  margin-bottom: var(--spacing-vsp-md);
-}
-
-.zd-content :where(th),
-.zd-content :where(td) {
-  padding: var(--spacing-vsp-xs) var(--spacing-hsp-md);
-  border-bottom: 1px solid var(--color-muted);
-  overflow-wrap: break-word;
-}
-
-.zd-content :where(th) {
-  font-weight: var(--font-weight-semibold);
-  text-align: left;
-  border-bottom-width: 2px;
-}
-
-/* ── Horizontal rules ── */
-
-.zd-content :where(hr) {
-  border: none;
-  border-top: 1px solid var(--color-muted);
-  margin: var(--spacing-vsp-xl) 0;
-}
-
-/* ── Images ── */
-
-.zd-content :where(img) {
-  max-width: 100%;
-  height: auto;
-}
-
-/* ── Definition lists ── */
-
-.zd-content :where(dt) {
-  font-weight: var(--font-weight-semibold);
-  margin-top: var(--spacing-vsp-md);
-}
-
-.zd-content :where(dd) {
-  padding-left: var(--spacing-hsp-xl);
-  margin-bottom: var(--spacing-vsp-xs);
-}
-
-/* ========================================
  * Code block buttons (copy + word wrap)
  * ======================================== */
 
@@ -454,11 +314,11 @@ body {
   position: relative;
 }
 
-pre.astro-code.word-wrap {
+pre[class^="syntect-"].word-wrap {
   overflow-x: hidden;
 }
 
-pre.astro-code.word-wrap code {
+pre[class^="syntect-"].word-wrap code {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -480,7 +340,7 @@ pre.astro-code.word-wrap code {
   gap: var(--spacing-hsp-2xs);
   opacity: 0;
   transition: opacity 0.15s;
-  z-index: 1;
+  z-index: var(--z-index-local-1);
 }
 
 .code-block-wrapper:hover .code-buttons,
@@ -544,15 +404,26 @@ pre.astro-code.word-wrap code {
 }
 
 /* ========================================
- * Shiki dual theme (light/dark mode)
+ * Code-block syntax-highlight token color rule
  * ======================================== */
 
+/* Build-time: zfb's Rust pipeline runs SyntectPlugin and emits
+ * <pre class="syntect-..."> with inline style="color:#hex" on every token
+ * span. The inline hex is the desired token color — this rule must NOT
+ * override it (so: NO !important on `color`).
+ *
+ * Runtime (design-token-tweak panel, when enabled): Shiki re-highlights on
+ * demand and emits spans with inline style="--shiki-light:#X;--shiki-dark:#Y"
+ * — CSS custom properties only, no `color` declaration — depending on this
+ * rule to resolve light-dark(var(--shiki-light), var(--shiki-dark)) to the
+ * active theme. Shiki spans have no inline `color`, so the rule applies
+ * without needing !important. */
 [data-theme] .shiki,
 [data-theme] .shiki span,
-[data-theme] .astro-code,
-[data-theme] .astro-code span {
-  color: light-dark(var(--shiki-light), var(--shiki-dark)) !important;
-  background-color: light-dark(var(--shiki-light-bg), var(--shiki-dark-bg)) !important;
+[data-theme] pre[class^="syntect-"],
+[data-theme] pre[class^="syntect-"] span {
+  color: light-dark(var(--shiki-light), var(--shiki-dark));
+  background-color: light-dark(var(--shiki-light-bg), var(--shiki-dark-bg));
   font-style: light-dark(
     var(--shiki-light-font-style, inherit),
     var(--shiki-dark-font-style, inherit)
@@ -579,13 +450,17 @@ pre.astro-code.word-wrap code {
  * Code block line highlighting
  * ======================================== */
 
-/* Line highlighting via {1,3-5} meta syntax */
-pre.astro-code .line.highlighted {
+/* Line highlighting via {1,3-5} meta syntax.
+ * zfb emits data-line-highlight="true" on the <span class="line"> element
+ * (verified empirically at next.13). The .highlighted class form is kept for
+ * forward-compat in case a future zfb version emits both. */
+pre[class^="syntect-"] .line.highlighted,
+pre[class^="syntect-"] [data-line-highlight="true"] {
   background-color: color-mix(in srgb, var(--color-accent) 15%, transparent);
 }
 
 /* Word highlighting via /word/ meta syntax */
-pre.astro-code .line .highlighted-word {
+pre[class^="syntect-"] .line .highlighted-word {
   background-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
   border-bottom: 1px solid var(--color-accent);
 }
@@ -609,29 +484,33 @@ pre.astro-code .line .highlighted-word {
   padding: var(--spacing-vsp-2xs) var(--spacing-hsp-lg);
 }
 
-.code-block-container pre.astro-code {
+.code-block-container pre[class^="syntect-"] {
   margin-top: 0 !important;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 
 /* ========================================
- * Mermaid diagrams
+ * CodeGroup raw-code panels (codeTabs Option A)
+ *
+ * zfb's :::code-group emits <CodeGroup tabs={[...]}> with one
+ * <pre data-lang="…">{RAW text}</pre> child per fence. These <pre> elements
+ * are NOT syntect-highlighted (the Rust pipeline doesn't highlight inside
+ * code-group fences), so they get no `.syntect-*` class. Apply explicit
+ * code-block visual treatment via tokens to match the syntect-highlighted
+ * code blocks surrounding them.
  * ======================================== */
 
-.zd-content .mermaid {
-  @apply my-vsp-lg flex justify-center;
-}
-
-.zd-content .mermaid svg {
-  max-width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
-/* Prevent mermaid edge labels from clipping text (foreignObject uses overflow:hidden) */
-.zd-content .mermaid foreignObject {
-  overflow: visible;
+.code-group-panel pre[data-lang] {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  line-height: var(--leading-relaxed);
+  background-color: var(--color-code-bg);
+  color: var(--color-code-fg);
+  padding: var(--spacing-vsp-xs) var(--spacing-hsp-lg);
+  overflow-x: auto;
+  border-radius: 0 0 var(--radius-DEFAULT) var(--radius-DEFAULT);
+  margin: 0;
 }
 
 /* KaTeX math equations */
@@ -687,18 +566,155 @@ pre.astro-code .line .highlighted-word {
   }
 }
 
-/* ── Find-in-page highlight ── */
-.find-match {
-  background-color: rgba(255, 200, 0, 0.4);
-  border-radius: 2px;
+/* Root cross-fade for same-document View Transitions (Strategy B).
+ *
+ * @view-transition { navigation: auto; } (Strategy A, cross-document) is
+ * deleted — Strategy B uses <ClientRouter /> which drives same-document
+ * transitions via document.startViewTransition on each navigation.
+ *
+ * Chrome extraction via view-transition-name (Strategy B+, zudolab/zudo-doc#1558):
+ * <header>, <aside id="desktop-sidebar">, <footer>, and the desktop-sidebar-toggle
+ * button each carry a data-zfb-transition-persist attribute whose value is keyed
+ * by locale and nav-section. The four attribute selectors below assign a stable
+ * view-transition-name based on the attribute value prefix, extracting those
+ * elements from the root snapshot into their own named layers:
+ *   - header-{lang}          → zfb-header
+ *   - sidebar-{locale}-…     → zfb-sidebar
+ *   - footer-{lang}          → zfb-footer
+ *   - desktop-sidebar-toggle → zfb-sidebar-toggle
+ *
+ * Once extracted, the root cross-fade animates only non-chrome content (main,
+ * article, TOC, etc.). The twelve ::view-transition-{old,new,group}(<name>)
+ * rules disable animation for all four chrome layers. The group pseudo must be
+ * neutralised too — even when old/new are static the group container can still
+ * produce a geometry-morph animation when snapshot size/position differs.
+ *
+ * Entry/exit cross-fade (zudolab/zudo-doc#2072): animation: none is only
+ * correct when the chrome element exists on BOTH pages of a navigation.
+ * When it exists on one side only (docs page with sidebar → top page
+ * without), the named group holds a single snapshot — frozen at full
+ * opacity for the whole transition, then dropped abruptly at finish. The
+ * :only-child rules below detect that one-sided case and cross-fade the
+ * lone snapshot in sync with the root content fade (spec-standard
+ * entry/exit pattern; :only-child outranks the animation: none rules via
+ * the extra pseudo-class specificity). */
+
+/* Chrome extraction — assign view-transition-name from data-zfb-transition-persist */
+[data-zfb-transition-persist^="header-"]               { view-transition-name: zfb-header; }
+[data-zfb-transition-persist^="sidebar-"]              { view-transition-name: zfb-sidebar; }
+[data-zfb-transition-persist^="footer-"]               { view-transition-name: zfb-footer; }
+[data-zfb-transition-persist="desktop-sidebar-toggle"] { view-transition-name: zfb-sidebar-toggle; }
+
+/* Disable animation for all four chrome layers (old, new, and group) */
+::view-transition-old(zfb-header),
+::view-transition-new(zfb-header),
+::view-transition-group(zfb-header),
+::view-transition-old(zfb-sidebar),
+::view-transition-new(zfb-sidebar),
+::view-transition-group(zfb-sidebar),
+::view-transition-old(zfb-footer),
+::view-transition-new(zfb-footer),
+::view-transition-group(zfb-footer),
+::view-transition-old(zfb-sidebar-toggle),
+::view-transition-new(zfb-sidebar-toggle),
+::view-transition-group(zfb-sidebar-toggle) { animation: none; }
+
+/* Entry/exit: chrome element present on one side only (#2072).
+ * Exit — lone old snapshot fades out with the content cross-fade. */
+::view-transition-old(zfb-header):only-child,
+::view-transition-old(zfb-sidebar):only-child,
+::view-transition-old(zfb-footer):only-child,
+::view-transition-old(zfb-sidebar-toggle):only-child {
+  animation: 150ms ease-in both contentFadeOut;
 }
-.find-match-active {
-  background-color: rgba(255, 150, 0, 0.7);
-  border-radius: 2px;
-  outline: 2px solid rgba(255, 150, 0, 0.9);
+/* Entry — lone new snapshot fades in with the content cross-fade. */
+::view-transition-new(zfb-header):only-child,
+::view-transition-new(zfb-sidebar):only-child,
+::view-transition-new(zfb-footer):only-child,
+::view-transition-new(zfb-sidebar-toggle):only-child {
+  animation: 300ms ease-out both contentFadeIn;
 }
 
-/* Sidebar toggle button — left position uses CSS variable */
+/* Root cross-fade rules — animate only the non-chrome snapshot */
+::view-transition-old(root) {
+  animation: 150ms ease-in both contentFadeOut;
+}
+::view-transition-new(root) {
+  animation: 300ms ease-out both contentFadeIn;
+}
+
+/* Reduced motion: collapse all view-transition animation to an instant
+ * swap (zudolab/zudo-doc#2086). With every snapshot animation at none the
+ * transition settles immediately — no cross-fade, no translateY slide.
+ * Covers the root cross-fade and the #2072 :only-child entry/exit rules;
+ * the both-sides chrome layers are already animation: none above. Equal
+ * specificity per selector, but later in source order, so these win. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-old(zfb-header):only-child,
+  ::view-transition-old(zfb-sidebar):only-child,
+  ::view-transition-old(zfb-footer):only-child,
+  ::view-transition-old(zfb-sidebar-toggle):only-child,
+  ::view-transition-new(zfb-header):only-child,
+  ::view-transition-new(zfb-sidebar):only-child,
+  ::view-transition-new(zfb-footer):only-child,
+  ::view-transition-new(zfb-sidebar-toggle):only-child {
+    animation: none;
+  }
+}
+
+/* Version-switcher responsive visibility (moved out of the component to
+ * avoid <style>-inside-<div> HTML5 content-model violation; required when
+ * the i18nVersion feature ships a <VersionSwitcher> wrapped in
+ * `<div class="hidden lg:block">`. Inert when no version-switcher is on
+ * the page. */
+@media (min-width: 64rem) {
+  .hidden:has(> [data-version-switcher]) {
+    display: block;
+  }
+}
+
+/* ========================================
+ * Desktop sidebar toggle (W7A: unconditional — feature gates at runtime)
+ * ======================================== */
+
+@media (min-width: 1024px) {
+  #desktop-sidebar {
+    transition:
+      transform 200ms ease-in-out,
+      visibility 200ms;
+  }
+
+  html[data-sidebar-hidden] #desktop-sidebar {
+    transform: translateX(calc(-1 * var(--zd-sidebar-w)));
+    visibility: hidden;
+  }
+
+  .zd-sidebar-content-wrapper {
+    transition: margin-left 200ms ease-in-out;
+  }
+
+  html[data-sidebar-hidden] .zd-sidebar-content-wrapper {
+    margin-left: 0;
+  }
+
+  /* When hidden via the toggle, narrow the content band to the
+   * hide_sidebar frontmatter width so it centers (the flex parent already
+   * applies justify-content: center) instead of leaving a dead gap where
+   * the sidebar was. 80rem must match the `max-w-[80rem]` hide_sidebar
+   * branch in doc-layout.tsx. These rules are unlayered, so they win over
+   * the Tailwind `max-w-[clamp(...)]` utility (utilities layer). (#2002) */
+  .zd-doc-content-band {
+    transition: max-width 200ms ease-in-out;
+  }
+
+  html[data-sidebar-hidden] .zd-doc-content-band {
+    max-width: 80rem;
+  }
+}
+
+/* Sidebar toggle button — left position uses CSS variable, needs global rule */
 @media (min-width: 1024px) {
   .zd-desktop-sidebar-toggle {
     left: var(--zd-sidebar-w);
@@ -706,5 +722,405 @@ pre.astro-code .line .highlighted-word {
 
   html[data-sidebar-hidden] .zd-desktop-sidebar-toggle {
     left: 0;
+  }
+}
+
+/* The SPA-swap flash guard (`data-sidebar-no-transition`) was removed once
+ * doc-layout adopted <ClientRouter preserveHtmlAttrs={["data-sidebar-hidden",
+ * ...]} /> (zfb-runtime >= 0.1.0-next.52): the attribute now survives the swap
+ * before paint, so no sidebar geometry transition fires mid-swap. */
+
+/* ── Find-in-page highlight (W7A: unconditional — Tauri feature gates at runtime) ── */
+.find-match {
+  background-color: color-mix(in oklch, var(--color-warning) 40%, transparent);
+  border-radius: 2px;
+}
+.find-match-active {
+  background-color: color-mix(in oklch, var(--color-warning) 70%, transparent);
+  border-radius: 2px;
+  outline: 2px solid color-mix(in oklch, var(--color-warning) 90%, transparent);
+}
+
+/* ========================================
+ * Image enlarge (.zd-enlargeable) — W7A: unconditional, runtime-gated
+ * ======================================== */
+
+.zd-enlargeable {
+  position: relative;
+  display: block;
+  margin-inline: 0;
+  margin-block-end: 0;
+  border: 1px solid transparent;
+  transition: border-color var(--default-transition-duration);
+}
+
+/* Eligible images (expand-btn visible): the entire image becomes the click target.
+ * Show a subtle border as the interactivity affordance, accent on hover. */
+.zd-enlargeable:has(.zd-enlarge-btn:not([hidden])) {
+  border-color: var(--color-muted);
+  cursor: pointer;
+}
+
+.zd-enlargeable:has(.zd-enlarge-btn:not([hidden])):hover {
+  border-color: var(--color-accent);
+}
+
+.zd-enlargeable img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.zd-enlarge-btn {
+  position: absolute;
+  top: var(--spacing-image-overlay-inset);
+  right: var(--spacing-image-overlay-inset);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-image-overlay-inset);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: var(--z-index-local-1);
+  transition: opacity var(--default-transition-duration);
+}
+
+.zd-enlarge-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklch, var(--color-image-overlay-bg) 80%, transparent);
+  z-index: var(--z-index-local-1);
+}
+
+.zd-enlarge-btn > svg {
+  position: relative;
+  z-index: var(--z-index-local-2);
+  width: var(--spacing-icon-sm);
+  height: var(--spacing-icon-sm);
+  color: var(--color-image-overlay-fg);
+  fill: currentColor;
+}
+
+.zd-enlarge-btn:hover {
+  opacity: 0.8;
+}
+
+.zd-enlarge-btn[hidden] {
+  display: none !important;
+}
+
+dialog.zd-enlarge-dialog::backdrop {
+  background: color-mix(in oklch, var(--color-overlay) 80%, transparent);
+}
+
+/* Close button is positioned to the VIEWPORT corner (not the dialog) so it
+ * stays visually distinct against any image, regardless of the dialog's size.
+ * This relies on the dialog being transform-free (see DIALOG_STYLE in
+ * image-enlarge.tsx) — a transform on the dialog would re-anchor this fixed
+ * button to the dialog corner. */
+.zd-enlarge-dialog-close {
+  position: fixed;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-image-overlay-inset);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: var(--z-index-local-1);
+  transition: opacity var(--default-transition-duration);
+}
+
+.zd-enlarge-dialog-close:hover {
+  opacity: 0.8;
+}
+
+.zd-enlarge-dialog-close::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklch, var(--color-image-overlay-bg) 80%, transparent);
+  z-index: var(--z-index-local-1);
+}
+
+.zd-enlarge-dialog-close > svg {
+  position: relative;
+  z-index: var(--z-index-local-2);
+  width: var(--spacing-icon-lg);
+  height: var(--spacing-icon-lg);
+  color: var(--color-image-overlay-fg);
+  fill: currentColor;
+}
+
+/* Wide viewport: ~2× larger close button to read clearly against any image. */
+@media (min-width: 1024px) {
+  .zd-enlarge-dialog-close {
+    top: 10px;
+    right: 10px;
+  }
+
+  .zd-enlarge-dialog-close > svg {
+    width: calc(var(--spacing-icon-lg) * 2);
+    height: calc(var(--spacing-icon-lg) * 2);
+  }
+}
+
+/* ========================================
+ * Mermaid enlarge (.zd-mermaid-enlargeable) — issue #2176 / #2178
+ *
+ * Unlike images (SSR-wrapped in figure.zd-enlargeable), mermaid diagrams render
+ * client-side, so the mermaid-enlarge island injects the `.zd-enlarge-btn` into
+ * each rendered `.mermaid` container and adds `.zd-mermaid-enlargeable` (which
+ * makes the container position:relative so the button anchors to it). The
+ * button + close-button visuals are SHARED with image-enlarge above
+ * (`.zd-enlarge-btn`, `.zd-enlarge-dialog-close`).
+ * ======================================== */
+
+.zd-mermaid-enlargeable {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--radius-DEFAULT);
+  transition: border-color var(--default-transition-duration);
+}
+
+/* The diagram is always enlargeable once the button is injected — show a subtle
+ * border affordance, accent on hover (mirrors the image-enlarge affordance). */
+.zd-mermaid-enlargeable:has(.zd-enlarge-btn) {
+  cursor: pointer;
+  border-color: var(--color-muted);
+}
+
+.zd-mermaid-enlargeable:has(.zd-enlarge-btn):hover {
+  border-color: var(--color-accent);
+}
+
+/* Zoom/pan dialog. The `<dialog>` stays transform-free (see DIALOG_STYLE in
+ * mermaid-enlarge.tsx); the transform lives on .zd-mermaid-transform. */
+dialog.zd-mermaid-dialog::backdrop {
+  background: color-mix(in oklch, var(--color-overlay) 80%, transparent);
+}
+
+/* Pan viewport — fills the dialog and clips the (possibly zoomed) diagram.
+ * touch-action:none so pointer-drag pans on touch without the browser
+ * intercepting the gesture for scrolling. */
+.zd-mermaid-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+.zd-mermaid-viewport[data-pan-active] {
+  cursor: grab;
+  /* In pan mode a drag should pan, not select diagram text. Scoped to
+   * [data-pan-active] so text stays selectable when pan mode is off. */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.zd-mermaid-viewport[data-pan-active]:active {
+  cursor: grabbing;
+}
+
+.zd-mermaid-transform {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+/* SVG sizing — fit the cloned mermaid svg inside the dialog like
+ * object-fit:contain. The svg fills the viewport box (100% x 100%) and its
+ * viewBox content is letterboxed/centered by the default
+ * preserveAspectRatio="xMidYMid meet". A TALL diagram (e.g. a state diagram) no
+ * longer gets forced to full dialog width with `height:auto` driving the height
+ * far past the viewport via its aspect ratio — it now shrinks to fit the height
+ * instead. max-width/max-height !important neutralize the inline px sizing
+ * mermaid bakes onto the svg (without it the diagram renders tiny). Scoped to
+ * .zd-mermaid-transform (the cloned-diagram wrapper) so it does NOT hit the
+ * toolbar / close-button icon svgs that also live inside the dialog. */
+.zd-mermaid-transform svg {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: 100%;
+  height: 100%;
+}
+
+/* Edge labels (e.g. "Yes"/"No") render inside a tightly-sized <foreignObject>;
+ * when the cloned diagram is upscaled to fill the dialog, sub-pixel overflow
+ * makes the browser clip the last glyph at the foreignObject's right edge.
+ * Letting the foreignObject overflow render keeps the full label visible. */
+.zd-mermaid-transform svg foreignObject {
+  overflow: visible;
+}
+
+/* Toolbar — bottom-right pill of zoom/pan controls (2× sized buttons). */
+.zd-mermaid-toolbar {
+  position: absolute;
+  bottom: var(--spacing-image-overlay-inset);
+  right: var(--spacing-image-overlay-inset);
+  display: flex;
+  gap: var(--spacing-hsp-xs);
+  padding: var(--spacing-hsp-xs);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-DEFAULT);
+  background: color-mix(in oklch, var(--color-surface) 92%, transparent);
+  z-index: var(--z-index-local-2);
+}
+
+.zd-mermaid-tool-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--spacing-icon-lg) * 2);
+  height: calc(var(--spacing-icon-lg) * 2);
+  padding: var(--spacing-vsp-2xs);
+  border: none;
+  border-radius: var(--radius-DEFAULT);
+  background: transparent;
+  color: var(--color-fg);
+  cursor: pointer;
+  transition:
+    background-color var(--default-transition-duration),
+    opacity var(--default-transition-duration);
+}
+
+.zd-mermaid-tool-btn:hover:not([disabled]) {
+  background: color-mix(in oklch, var(--color-muted) 25%, transparent);
+}
+
+.zd-mermaid-tool-btn[aria-pressed="true"] {
+  background: color-mix(in oklch, var(--color-accent) 30%, transparent);
+  color: var(--color-accent);
+}
+
+.zd-mermaid-tool-btn[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.zd-mermaid-tool-btn > svg {
+  width: calc(var(--spacing-icon-md) * 2);
+  height: calc(var(--spacing-icon-md) * 2);
+}
+
+/* ========================================
+ * Doc History Diff Viewer (side-by-side)
+ * ======================================== */
+
+.diff-row {
+  border-bottom: 1px solid color-mix(in oklch, var(--color-muted) 15%, transparent);
+}
+
+.diff-line-num {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  padding: 0 var(--spacing-hsp-xs);
+  text-align: right;
+  color: var(--color-muted);
+  user-select: none;
+  vertical-align: top;
+  border-right: 1px solid color-mix(in oklch, var(--color-muted) 15%, transparent);
+}
+
+.diff-line-content {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  padding: 0 var(--spacing-hsp-sm);
+  white-space: pre-wrap;
+  word-break: break-all;
+  vertical-align: top;
+}
+
+/* Left column right border to separate the two sides */
+.diff-row td:nth-child(2) {
+  border-right: 2px solid var(--color-muted);
+}
+
+.diff-line-added {
+  background-color: color-mix(in oklch, var(--color-success) 15%, transparent);
+}
+
+.diff-line-removed {
+  background-color: color-mix(in oklch, var(--color-danger) 15%, transparent);
+}
+
+.diff-line-empty {
+  background-color: color-mix(in oklch, var(--color-muted) 8%, transparent);
+}
+
+/* ========================================
+ * Page-loading overlay
+ * ======================================== */
+
+/* CSS for the `PageLoadingOverlay` component (`@takazudo/zudo-doc/page-loading`,
+ * mounted in pages/lib/_body-end-islands.tsx). The component ships no CSS of its
+ * own — a `<style>` inside `<body>` violates the HTML5 content model — so the
+ * host project owns these rules. */
+.page-loading-overlay {
+  position: fixed;
+  inset: 0;
+  /* Full-screen blocking load overlay — modal tier. It sits below the transient
+     `drag` tier (sidebar-resizer ghost), which is fine: a full page-load overlay
+     and an active pointer-drag never coexist. */
+  z-index: var(--z-index-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklch, var(--color-overlay) 60%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease-out;
+}
+
+.page-loading-overlay[data-visible] {
+  opacity: 1;
+}
+
+a[data-zd-nav-pending],
+button[data-zd-nav-pending] {
+  color: var(--color-accent);
+}
+
+.page-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 5px solid var(--color-fg, #fff);
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: page-loading-spin 1s linear infinite;
+}
+
+@media (min-width: 1024px) {
+  .page-loading-spinner {
+    width: 64px;
+    height: 64px;
+    border-width: 6px;
+  }
+}
+
+@keyframes page-loading-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loading-spinner {
+    animation: none;
+    border-bottom-color: var(--color-fg, #fff);
+    opacity: 0.5;
   }
 }

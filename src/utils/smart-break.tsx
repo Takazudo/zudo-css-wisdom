@@ -62,7 +62,7 @@ export function smartBreak(text: string): VNode | string {
   const parts = text.split(DELIM_SPLIT);
   const nodes: (string | VNode)[] = [];
   for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
+    const part = parts[i] ?? "";
     if (part === "") continue;
     nodes.push(part);
     // Captured delimiter groups always land at odd indices.
@@ -74,14 +74,8 @@ export function smartBreak(text: string): VNode | string {
 /**
  * Preact function component wrapper — pure, server-renderable.
  * Stringifies children and defers to smartBreak.
- *
- * Return type is `any` so the component can be mounted from both
- * Preact-typed and React-typed .tsx files (preact/compat makes this safe
- * at runtime, but TypeScript treats Preact's VNode and React's JSX.Element
- * as distinct types).
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function SmartBreak({ children }: { children?: unknown }): any {
+export function SmartBreak({ children }: { children?: unknown }): VNode {
   return <>{smartBreak(String(children ?? ""))}</>;
 }
 
@@ -103,7 +97,7 @@ export function escapeAndInjectWbr(text: string): string {
   const parts = text.split(DELIM_SPLIT);
   let out = "";
   for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
+    const part = parts[i] ?? "";
     if (part === "") continue;
     out += htmlEscape(part);
     if (i % 2 === 1) out += "<wbr>";

@@ -30,6 +30,10 @@ export interface DocsEntry {
     standalone?: boolean;
     slug?: string;
     generated?: boolean;
+    category_no_page?: boolean;
+    category_sort_order?: "asc" | "desc";
+    doc_history?: boolean;
+    [key: string]: unknown;
   };
   rendered?: RenderedContent;
   filePath?: string;
