@@ -56,8 +56,6 @@ fi
 
 # ── Step 3: Pin parity check ──────────────────────────
 # Pure-Node: reads package.json only, no install needed.
-# Scripts check-pin-parity.mjs + check-wrangler-pin.mjs are provided by
-# the pin-guards sub-task (#68). Steps 3–4 will fail until that branch merges.
 step "Pin parity check (check:pin-parity)"
 if (cd "$ROOT_DIR" && pnpm check:pin-parity); then
   pass "Pin parity check passed"
