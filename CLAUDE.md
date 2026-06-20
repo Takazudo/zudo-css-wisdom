@@ -1,16 +1,18 @@
 # zcss — zudo-css
 
-CSS best practices documentation site, built with zudo-doc (Astro 5, MDX, Tailwind CSS v4).
+CSS best practices documentation site, built with zudo-doc (zfb stack, MDX, Tailwind CSS v4).
+
+**Live site**: https://zudo-css-wisdom.takazudomodular.com/
 
 ## Commands
 
 Package manager: **pnpm** (Node.js >= 20).
 
 ```bash
-pnpm dev              # Dev server → http://css-bp.localhost:8811
+pnpm dev              # Dev server → http://localhost:8811/
 pnpm build            # Production build → dist/
 pnpm preview          # Preview built site
-pnpm check            # Astro type checking
+pnpm check            # Type checking (tsc + collections)
 pnpm b4push           # Pre-push validation (typecheck + build + link check)
 ```
 
@@ -196,15 +198,19 @@ After editing or creating an English doc, translate the Japanese counterpart usi
 
 ## Site Config
 
-- Base path: `/pj/zcss/`
-- Settings: `src/config/settings.ts`
+- Base path: `/` (root, no sub-path prefix)
+- Hosting: **Cloudflare Workers static assets** (config in `wrangler.toml`)
+- Settings: `src/config/settings.ts` (`siteUrl` host MUST match the `wrangler.toml` custom-domain route)
+- Build config: `zfb.config.ts`
 
 ## CI/CD
 
-- PR checks: typecheck + build + link check + Cloudflare Pages preview
-- Main deploy: build + Cloudflare Pages production + IFTTT notification
-- Preview deploy: branch-based Cloudflare Pages preview
-- Secrets: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, IFTTT_PROD_NOTIFY
+Workflows live in `.github/workflows/`:
+
+- **`pr-checks.yml`** — typecheck + build + a Cloudflare Workers preview URL posted as a PR comment
+- **`main-deploy.yml`** — build + deploy to Cloudflare Workers static assets production, an automated cutover step (enables the workers.dev subdomain + attaches the `zudo-css-wisdom.takazudomodular.com` custom domain via the CF API), then an IFTTT notification
+- Secrets: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (needs **Workers: Edit**, plus **Zone: Edit** on `takazudomodular.com` for the custom-domain attach), `IFTTT_PROD_NOTIFY`
+- See `CUTOVER.md` for the production cutover runbook and manual fallbacks
 
 ## Safety Rules
 

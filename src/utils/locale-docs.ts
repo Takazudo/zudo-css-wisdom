@@ -17,7 +17,7 @@ export interface LocaleDocsResult {
 
 /** Filter drafts in production builds. */
 const filterDrafts = (docs: DocsEntry[]) =>
-  import.meta.env.PROD ? docs.filter((doc) => !doc.data.draft) : docs;
+  process.env.NODE_ENV === "production" ? docs.filter((doc) => !doc.data.draft) : docs;
 
 // Module-level cache keyed by locale — result is stable within a single build.
 const cache = new Map<string, Promise<LocaleDocsResult>>();

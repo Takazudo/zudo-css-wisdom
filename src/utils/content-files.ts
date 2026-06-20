@@ -54,6 +54,10 @@ export function collectMdFiles(
     for (const entry of entries) {
       const fullPath = join(currentDir, entry.name);
       if (entry.isDirectory()) {
+        // Skip `_`-prefixed dirs to match the Content Collections convention
+        // (and zfb's routing): docs under them are not built as pages, so
+        // indexing them would yield search results whose links 404.
+        if (entry.name.startsWith("_")) continue;
         walk(fullPath, baseDir);
       } else if (/\.mdx?$/.test(entry.name) && !entry.name.startsWith("_")) {
         const rel = relative(baseDir, fullPath)

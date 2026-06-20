@@ -1,3 +1,23 @@
+# Pull request quality checks and preview deployment.
+#
+# Triggered on PRs targeting `main`. The pipeline:
+#   1. Template drift check (needs pnpm install — create-zudo-doc devDep)
+#   2. Pin parity check (pure-Node, reads package.json only)
+#   3. Format check (pnpm format:md:check — pnpm dlx, no install needed)
+#   4. Type check (pnpm check) + wrangler pin check
+#   5. Build the zfb docs site (full clone) + link check
+#   6. HTML validate
+#   7. Build doc history JSONs
+#   8. Deploy preview (wrangler versions upload --preview-alias) + post PR comment
+#
+# No e2e job.
+#
+# Concurrency: cancel in-progress runs for the same PR to save resources.
+#
+# Secrets:
+#   CLOUDFLARE_API_TOKEN  — Workers: Edit scope required (NOT Pages: Edit)
+#   CLOUDFLARE_ACCOUNT_ID
+
 name: PR Checks
 
 on:
@@ -14,76 +34,308 @@ permissions:
   pull-requests: write
 
 jobs:
-  # ─── Type Check ───────────────────────────────────────────────────────
+  # ---------------------------------------------------------------------------
+  # Job 0: Template drift check
+  # ---------------------------------------------------------------------------
+  # Needs pnpm install because check-template-drift.sh reads
+  # node_modules/create-zudo-doc/templates/ (create-zudo-doc is a devDependency).
+  check-template-drift:
+    name: Template Drift Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check template drift
+        run: pnpm check:template-drift
+
+  # ---------------------------------------------------------------------------
+  # Job 0.5: Pin parity check
+  # ---------------------------------------------------------------------------
+  # Pure-Node script — reads package.json only, no pnpm install needed.
+  # Verifies @takazudo/zfb and zudo-doc package pins are in lockstep.
+  check-pin-parity:
+    name: Pin Parity Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Check pin parity
+        run: node scripts/check-pin-parity.mjs
+
+  # ---------------------------------------------------------------------------
+  # Job 0.6: Format check
+  # ---------------------------------------------------------------------------
+  # Runs `pnpm dlx @takazudo/mdx-formatter --check ...` — fetches the
+  # formatter on the fly, so no pnpm install is needed.  Only pnpm + node
+  # are required so that `pnpm dlx` resolves correctly.
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      - name: Check MDX formatting
+        run: pnpm format:md:check
+
+  # ---------------------------------------------------------------------------
+  # Job 1: Type checking
+  # ---------------------------------------------------------------------------
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # Backstop for the local b4push gate: catch a zfb bump that left the
+      # wrangler pin stale (would silently break local `zfb dev`/`preview`).
+      # Needs node_modules, so it rides the typecheck job rather than the
+      # pure-Node pin-parity job.
+      - name: Check wrangler pin parity
+        run: pnpm check:wrangler-pin
+
       - name: Run type checking
         run: pnpm check
 
-  # ─── Build + Link Check + Preview Deploy ──────────────────────────────
-  #
-  # Build, link check, and preview deploy run in a single job so the build
-  # output stays on the runner filesystem -- no artifacts, no cache transfers,
-  # no storage usage. Link check runs before preview deploy so broken links
-  # prevent a preview from being published.
-
-  build-preview:
-    name: Build, Link Check, and Preview Deploy
+  # ---------------------------------------------------------------------------
+  # Job 2: Build the zfb docs site (full clone — needed for SSG meta dates)
+  # ---------------------------------------------------------------------------
+  # fetch-depth: 0 required so the doc-history preBuild step has full git
+  # history to populate the SSG meta block (Created/Updated/Author dates).
+  build-site:
+    name: Build Site
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
+
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Build site
         run: pnpm build
+
       - name: Check links
-        run: node scripts/check-links.js
-      - name: Prepare deploy directory
+        run: pnpm check:links
+
+      - name: Cache site build output
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+
+  # ---------------------------------------------------------------------------
+  # Job: HTML validate
+  # ---------------------------------------------------------------------------
+  html-validate:
+    name: HTML validate
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      - name: Install deps (no scripts)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Restore dist cache (built by build-site)
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Run html-validate
+        run: pnpm check:html
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Build doc history JSONs (full clone — needed to walk git log)
+  # ---------------------------------------------------------------------------
+  # @takazudo/zudo-doc-history-server is an installed dependency; invoke via
+  # its bin `doc-history-generate` (pnpm exec resolves node_modules/.bin).
+  build-history:
+    name: Build Doc History
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate doc history
         run: |
-          mkdir -p deploy/pj/zcss
-          cp -r dist/. deploy/pj/zcss/
-          echo '/ /pj/zcss/ 302' > deploy/_redirects
-      - name: Deploy preview to Cloudflare Pages
+          pnpm exec doc-history-generate \
+            --content-dir src/content/docs \
+            --locale ja:src/content/docs-ja \
+            --out-dir doc-history-out
+
+      - name: Cache doc history output
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: doc-history-out/
+          key: doc-history-${{ github.run_id }}
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Deploy preview and comment on PR
+  # ---------------------------------------------------------------------------
+  preview:
+    name: Preview Deploy
+    needs: [build-site, build-history]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Restore site build cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Restore doc history cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: doc-history-out/
+          key: doc-history-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Prepare dist for deployment
+        run: |
+          # Merge doc history JSONs into dist/doc-history/
+          if [ -d doc-history-out ] && [ "$(ls -A doc-history-out 2>/dev/null)" ]; then
+            mkdir -p dist/doc-history
+            cp -r doc-history-out/. dist/doc-history/
+          fi
+          # Exclude worker bundle files from the public asset directory
+          printf '%s\n' '_worker.js' '_zfb_inner.mjs' > dist/.assetsignore
+
+      - name: Deploy PR preview to Cloudflare Workers
         id: cf-deploy
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
-          npx wrangler@4 pages deploy deploy \
-            --project-name=zudo-css \
-            --branch="pr-${PR_NUMBER}" \
-            --commit-hash="${GITHUB_SHA}" \
-            --commit-message="Preview: PR #${PR_NUMBER}"
-          DEPLOY_URL="https://pr-${PR_NUMBER}.zudo-css.pages.dev"
+          ALIAS="pr-${PR_NUMBER}"
+          # This job has no node_modules (dist-cache restore only), so wrangler
+          # runs via npx — but pinned to the package.json devDependency version
+          # so deploys use the same wrangler the check:wrangler-pin gate
+          # validates, instead of floating to latest 4.x.
+          WRANGLER_VERSION=$(node -p "require('./package.json').devDependencies.wrangler")
+          # wrangler versions upload prints the stable preview-alias URL
+          # (on *.workers.dev — requires preview_urls = true in wrangler.toml)
+          # to stdout/stderr. Capture both via tee and grep the alias URL line.
+          DEPLOY_LOG=$(mktemp)
+          npx "wrangler@${WRANGLER_VERSION}" versions upload \
+            --preview-alias "$ALIAS" \
+            2>&1 | tee "$DEPLOY_LOG"
+          DEPLOY_URL=$(grep -oE "https://${ALIAS}-[a-z0-9.-]+\.workers\.dev" "$DEPLOY_LOG" | head -1)
           echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          if [ -z "$DEPLOY_URL" ]; then
+            # The worker upload itself succeeded, but wrangler emitted no
+            # *.workers.dev preview-alias URL. That happens until the account's
+            # workers.dev subdomain is enabled (human-gated, one-time account setup).
+            # Treat as non-fatal so the migration PR stays mergeable; the comment
+            # step posts a "preview pending" note instead of a URL.
+            echo "::warning::No preview-alias URL yet — enable the workers.dev subdomain. Worker upload succeeded."
+            exit 0
+          fi
           echo "Preview URL: $DEPLOY_URL"
         env:
+          # CLOUDFLARE_API_TOKEN requires Workers: Edit scope (NOT Pages: Edit)
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Comment preview URL on PR
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           DEPLOY_URL: ${{ steps.cf-deploy.outputs.deploy_url }}
         with:
@@ -91,20 +343,31 @@ jobs:
             const deployUrl = process.env.DEPLOY_URL;
             const prNumber = context.issue.number;
             const marker = '<!-- cf-preview-pr -->';
+            const sha = context.sha.substring(0, 7);
 
-            const body = [
-              marker,
-              `## Cloudflare Pages Preview`,
-              '',
-              `Preview deployment is ready.`,
-              '',
-              `| | URL |`,
-              `|---|---|`,
-              `| Preview | ${deployUrl} |`,
-              '',
-              `Built from commit: \`${context.sha.substring(0, 7)}\``,
-            ].join('\n');
+            const body = deployUrl
+              ? [
+                  marker,
+                  `## Cloudflare Workers Preview`,
+                  '',
+                  `Preview deployment is ready.`,
+                  '',
+                  `| | URL |`,
+                  `|---|---|`,
+                  `| Preview | ${deployUrl} |`,
+                  '',
+                  `Built from commit: \`${sha}\``,
+                ].join('\n')
+              : [
+                  marker,
+                  `## Cloudflare Workers Preview`,
+                  '',
+                  `⏳ **Preview pending.** The worker uploaded successfully, but no \`*.workers.dev\` preview URL is available yet — enable the account's **workers.dev subdomain**, then re-run this check.`,
+                  '',
+                  `Built from commit: \`${sha}\``,
+                ].join('\n');
 
+            // Look for an existing comment from this workflow to update in-place
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,

@@ -27,10 +27,27 @@ export function CategoryLinkIcon({ className }: { className?: string }) {
   );
 }
 
-export function ConnectorLines({ depth, isLast, widthScale = 1 }: { depth: number; isLast: boolean; widthScale?: number }) {
+export function ConnectorLines({
+  depth,
+  isLast,
+  widthScale = 1,
+  topPad = "0px",
+}: {
+  depth: number;
+  isLast: boolean;
+  widthScale?: number;
+  /**
+   * Padding-top of the inner content row that holds the link text. The horizontal
+   * connector and (when `isLast`) the vertical clip both anchor to the first-line
+   * midpoint computed as `topPad + 0.5lh`, so multi-line labels keep the connector
+   * aligned with the first line instead of the row's vertical center.
+   */
+  topPad?: string;
+}) {
   if (depth === 0) return null;
   const left = connectorLeft(depth);
   const width = widthScale === 1 ? CONNECTOR_WIDTH : `calc(${CONNECTOR_WIDTH} * ${widthScale})`;
+  const firstLineMid = `calc(${topPad} + 0.5lh)`;
   return (
     <>
       <div
@@ -38,7 +55,7 @@ export function ConnectorLines({ depth, isLast, widthScale = 1 }: { depth: numbe
         style={{
           left,
           top: 0,
-          bottom: isLast ? "50%" : 0,
+          bottom: isLast ? `calc(100% - ${firstLineMid})` : 0,
         }}
       />
       <div
@@ -46,7 +63,7 @@ export function ConnectorLines({ depth, isLast, widthScale = 1 }: { depth: numbe
         style={{
           left,
           width,
-          top: "50%",
+          top: firstLineMid,
         }}
       />
     </>

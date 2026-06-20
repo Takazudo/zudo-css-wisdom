@@ -358,6 +358,7 @@ In CSS, Tier 2 lives on `:root` (or any shared scope):
 Sometimes a component needs font-size decisions that don't fit into the global theme — a compact sidebar with smaller text, a pricing card with an oversized amount, or an admin panel with denser typography. These are **Tier 3** variables: narrowly scoped, defined on the component itself, and referencing theme or scale tokens.
 
 <Info title="Underscore naming convention">
+
 Use a leading underscore (`--_`) for component-scoped custom properties to signal local scope:
 
 ```css
@@ -368,10 +369,13 @@ Use a leading underscore (`--_`) for component-scoped custom properties to signa
 ```
 
 The `--_` prefix tells readers "this variable is locally scoped to this component" — similar to how `_privateMethod` signals private scope in other languages. This is not a CSS rule — it is a project-level naming convention.
+
 </Info>
 
 <Info title="Tailwind + component-first exception">
+
 In Tailwind + component-first projects (React, Vue, Astro with utility classes), Tier 3 component-scoped CSS custom properties are rarely needed. The component framework itself provides scoping — there are no separate CSS files where these variables would be defined. Tier 3 is primarily relevant for general CSS approaches (BEM, CSS Modules, vanilla CSS).
+
 </Info>
 
 <CssPreview client:load

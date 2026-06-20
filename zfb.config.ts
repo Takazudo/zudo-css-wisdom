@@ -1,0 +1,169 @@
+import { z } from "zod";
+import { defineConfig } from "zfb/config";
+import { settings } from "./src/config/settings";
+import { buildDocsSchema } from "./src/config/docs-schema";
+
+const docsSchema = buildDocsSchema();
+
+const docsSchemaJson = z.toJSONSchema(docsSchema) as Record<string, unknown>;
+
+interface CollectionEntryShape {
+  name: string;
+  path: string;
+  schema: Record<string, unknown>;
+}
+
+const collections: CollectionEntryShape[] = [];
+
+collections.push({ name: "docs", path: settings.docsDir, schema: docsSchemaJson });
+
+for (const [code, config] of Object.entries(settings.locales)) {
+  collections.push({ name: `docs-${code}`, path: config.dir, schema: docsSchemaJson });
+}
+
+if (settings.versions) {
+  for (const version of settings.versions) {
+    collections.push({
+      name: `docs-v-${version.slug}`,
+      path: version.docsDir,
+      schema: docsSchemaJson,
+    });
+    if (version.locales) {
+      for (const [code, config] of Object.entries(version.locales)) {
+        collections.push({
+          name: `docs-v-${version.slug}-${code}`,
+          path: config.dir,
+          schema: docsSchemaJson,
+        });
+      }
+    }
+  }
+}
+
+const localeArray = Object.entries(settings.locales).map(([code, locale]) => ({
+  code,
+  dir: locale.dir,
+}));
+const localeRecord = Object.fromEntries(
+  Object.entries(settings.locales).map(([code, locale]) => [code, { dir: locale.dir }]),
+);
+
+const integrationPlugins = [
+  ...(settings.claudeResources
+    ? [
+        {
+          name: "./plugins/claude-resources-plugin.mjs",
+          options: {
+            claudeDir: settings.claudeResources.claudeDir,
+            projectRoot: settings.claudeResources.projectRoot,
+            docsDir: settings.docsDir,
+          },
+        },
+      ]
+    : []),
+  ...(settings.docHistory
+    ? [
+        {
+          name: "./plugins/doc-history-plugin.mjs",
+          options: {
+            docsDir: settings.docsDir,
+            locales: localeRecord,
+            base: settings.base,
+          },
+        },
+      ]
+    : []),
+  {
+    name: "./plugins/search-index-plugin.mjs",
+    options: {
+      docsDir: settings.docsDir,
+      locales: localeRecord,
+      base: settings.base,
+    },
+  },
+  ...(settings.llmsTxt
+    ? [
+        {
+          name: "./plugins/llms-txt-plugin.mjs",
+          options: {
+            siteName: settings.siteName,
+            siteDescription: settings.siteDescription,
+            base: settings.base,
+            siteUrl: settings.siteUrl,
+            defaultLocaleDir: settings.docsDir,
+            locales: localeArray,
+          },
+        },
+      ]
+    : []),
+  {
+    name: "./plugins/copy-public-plugin.mjs",
+    options: {
+      publicDir: "public",
+    },
+  },
+];
+
+export default defineConfig({
+  framework: "preact",
+  // Pin the dev/preview port — zfb defaults to 3000, but this project's
+  // CLAUDE.md and local dev setup assume 8811.
+  port: 8811,
+  tailwind: { enabled: true },
+  collections,
+  stripMdExt: true,
+  resolveMarkdownLinks: {
+    enabled: true,
+    dirs: [
+      { dir: settings.docsDir, routePrefix: "/docs/" },
+      ...Object.entries(settings.locales).map(([code, locale]) => ({
+        dir: locale.dir,
+        routePrefix: `/${code}/docs/`,
+      })),
+      // Versioned collections: each version's EN dir + per-locale dirs.
+      ...(settings.versions
+        ? settings.versions.flatMap((version) => [
+            { dir: version.docsDir, routePrefix: `/v/${version.slug}/docs/` },
+            ...Object.entries(version.locales ?? {}).map(([code, locale]) => ({
+              dir: locale.dir,
+              routePrefix: `/v/${version.slug}/${code}/docs/`,
+            })),
+          ])
+        : []),
+    ],
+    onBrokenLinks: "warn",
+  },
+  base: settings.base,
+  trailingSlash: settings.trailingSlash,
+  markdown: {
+    features: {
+      // Former-Core features (were always-on before zfb next.12).
+      // imageEnlarge was a former-Core feature but was hard-removed in zfb
+      // next.18 — it is now re-implemented via an MDX p-override.
+      // Admonitions recipe: register the :::name directive vocabulary
+      // (note/tip/info/warning/danger/caution/details) → components.
+      directives: {
+        note: "Note",
+        tip: "Tip",
+        info: "Info",
+        warning: "Warning",
+        danger: "Danger",
+        caution: "Caution",
+        details: "Details", // collapsible — routes to DetailsWrapper
+      },
+      mermaid: true,
+      headingMarkerToc: true,
+      // Safe opt-in features.
+      githubAlerts: true,
+      readingTime: true,
+      codeEnrichment: {},
+      codeTabs: true,
+      imageDimensions: {},
+      // warn-only link validation — failOnBroken: false never fails the build.
+      linkValidation: { failOnBroken: false },
+      headingIds: { strategy: settings.headingIdStrategy },
+    },
+  },
+  adapter: "@takazudo/zfb-adapter-cloudflare",
+  plugins: integrationPlugins,
+});

@@ -32,7 +32,9 @@ The minimal pattern, in three passes:
 Pass 1 is the most common — it is what `@takazudo/zudo-design-token-lint` ships today for Tailwind class names. Pass 2 and Pass 3 are the conceptual extensions that grow naturally from the same pattern.
 
 <Note title="Pass 3 status">
+
 Pass 3 (raw `z-index` integers) is **planned**, not shipped. It will land alongside the [Z-Index Strategy](../design-systems/z-index-strategy.mdx) article's tier system. Track upstream status at [zudo-pattern-gen#942](https://github.com/zudolab/zudo-pattern-gen/issues/942). Document the rule now so the contract is clear; ship the implementation when the upstream is ready.
+
 </Note>
 
 ## Pass 1: forbid raw values in component code
@@ -195,7 +197,9 @@ The distinction is what makes "raw oklch in `:root`" still a lint failure when t
 How does the linter know the difference? By naming convention. Palette tokens use a reserved prefix (`--p0` … `--p15`, `--p-blue-500`, whatever the project chooses). Anything else defined in a token zone is treated as semantic and must reference the palette. The convention has to be explicit and documented; the linter does not guess.
 
 <Tip title="Convention before enforcement">
+
 Pass 2 only works if the project has a clear naming convention for palette tokens. Document it once in the design-system page, then encode it in the linter config. If the convention is fuzzy, the lint rule will be too.
+
 </Tip>
 
 ## Pass 3: forbid raw z-index integers

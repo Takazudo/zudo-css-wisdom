@@ -1,0 +1,6 @@
+pre-commit:
+  parallel: true
+  commands:
+    format-mdx:
+      glob: "*.{md,mdx}"
+      run: pnpm dlx @takazudo/mdx-formatter --write {staged_files} && git add {staged_files}

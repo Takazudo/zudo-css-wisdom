@@ -1,15 +1,23 @@
-# Production deployment workflow for the Astro docs site.
+# Production deployment workflow for the CSS Wisdom doc site.
 #
 # Triggered on every push to `main`. The pipeline:
-#   1. Builds the Astro static site
-#   2. Deploys to Cloudflare Pages (production)
-#   3. Sends IFTTT notification with deploy status
+#   1. Builds the zfb static site (full clone — needed for SSG meta dates)
+#   2. HTML validates the built dist/
+#   3. Builds doc history JSONs (full clone, @takazudo/zudo-doc-history-server)
+#   4. Merges both build outputs and deploys to Cloudflare Workers
+#   5. Sends IFTTT notification with deploy status
 #
-# Build and deploy run in a single job so the build output stays on the
-# runner filesystem -- no artifacts, no cache transfers, no storage usage.
+# Inter-job data sharing uses actions/cache (not upload-artifact) to avoid
+# Actions storage accumulation. Cache keys are scoped to github.run_id so
+# each run gets a fresh, unique cache that won't be reused by other runs.
 #
 # Concurrency: only one production deploy runs at a time.
 # We do NOT cancel in-progress runs -- the earlier deploy should finish.
+#
+# Secrets:
+#   CLOUDFLARE_API_TOKEN  — Workers: Edit scope required (NOT Pages: Edit)
+#   CLOUDFLARE_ACCOUNT_ID
+#   IFTTT_PROD_NOTIFY
 
 name: Production Deploy
 
@@ -26,69 +34,286 @@ permissions:
   contents: read
 
 jobs:
-  # ─── Build and Deploy ─────────────────────────────────────────────────
-
-  build-and-deploy:
-    name: Build and Deploy
+  # ---------------------------------------------------------------------------
+  # Job 1: Build the zfb docs site (full clone — needed for SSG meta dates)
+  # ---------------------------------------------------------------------------
+  # fetch-depth: 0 is required so the doc-history preBuild step can call
+  # `git log --follow` on each content file and populate the SSG meta block
+  # with real author/date values. A shallow clone produces an empty manifest.
+  build-site:
+    name: Build Site
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
+
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Build site
         run: pnpm build
+
+      - name: Cache site build output
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+
+  # ---------------------------------------------------------------------------
+  # Job: HTML validate
+  # ---------------------------------------------------------------------------
+  # Gate before production deploy; catches element-permitted-content violations.
+  html-validate:
+    name: HTML validate
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      - name: Install deps (no scripts)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Restore dist cache (built by build-site)
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Run html-validate
+        run: pnpm check:html
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Build doc history JSONs (full clone — needed to walk git log)
+  # ---------------------------------------------------------------------------
+  # @takazudo/zudo-doc-history-server is an installed dependency; invoke via
+  # its bin `doc-history-generate` (pnpm exec resolves node_modules/.bin).
+  build-history:
+    name: Build Doc History
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate doc history
+        run: |
+          pnpm exec doc-history-generate \
+            --content-dir src/content/docs \
+            --locale ja:src/content/docs-ja \
+            --out-dir doc-history-out
+
+      - name: Cache doc history output
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: doc-history-out/
+          key: doc-history-${{ github.run_id }}
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Deploy to Cloudflare Workers (production)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy to Cloudflare Workers
+    needs: [build-site, html-validate, build-history]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Restore site build cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: dist/
+          key: dist-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Restore doc history cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: doc-history-out/
+          key: doc-history-${{ github.run_id }}
+          fail-on-cache-miss: true
+
       - name: Prepare deploy directory
         run: |
-          mkdir -p deploy/pj/zcss
-          cp -r dist/. deploy/pj/zcss/
-          echo '/ /pj/zcss/ 302' > deploy/_redirects
-      - name: Deploy to Cloudflare Pages (production)
+          # Merge doc history JSONs into dist/doc-history/
+          if [ -d doc-history-out ] && [ "$(ls -A doc-history-out 2>/dev/null)" ]; then
+            mkdir -p dist/doc-history
+            cp -r doc-history-out/. dist/doc-history/
+          fi
+          # Exclude _worker.js and _zfb_inner.mjs from the public asset directory
+          # so they are not served as downloadable files (wrangler.toml documents this).
+          printf '%s\n' '_worker.js' '_zfb_inner.mjs' > dist/.assetsignore
+
+      - name: Deploy to Cloudflare Workers (production)
+        # No node_modules in this job (dist-cache restore only) — npx, but
+        # pinned to the package.json devDependency version so production
+        # deploys use the wrangler the check:wrangler-pin gate validates.
         run: |
-          npx wrangler@4 pages deploy deploy \
-            --project-name=zudo-css \
-            --branch=main \
-            --commit-hash="${GITHUB_SHA}" \
-            --commit-message="Production deploy: ${GITHUB_SHA}"
+          WRANGLER_VERSION=$(node -p "require('./package.json').devDependencies.wrangler")
+          npx "wrangler@${WRANGLER_VERSION}" deploy
         env:
+          # CLOUDFLARE_API_TOKEN requires Workers: Edit scope (NOT Pages: Edit)
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-  # ─── Notify ───────────────────────────────────────────────────────────
+      # -----------------------------------------------------------------------
+      # Cutover: enable workers.dev subdomain + attach custom domain
+      # -----------------------------------------------------------------------
+      # Idempotent — safe to run on every deploy. Already-exists / known
+      # idempotent CF error codes are treated as success. Auth/scope errors
+      # emit a warning but NEVER fail the job (the worker is already deployed;
+      # domain wiring can be completed manually).
+      #
+      # Token scope requirements:
+      #   workers.dev subdomain  → Workers: Edit on the account
+      #   custom domain attach   → Workers: Edit + Zone: Edit on takazudomodular.com
+      # If the token lacks Zone: Edit, the domains POST returns a permission
+      # error; that is caught and emitted as ::warning:: so the deploy still
+      # succeeds. Attach the custom domain manually in the CF dashboard if needed.
+      - name: Cutover — enable workers.dev subdomain and attach custom domain
+        # Secrets are not accessible in `if:` expressions (they resolve to empty
+        # string for security), so we gate inside the run script via env vars instead.
+        # continue-on-error keeps the deploy green even if domain wiring fails.
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::warning::Cutover skipped — CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID not set."
+            exit 0
+          fi
 
+          # ── 1. Enable workers.dev subdomain ────────────────────────────────
+          SUBDOMAIN_RESP=$(curl -s --max-time 15 \
+            -X POST \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/zudo-css-wisdom/subdomain" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"enabled":true}')
+
+          # jq is preinstalled on ubuntu-latest runners
+          SUBDOMAIN_SUCCESS=$(echo "$SUBDOMAIN_RESP" | jq -r '.success // false')
+          SUBDOMAIN_ERR_CODES=$(echo "$SUBDOMAIN_RESP" | jq -r '[.errors[]?.code] | join(",")' 2>/dev/null || echo "")
+
+          if [ "$SUBDOMAIN_SUCCESS" = "true" ]; then
+            echo "workers.dev subdomain enabled."
+          else
+            # Code 10056 = subdomain already enabled (idempotent)
+            if echo "$SUBDOMAIN_ERR_CODES" | grep -qE '(^|,)10056(,|$)'; then
+              echo "workers.dev subdomain already enabled (idempotent, ok)."
+            else
+              echo "::warning::workers.dev subdomain enable failed (may need manual setup). codes=${SUBDOMAIN_ERR_CODES} resp=${SUBDOMAIN_RESP}"
+            fi
+          fi
+
+          # ── 2. Attach custom domain ─────────────────────────────────────────
+          # Requires Zone: Edit on takazudomodular.com in addition to Workers: Edit.
+          # If the token lacks Zone: Edit, CF returns a permission error; we warn
+          # and continue — the worker is deployed, the domain can be attached
+          # manually in the CF dashboard (Workers > your worker > Triggers > Custom Domains).
+          DOMAIN_RESP=$(curl -s --max-time 15 \
+            -X POST \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/domains" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"hostname":"zudo-css-wisdom.takazudomodular.com","service":"zudo-css-wisdom","environment":"production","zone_name":"takazudomodular.com"}')
+
+          DOMAIN_SUCCESS=$(echo "$DOMAIN_RESP" | jq -r '.success // false')
+          DOMAIN_ERR_CODES=$(echo "$DOMAIN_RESP" | jq -r '[.errors[]?.code] | join(",")' 2>/dev/null || echo "")
+
+          if [ "$DOMAIN_SUCCESS" = "true" ]; then
+            echo "Custom domain zudo-css-wisdom.takazudomodular.com attached."
+          else
+            # Code 100116 = hostname already assigned to this worker (idempotent)
+            # Code 100122 = domain already exists on worker
+            if echo "$DOMAIN_ERR_CODES" | grep -qE '(^|,)(100116|100122)(,|$)'; then
+              echo "Custom domain already attached (idempotent, ok). codes=${DOMAIN_ERR_CODES}"
+            else
+              echo "::warning::Custom domain attach failed (may need Zone:Edit on takazudomodular.com, or attach manually in CF dashboard). codes=${DOMAIN_ERR_CODES} resp=${DOMAIN_RESP}"
+            fi
+          fi
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Send IFTTT notification with deploy status
+  # ---------------------------------------------------------------------------
   notify:
     name: Deploy Notification
-    needs: build-and-deploy
+    needs: [build-site, build-history, deploy]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
+
     steps:
       - name: Notify via IFTTT
         if: env.IFTTT_PROD_NOTIFY != ''
         env:
           IFTTT_PROD_NOTIFY: ${{ secrets.IFTTT_PROD_NOTIFY }}
           RAW_COMMIT_MSG: ${{ github.event.head_commit.message }}
-          DEPLOY_RESULT: ${{ needs.build-and-deploy.result }}
+          BUILD_SITE_RESULT: ${{ needs.build-site.result }}
+          BUILD_HISTORY_RESULT: ${{ needs.build-history.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
           GITHUB_SHA_VAL: ${{ github.sha }}
           SERVER_URL: ${{ github.server_url }}
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
         run: |
           if [ "$DEPLOY_RESULT" = "success" ]; then
-            STATUS="zudo-css deploy succeeded!"
+            STATUS="zudo-css-wisdom deploy succeeded!"
+          elif [ "$BUILD_SITE_RESULT" = "failure" ]; then
+            STATUS="zudo-css-wisdom deploy failed (site build)"
+          elif [ "$BUILD_HISTORY_RESULT" = "failure" ]; then
+            STATUS="zudo-css-wisdom deploy failed (history build)"
           elif [ "$DEPLOY_RESULT" = "failure" ]; then
-            STATUS="zudo-css deploy failed"
+            STATUS="zudo-css-wisdom deploy failed (deploy)"
           else
-            STATUS="zudo-css deploy cancelled"
+            STATUS="zudo-css-wisdom deploy cancelled"
           fi
 
           COMMIT_MSG=$(echo "$RAW_COMMIT_MSG" | head -1 | sed 's/"/\\"/g')

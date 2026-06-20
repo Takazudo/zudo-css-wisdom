@@ -32,7 +32,9 @@ pre-push と CI のタイミングで **マルチパス linter** を走らせ、
 Pass 1 が最も一般的です ―― `@takazudo/zudo-design-token-lint` が今日 Tailwind class 名向けに出荷しているのもこれです。Pass 2 と Pass 3 は同じパターンから自然に派生する概念的拡張です。
 
 <Note title="Pass 3 の状況">
+
 Pass 3（生 `z-index` 整数の禁止）は **計画段階** であり、まだ出荷されていません。[Z-Index Strategy](../design-systems/z-index-strategy.mdx) のティアシステムと一緒に投入される予定です。アップストリームの状況は [zudo-pattern-gen#942](https://github.com/zudolab/zudo-pattern-gen/issues/942) で追跡してください。契約を明確にするためルールはいま文書化し、実装はアップストリームの準備が整ったタイミングで投入します。
+
 </Note>
 
 ## Pass 1: コンポーネントコードでの生値の禁止
@@ -195,7 +197,9 @@ Pass 1 が `:root` 内のあらゆるリテラルをフラグするなら、パ�
 linter はどうやって違いを知るのか。命名規約によってです。パレットトークンは予約済みのプレフィックスを使います（`--p0` 〜 `--p15`、`--p-blue-500`、プロジェクトが選んだもの）。トークンゾーン内で定義された他のものはセマンティックとして扱われ、パレットを参照しなければなりません。規約は明示的かつ文書化されている必要があります ―― linter は推測しません。
 
 <Tip title="Convention before enforcement">
+
 Pass 2 はパレットトークンに対する明確な命名規約があるときにのみ機能します。デザインシステムページで一度文書化し、その後 linter の設定にエンコードします。規約が曖昧なら lint ルールも曖昧になります。
+
 </Tip>
 
 ## Pass 3: 生 z-index 整数の禁止

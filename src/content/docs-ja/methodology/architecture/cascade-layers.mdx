@@ -251,7 +251,7 @@ p {
     `}
   css={`
     @layer base, theme;
-    
+
     @layer base {
     .text {
       color: #ef4444;
@@ -263,7 +263,7 @@ p {
       border-radius: 6px;
     }
     }
-    
+
     @layer theme {
     .text {
       color: #3b82f6;
@@ -271,11 +271,11 @@ p {
       border-left-color: #3b82f6;
     }
     }
-    
+
     .demo {
       font-family: system-ui, sans-serif;
     }
-    
+
     .legend {
       margin-top: 1rem;
       font-size: 0.85rem;
@@ -284,20 +284,20 @@ p {
       flex-direction: column;
       gap: 0.35rem;
     }
-    
+
     .legend div {
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
-    
+
     .swatch {
       display: inline-block;
       width: 14px;
       height: 14px;
       border-radius: 3px;
     }
-    
+
     code {
       background: #f1f5f9;
       padding: 0.1rem 0.35rem;
@@ -322,7 +322,7 @@ p {
     `}
   css={`
     @layer base, components;
-    
+
     @layer base {
       /* High specificity: (0, 2, 3) */
     nav ul li.active a.nav-link {
@@ -330,7 +330,7 @@ p {
       text-decoration: line-through;
     }
     }
-    
+
     @layer components {
       /* Low specificity: (0, 1, 0) — but WINS */
     .nav-link {
@@ -341,16 +341,16 @@ p {
       border-radius: 6px;
       transition: background 0.2s;
     }
-    
+
     .nav-link:hover {
       background: #eff6ff;
     }
     }
-    
+
     nav {
       font-family: system-ui, sans-serif;
     }
-    
+
     ul {
       list-style: none;
       display: flex;
@@ -358,7 +358,7 @@ p {
       padding: 0;
       margin: 0;
     }
-    
+
     .note {
       font-family: system-ui, sans-serif;
       font-size: 0.8rem;
@@ -366,7 +366,7 @@ p {
       margin-top: 1rem;
       line-height: 1.5;
     }
-    
+
     code {
       background: #f1f5f9;
       padding: 0.1rem 0.35rem;
