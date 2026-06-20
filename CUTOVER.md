@@ -25,8 +25,10 @@ The moment the root PR merges to `main`, `main-deploy.yml` triggers automaticall
 Both `main-deploy.yml` and `pr-checks.yml` carry this comment as a reminder:
 
 ```
-# CLOUDFLARE_API_TOKEN requires Workers: Edit + Zone: Edit on takazudomodular.com
+# CLOUDFLARE_API_TOKEN requires Workers: Edit scope (NOT Pages: Edit)
 ```
+
+(`wrangler deploy` itself only needs **Workers: Edit**. The custom-domain attach in step 2 additionally needs **Zone: Edit** on `takazudomodular.com` — but that step warns rather than fails, so the deploy stays green without it.)
 
 ---
 
@@ -43,7 +45,7 @@ Both `main-deploy.yml` and `pr-checks.yml` carry this comment as a reminder:
 **Enable the subdomain via the CF REST API (manual fallback):**
 
 ```bash
-# Account ID from wrangler.toml: 367c7f51801e1f537030f93d5a5e6008
+# CLOUDFLARE_ACCOUNT_ID — from the CF dashboard / GitHub secret (not committed to the repo)
 # Worker script name (from wrangler.toml `name`): zudo-css-wisdom
 
 curl -s -X POST \
