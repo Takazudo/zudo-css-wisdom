@@ -56,6 +56,8 @@ import { PresetGeneratorFallback } from "./lib/_preset-generator";
 import { MathBlock } from "./lib/_math-block";
 import { CodeGroup } from "@/components/content/code-group";
 import { makeAdmonition } from "@/components/content/content-admonition";
+import { CssPreviewWrapper } from "./lib/_css-preview";
+import { TailwindPreviewWrapper } from "./lib/_tailwind-preview";
 
 /**
  * MDX `<img>` override — rewrites root-relative src attributes to include the
@@ -363,14 +365,12 @@ export function createMdxComponents(lang: Locale | string = defaultLocale) {
     Card: MdxStub,
     MyComponent: MdxStub,
     PageLayout: MdxStub,
-    // TEMP STUB — replaced by S5a/S5b (#119/#121).
-    // CssPreview renders interactive CSS demos in an iframe. Until the real
-    // component is ported, this stub renders nothing so builds pass over content
-    // that uses <CssPreview>.
-    CssPreview: MdxStub,
-    // TEMP STUB — replaced by S5a/S5b (#119/#121).
-    // TailwindPreview renders interactive Tailwind CSS demos in an iframe.
-    TailwindPreview: MdxStub,
+    // CssPreview / TailwindPreview — interactive demo islands. Each host
+    // wrapper applies `<Island when="visible">` around the real "use client"
+    // component so the iframe + collapsible code panel hydrate on the client
+    // when the preview scrolls into view. See pages/lib/_css-preview.tsx.
+    CssPreview: CssPreviewWrapper,
+    TailwindPreview: TailwindPreviewWrapper,
     // TEMP STUB — replaced by S5a/S5b (#119/#121).
     // HtmlPreview renders interactive HTML previews. The HtmlPreviewWrapper
     // (non-stub) is registered above for the HtmlPreview MDX tag; this entry
