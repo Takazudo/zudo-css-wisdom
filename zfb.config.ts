@@ -1,29 +1,9 @@
 import { z } from "zod";
 import { defineConfig } from "zfb/config";
 import { settings } from "./src/config/settings";
+import { buildDocsSchema } from "./src/config/docs-schema";
 
-// Inline docs schema (mirrors src/config/docs-schema.ts which is added in
-// a later sub-task once the full zudo-doc settings layer is in place).
-const docsSchema = z
-  .object({
-    title: z.string(),
-    description: z.string().optional(),
-    category: z.string().optional(),
-    sidebar_position: z.number().optional(),
-    sidebar_label: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    search_exclude: z.boolean().optional(),
-    pagination_next: z.string().nullable().optional(),
-    pagination_prev: z.string().nullable().optional(),
-    draft: z.boolean().optional(),
-    unlisted: z.boolean().optional(),
-    hide_sidebar: z.boolean().optional(),
-    hide_toc: z.boolean().optional(),
-    standalone: z.boolean().optional(),
-    slug: z.string().optional(),
-    generated: z.boolean().optional(),
-  })
-  .passthrough();
+const docsSchema = buildDocsSchema();
 
 const docsSchemaJson = z.toJSONSchema(docsSchema) as Record<string, unknown>;
 
@@ -181,6 +161,7 @@ export default defineConfig({
       imageDimensions: {},
       // warn-only link validation — failOnBroken: false never fails the build.
       linkValidation: { failOnBroken: false },
+      headingIds: { strategy: settings.headingIdStrategy },
     },
   },
   adapter: "@takazudo/zfb-adapter-cloudflare",
