@@ -1,0 +1,19 @@
+{
+  "projectName": "zudo-css-wisdom",
+  "defaultLang": "en",
+  "colorSchemeMode": "light-dark",
+  "lightScheme": "Default Light",
+  "darkScheme": "Default Dark",
+  "defaultMode": "dark",
+  "respectPrefersColorScheme": true,
+  "features": ["search","sidebarFilter","imageEnlarge","i18n","claudeResources","sidebarResizer","sidebarToggle","docHistory","bodyFootUtil","llmsTxt","skillSymlinker","footerNavGroup","footerCopyright"],
+  "cjkFriendly": true,
+  "packageManager": "pnpm",
+  "headerRightItems": [
+    {"type":"component","component":"github-link"},
+    {"type":"component","component":"theme-toggle"},
+    {"type":"component","component":"search"},
+    {"type":"component","component":"language-switcher"}
+  ],
+  "metaTags": {"description": true, "keywords":"", "ogImage":"use existing one", "ogSiteName": true, "twitterCard":"summary_large_image", "twitterCreator":"@Takazudo"}
+}

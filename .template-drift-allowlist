@@ -1,0 +1,83 @@
+# Template drift allowlist for zudo-css-wisdom.
+# Generated projects start from create-zudo-doc templates; this file lists
+# intentional divergences so `pnpm check:template-drift` exits 0.
+#
+# Format: one repo-relative path per line (no leading slash).
+# Blank lines and `#` comments are ignored.
+
+# .zfb/ directory is gitignored; doc-history-meta.json is written at build
+# time by the doc-history plugin. It does not exist in the working tree.
+.zfb/doc-history-meta.json
+
+# scripts/run-b4push.sh is intentionally customized for this consuming site
+# (full 8-step gate: format + drift + pin-parity + wrangler-pin + check + build
+# + html + links; replaces the 4-step template default).
+scripts/run-b4push.sh
+
+# pages/_mdx-components.ts — imageEnlarge feature slots resolved.
+# The base template ships @slot:mdx-components:enlarge-imports and
+# @slot:mdx-components:enlarge-defs markers so the compose framework can inject
+# the image-enlarge implementation. Production has these slots resolved and the
+# real ENLARGE_SVG + paragraph override inlined (imageEnlarge: true).
+pages/_mdx-components.ts
+
+# pages/lib/_body-end-islands.tsx — @slot injection markers removed.
+# The base template ships three @slot: markers (body-end-islands imports,
+# display-names, extra-islands) so the compose framework can inject island
+# registrations. Production has these slots resolved and removed.
+pages/lib/_body-end-islands.tsx
+
+# src/config/settings-types.ts — @slot:settings-types:trigger-names markers removed.
+# The base template ships @slot: markers so compose can inject feature-specific
+# trigger name types. Production has these slots resolved and removed.
+src/config/settings-types.ts
+
+# src/styles/global.css — @slot markers resolved; doc-history diff viewer CSS added.
+# The base template ships @slot:global-css:theme-tokens and
+# @slot:global-css:feature-styles injection markers. Production has these
+# slots resolved (removed) and the real doc-history diff viewer CSS inlined
+# in place of the feature-styles slot (docHistory: true).
+src/styles/global.css
+
+# Component stubs vs. real implementations — the base template ships no-op
+# W6A stubs for these components (so imports resolve at typecheck on scaffold
+# without any features). The corresponding features are enabled in this site,
+# so production ships real island implementations that differ from the stubs.
+src/components/desktop-sidebar-toggle.tsx
+src/components/doc-history.tsx
+src/components/image-enlarge.tsx
+
+# docTags feature — tags pages are present in the docTags feature template
+# but this site has `docTags: false` in settings.ts (tags UI disabled).
+# The tag data model and frontmatter field are kept for future use, but
+# the tags index/detail pages are intentionally absent.
+pages/[locale]/docs/tags/[tag].tsx
+pages/[locale]/docs/tags/index.tsx
+pages/docs/tags/[tag].tsx
+pages/docs/tags/index.tsx
+pages/lib/_tag-pages.tsx
+
+# tagGovernance — tags-audit.ts and tags-suggest.ts scripts are present in the
+# tagGovernance feature template but have not been scaffolded for this site
+# (tagGovernance: "off"). Intentionally absent; add later if tag governance is enabled.
+scripts/tags-audit.ts
+scripts/tags-suggest.ts
+
+# mermaid-enlarge feature — create-zudo-doc 0.2.10 added a new optional island
+# (enlarge + zoom/pan affordance for client-rendered mermaid diagrams), wired in
+# the template via src/components/mermaid-enlarge.tsx + its island registration in
+# pages/lib/_body-end-islands.tsx (already allowlisted) + CSS in the template
+# global.css. This site has NOT opted into it (no references in prod). Intentionally
+# absent; adopt later as a separate task if mermaid-diagram enlarge is wanted.
+src/components/mermaid-enlarge.tsx
+
+# pages/lib/_head-with-defaults.tsx — Noto Sans JP font loading added.
+# This bilingual site uses Noto Sans JP for body text (Japanese content);
+# the font is loaded asynchronously in the <head> via the media="print" → onload
+# trick. The base template does not ship this font-loading block (it is
+# site-specific typography). Intentional divergence.
+pages/lib/_head-with-defaults.tsx
+
+# src/components/css-preview.tsx — zcss-specific CssPreview demo component.
+# This component is unique to zudo-css-wisdom (no template equivalent).
+src/components/css-preview.tsx

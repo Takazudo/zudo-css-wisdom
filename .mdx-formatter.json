@@ -1,5 +1,20 @@
 {
+  "exclude": [
+    "node_modules/**",
+    "dist/**",
+    ".zfb/**",
+    ".zfb-build/**",
+    "worktrees/**",
+    "src/content/docs/claude/**",
+    "src/content/docs/claude-md/**",
+    "src/content/docs/claude-skills/**",
+    "src/content/docs/claude-agents/**",
+    "src/content/docs/claude-commands/**"
+  ],
+  "addEmptyLinesInBlockJsx": {
+    "blockComponents": ["Note", "Tip", "Info", "Warning", "Danger", "Details", "Tabs", "HtmlPreview", "CssPreview"]
+  },
   "formatMultiLineJsx": {
-    "ignoreComponents": ["CssPreview", "TailwindPreview"]
+    "ignoreComponents": ["HtmlPreview", "CssPreview", "TailwindPreview"]
   }
 }
