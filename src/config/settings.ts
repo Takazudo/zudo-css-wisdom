@@ -137,7 +137,6 @@ export const settings = {
   // equivalents are built. These are the build-time-generated Claude resource
   // docs (gitignored, EN-only), so the language switcher hides locale options there.
   defaultLocaleOnlyPrefixes: [
-    "/docs/claude/",
     "/docs/claude-md/",
     "/docs/claude-skills/",
     "/docs/claude-commands/",
