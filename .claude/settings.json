@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash \"$CLAUDE_PROJECT_DIR/.claude/web-bootstrap.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
