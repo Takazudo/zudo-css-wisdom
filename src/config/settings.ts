@@ -133,4 +133,14 @@ export const settings = {
     { type: "component", component: "search" },
     { type: "component", component: "language-switcher" },
   ] satisfies HeaderRightItem[] as HeaderRightItem[],
+  // Paths served only in the default locale (English) — no locale-prefixed
+  // equivalents are built. These are the build-time-generated Claude resource
+  // docs (gitignored, EN-only), so the language switcher hides locale options there.
+  defaultLocaleOnlyPrefixes: [
+    "/docs/claude/",
+    "/docs/claude-md/",
+    "/docs/claude-skills/",
+    "/docs/claude-commands/",
+    "/docs/claude-agents/",
+  ] as string[],
 };
