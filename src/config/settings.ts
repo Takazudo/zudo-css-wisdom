@@ -1,23 +1,32 @@
 export type {
   HeaderNavChildItem,
   HeaderNavItem,
-  ColorModeConfig,
-  HtmlPreviewConfig,
-  LocaleConfig,
-  VersionConfig,
-  FooterConfig,
-} from "./settings-types";
-import type {
-  HeaderNavItem,
+  HeaderRightItem,
   ColorModeConfig,
   HtmlPreviewConfig,
   LocaleConfig,
   VersionConfig,
   FooterConfig,
   FrontmatterPreviewConfig,
+  BodyFootUtilAreaConfig,
   TagPlacement,
+  TagGovernanceMode,
+  MetaTagsConfig,
 } from "./settings-types";
-import type { TagGovernanceMode } from "./tag-vocabulary-types";
+import type {
+  HeaderNavItem,
+  HeaderRightItem,
+  ColorModeConfig,
+  HtmlPreviewConfig,
+  LocaleConfig,
+  VersionConfig,
+  FooterConfig,
+  FrontmatterPreviewConfig,
+  BodyFootUtilAreaConfig,
+  TagPlacement,
+  TagGovernanceMode,
+  MetaTagsConfig,
+} from "./settings-types";
 
 export const settings = {
   colorScheme: "Default Dark",
@@ -35,6 +44,13 @@ export const settings = {
   editUrl: false as string | false,
   githubUrl: false as string | false,
   siteUrl: "https://takazudomodular.com/pj/zcss/" as string,
+  metaTags: {
+    description: true,
+    keywords: false,
+    ogImage: false,
+    ogSiteName: true,
+    twitterCard: false,
+  } satisfies MetaTagsConfig as MetaTagsConfig,
   docsDir: "src/content/docs",
   locales: {
     ja: { label: "JA", dir: "src/content/docs-ja" },
@@ -53,6 +69,15 @@ export const settings = {
   onBrokenMarkdownLinks: "warn" as "warn" | "error" | "ignore",
   aiAssistant: false as boolean,
   docHistory: true,
+  bodyFootUtilArea: {
+    docHistory: true,
+    viewSourceLink: false,
+  } satisfies BodyFootUtilAreaConfig as BodyFootUtilAreaConfig | false,
+  designTokenPanel: false as boolean,
+  tocMinDepth: 2 as number,
+  tocMaxDepth: 4 as number,
+  headingIdStrategy: "hierarchical" as "flat" | "hierarchical",
+  imageEnlarge: false as boolean,
   colorTweakPanel: false as boolean,
   sidebarResizer: true as boolean,
   sidebarToggle: true as boolean,
@@ -97,4 +122,13 @@ export const settings = {
     { label: "Interactive", path: "/docs/interactive", categoryMatch: "interactive" },
     { label: "Claude", path: "/docs/claude", categoryMatch: "claude" },
   ] as HeaderNavItem[],
+  headerRightItems: [
+    { type: "component", component: "theme-toggle" },
+    { type: "component", component: "search" },
+    { type: "component", component: "language-switcher" },
+  ] satisfies HeaderRightItem[] as HeaderRightItem[],
+  // Paths only served in the default locale (English) — no locale-prefixed
+  // equivalents are built. The language switcher hides the locale options
+  // when the current page is under one of these prefixes.
+  defaultLocaleOnlyPrefixes: [] as string[],
 };

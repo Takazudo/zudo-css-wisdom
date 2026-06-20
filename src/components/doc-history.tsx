@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { diffLines } from "diff";
+"use client";
+
+import { useState, useEffect, useCallback, useMemo, useRef } from "preact/compat";
+import type { Change } from "diff";
 import type { DocHistoryData, DocHistoryEntry } from "@/types/doc-history";
 import { SmartBreak } from "@/utils/smart-break";
 
@@ -104,8 +106,10 @@ interface DiffRow {
   type: "context" | "removed" | "added" | "changed";
 }
 
+type DiffChanges = Change[];
+
 function buildSideBySideRows(
-  changes: ReturnType<typeof diffLines>,
+  changes: DiffChanges,
 ): DiffRow[] {
   const rows: DiffRow[] = [];
   let leftNum = 0;
@@ -177,11 +181,24 @@ function DiffViewer({
   onBack: () => void;
   showBackButton: boolean;
 }) {
-  const changes = useMemo(
-    () => diffLines(selection.older.content, selection.newer.content),
-    [selection.older.content, selection.newer.content],
+  const [changes, setChanges] = useState<DiffChanges | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Lazy-load diff — only needed after History → Compare. This keeps the
+    // module out of the eager islands bundle.
+    import("diff").then(({ diffLines }) => {
+      if (!cancelled) {
+        setChanges(diffLines(selection.older.content, selection.newer.content));
+      }
+    });
+    return () => { cancelled = true; };
+  }, [selection.older.content, selection.newer.content]);
+
+  const rows = useMemo(
+    () => (changes ? buildSideBySideRows(changes) : []),
+    [changes],
   );
-  const rows = useMemo(() => buildSideBySideRows(changes), [changes]);
 
   return (
     <div className="flex flex-col h-full">
@@ -207,8 +224,13 @@ function DiffViewer({
         </div>
       </div>
 
-      {/* Side-by-side diff */}
-      <div className="flex-1 overflow-auto">
+      {/* Side-by-side diff — shows a loading state while the diff module lazy-loads */}
+      {!changes && (
+        <div className="flex-1 flex items-center justify-center py-vsp-xl">
+          <p className="text-small text-muted">Loading diff…</p>
+        </div>
+      )}
+      <div className={`flex-1 overflow-auto${!changes ? " hidden" : ""}`}>
         <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: "2.5rem" }} />
@@ -416,9 +438,15 @@ export function DocHistory({ slug, locale, basePath = "/" }: DocHistoryProps) {
   );
 
   const base = basePath.replace(/\/+$/, "");
+  // Doc-history storage sentinel ("" -> "index"): a root index page has the
+  // canonical route slug "" (-> /docs/), but the per-page JSON is stored/served
+  // under "index" because an empty path segment is unroutable (the server regex
+  // /^\/doc-history\/(.+)\.json$/ rejects ""). Map "" back to "index" so the
+  // fetch path is well-formed.
+  const historySlug = slug === "" ? "index" : slug;
   const fetchPath = locale
-    ? `${base}/doc-history/${locale}/${slug}.json`
-    : `${base}/doc-history/${slug}.json`;
+    ? `${base}/doc-history/${locale}/${historySlug}.json`
+    : `${base}/doc-history/${historySlug}.json`;
 
   const fetchHistory = useCallback(async () => {
     if (data) return; // already loaded
@@ -482,8 +510,8 @@ export function DocHistory({ slug, locale, basePath = "/" }: DocHistoryProps) {
 
   // Close on View Transition navigation
   useEffect(() => {
-    document.addEventListener("astro:after-swap", handleClose);
-    return () => document.removeEventListener("astro:after-swap", handleClose);
+    document.addEventListener("DOMContentLoaded", handleClose);
+    return () => document.removeEventListener("DOMContentLoaded", handleClose);
   }, [handleClose]);
 
   const isOpen = view !== "closed";
@@ -531,10 +559,17 @@ export function DocHistory({ slug, locale, basePath = "/" }: DocHistoryProps) {
       )}
 
       {/* Full-screen dialog — renders in top layer, above all stacking contexts */}
+      {/* z-modal / backdrop:z-modal-backdrop are defense-in-depth for the
+          SPA-swap window: clicking a history entry link swaps the page body
+          while this dialog is still open, and a native showModal() dialog can
+          momentarily lose top-layer promotion and fall back to z-index:auto,
+          flashing behind the header/sidebar. The explicit modal-tier z-index
+          keeps it above all chrome during that window. Intentionally redundant
+          in the normal (top-layer) case — do not remove as "redundant". */}
       <dialog
         ref={dialogRef}
         aria-label="Document revision history"
-        className="doc-history-panel fixed inset-0 m-0 h-full w-full max-h-full max-w-full bg-bg border-none p-0 backdrop:bg-bg/30"
+        className="doc-history-panel z-modal fixed inset-0 m-0 h-full w-full max-h-full max-w-full bg-bg border-none p-0 backdrop:z-modal-backdrop backdrop:bg-bg/30"
         style={{ color: "var(--color-fg)" }}
       >
         {/* Panel header */}
@@ -582,7 +617,12 @@ export function DocHistory({ slug, locale, basePath = "/" }: DocHistoryProps) {
               {/* Right: diff viewer (on mobile, replaces the sidebar) */}
               {hasDiff && (
                 <div className="flex-1 min-w-0 h-full">
+                  {/* Key on the compared pair forces a fresh mount whenever the
+                      selection changes, so the previous pair's diff rows can
+                      never render under the new header hashes while the lazy
+                      import("diff") recompute is in flight (#2068). */}
                   <DiffViewer
+                    key={`${diffSelection.older.hash}:${diffSelection.newer.hash}`}
                     selection={diffSelection}
                     onBack={handleBackToRevisions}
                     showBackButton={true}

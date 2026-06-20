@@ -13,7 +13,8 @@ export type HeaderRightComponentName =
   | "theme-toggle"
   | "language-switcher"
   | "version-switcher"
-  | "github-link";
+  | "github-link"
+  | "search";
 
 export type HeaderRightTriggerName = "design-token-panel" | "ai-chat";
 
@@ -158,4 +159,21 @@ export interface VersionConfig {
   locales?: Record<string, { dir: string }>;
   /** Banner text shown on versioned pages (e.g., "unmaintained", "unreleased") */
   banner?: "unmaintained" | "unreleased" | false;
+}
+
+export interface MetaTagsConfig {
+  /** Emit <meta name="description">. Default true. */
+  description: boolean;
+  /** Emit <meta name="keywords"> with a comma-separated string. false = omit. Default false. */
+  keywords: string | false;
+  /** og:image (and twitter:image) path. false = omit. Default false. */
+  ogImage: string | false;
+  /** Emit og:site_name. Default true. */
+  ogSiteName: boolean;
+  /** TwitterCard type. false = omit entire twitter:card block. Default false. */
+  twitterCard: "summary" | "summary_large_image" | false;
+  /** twitter:site handle (e.g. '@yourbrand'). Optional. */
+  twitterSite?: string;
+  /** twitter:creator handle. Optional. */
+  twitterCreator?: string;
 }

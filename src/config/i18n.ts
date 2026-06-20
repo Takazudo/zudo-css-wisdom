@@ -1,7 +1,11 @@
-import type { CollectionKey } from "astro:content";
 import { settings } from "./settings";
 
-/** Default locale code (always "en", served from docsDir). */
+// Collection name string used by zfb's content engine (`getCollection(...)`).
+// Kept as a structural string-literal alias so callers don't have to redeclare
+// it; it's a structural type so the underlying engine is interchangeable.
+type CollectionKey = string;
+
+/** Default locale code, served from docsDir. */
 export const defaultLocale = "en" as const;
 
 /** All supported locale codes, derived from settings. */
@@ -13,8 +17,8 @@ export type Locale = (typeof locales)[number];
 
 type LocaleKey = keyof typeof settings.locales;
 
-/** Safely look up a locale in settings.locales. */
-function getLocaleConfig(locale: string) {
+/** Safely look up a locale in settings.locales by string key. */
+export function getLocaleConfig(locale: string): (typeof settings.locales)[LocaleKey] | undefined {
   return (settings.locales as Record<string, (typeof settings.locales)[LocaleKey]>)[locale];
 }
 
