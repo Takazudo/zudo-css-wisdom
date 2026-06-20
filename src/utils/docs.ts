@@ -1,5 +1,5 @@
 import type { DocsEntry } from "@/types/docs-entry";
-import { docsUrl, withBase } from "@/utils/base";
+import { docsUrl, docsHrefForNav, withBase } from "@/utils/base";
 import { defaultLocale, type Locale } from "@/config/i18n";
 import {
   buildSidebarTree,
@@ -166,7 +166,7 @@ export function buildNavTree(
     lang,
     {
       categoryMeta,
-      buildHref: (slug, locale) => docsUrl(slug, locale),
+      buildHref: (slug, locale) => docsHrefForNav(slug, locale),
       // Host call sites own visibility: nav surfaces pre-filter via
       // `stableNavDocs(docs.filter(isNavVisible))`, while the breadcrumb tree
       // intentionally builds from the UNFILTERED list so unlisted pages still

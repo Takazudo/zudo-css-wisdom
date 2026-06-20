@@ -155,6 +155,19 @@ export function isDefaultLocaleOnlyPath(path: string): boolean {
   return settings.defaultLocaleOnlyPrefixes.some((prefix) => normalized.startsWith(prefix));
 }
 
+/**
+ * Build a docs URL for a nav node, honoring `defaultLocaleOnlyPrefixes`.
+ *
+ * Pages under a default-locale-only prefix (e.g. the build-time-generated
+ * `/docs/claude-*` resource docs) are EN-only — no locale-prefixed route is
+ * built. So nav surfaces rendered in a non-default locale must still link to
+ * the un-prefixed `/docs/...` URL for those slugs, or the link 404s. For all
+ * other slugs this behaves exactly like `docsUrl(slug, lang)`.
+ */
+export function docsHrefForNav(slug: string, lang: Locale | string = defaultLocale): string {
+  return isDefaultLocaleOnlyPath(`/docs/${slug}`) ? docsUrl(slug, defaultLocale) : docsUrl(slug, lang);
+}
+
 /** Build a versioned docs URL for the given slug, version, and lang. */
 export function versionedDocsUrl(slug: string, versionSlug: string, lang: Locale = defaultLocale): string {
   const path = lang === defaultLocale
