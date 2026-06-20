@@ -1,16 +1,18 @@
 # zcss — zudo-css
 
-CSS best practices documentation site, built with zudo-doc (Astro 5, MDX, Tailwind CSS v4).
+CSS best practices documentation site, built with zudo-doc (zfb stack, MDX, Tailwind CSS v4).
+
+**Live site**: <https://zudo-css-wisdom.takazudomodular.com/>
 
 ## Commands
 
 Package manager: **pnpm** (Node.js >= 20).
 
 ```bash
-pnpm dev              # Dev server → http://css-bp.localhost:8811
+pnpm dev              # Dev server → http://localhost:8811/
 pnpm build            # Production build → dist/
 pnpm preview          # Preview built site
-pnpm check            # Astro type checking
+pnpm check            # Type checking (tsc + collections)
 pnpm b4push           # Pre-push validation (typecheck + build + link check)
 ```
 
@@ -196,14 +198,13 @@ After editing or creating an English doc, translate the Japanese counterpart usi
 
 ## Site Config
 
-- Base path: `/pj/zcss/`
+- Base path: `/` (root, no sub-path prefix)
 - Settings: `src/config/settings.ts`
 
 ## CI/CD
 
-- PR checks: typecheck + build + link check + Cloudflare Pages preview
-- Main deploy: build + Cloudflare Pages production + IFTTT notification
-- Preview deploy: branch-based Cloudflare Pages preview
+- PR checks: typecheck + build + Cloudflare Workers preview URL posted as PR comment
+- Main deploy: build + Cloudflare Workers static assets production + IFTTT notification
 - Secrets: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, IFTTT_PROD_NOTIFY
 
 ## Safety Rules
