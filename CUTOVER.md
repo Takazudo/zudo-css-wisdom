@@ -1,8 +1,8 @@
 # Production Cutover Runbook — zudo-css-wisdom (Astro/Pages → zfb / Workers)
 
-> **Who runs this:** Takazudo (Cloudflare account access required for steps 1–5).
+> **Who runs this:** Takazudo (Cloudflare account access required only for the manual fallbacks).
 > **Code merge:** Independent of these steps. The code PR can merge at any time.
-> **Half-live state:** Until steps 1–3 are done, the post-merge `main-deploy` **deploy job stays RED** — this is expected, not a code bug. `wrangler deploy` uploads the worker bundle but cannot route traffic until the token has the right scope and the workers.dev subdomain is enabled. The old Cloudflare Pages project (`zudo-css`) keeps serving its last build in the meantime.
+> **This project automates the cutover in CI.** `main-deploy.yml` enables the workers.dev subdomain **and** attaches the custom domain via the Cloudflare API on every push to `main` (steps 1–2 below). That cutover step is `continue-on-error: true` — on a scope/auth problem it emits a `::warning::` and the deploy job still goes **green**. The only way the deploy job goes **RED** is if `wrangler deploy` itself fails because the token lacks **Workers: Edit** (step 0). The steps below are the residual prerequisites and manual fallbacks; in the happy path, merging to `main` is all that's needed. The old Cloudflare Pages project (`zudo-css`) keeps serving its last build until decommissioned (step 4).
 
 ---
 
@@ -150,14 +150,15 @@ Redeploy the Pages project, then submit the old Pages URL for removal from Googl
 
 ---
 
-## Expected Half-Live State (post-merge, pre-cutover)
+## State table (post-merge)
 
 | Condition | Behavior |
 |---|---|
-| Token not yet re-scoped | `main-deploy` deploy job **RED** (auth error). Expected. |
-| Subdomain not yet enabled (step 1 pending) | Worker uploaded but `*.workers.dev` URLs return error 1042. PR preview comment says "preview pending". |
-| Custom domain not attached (step 2 pending) | Custom domain `zudo-css-wisdom.takazudomodular.com` returns 404/connection refused. Old Pages site still serving. |
-| All steps done | New Workers site live at custom domain + workers.dev. Old Pages site can be decommissioned. |
+| Token lacks **Workers: Edit** | `wrangler deploy` fails → `main-deploy` deploy job **RED**. The automated cutover never runs. Fix the token (step 0) and re-run. |
+| Token has Workers: Edit but **not Zone: Edit** | Deploy job **green**. `wrangler deploy` + the subdomain enable succeed; the custom-domain attach emits a `::warning::` in the Cutover step. Attach the domain once via the dashboard/API (step 2). |
+| Subdomain enable not yet effective | `*.workers.dev` URLs return error 1042 until enabled. PR preview comment says "preview pending". The Cutover step enables it automatically on the next deploy. |
+| Custom domain not yet attached | `zudo-css-wisdom.takazudomodular.com` returns 404/connection refused. Old Pages site still serving. |
+| Token has Workers: Edit + Zone: Edit | Cutover fully automated. New Workers site live at the custom domain + workers.dev after the first `main` deploy. Old Pages site can be decommissioned (step 4). |
 
 ---
 
