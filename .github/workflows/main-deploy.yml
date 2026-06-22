@@ -7,9 +7,10 @@
 #   4. Merges both build outputs and deploys to Cloudflare Workers
 #   5. Sends IFTTT notification with deploy status
 #
-# Inter-job data sharing uses actions/cache (not upload-artifact) to avoid
-# Actions storage accumulation. Cache keys are scoped to github.run_id so
-# each run gets a fresh, unique cache that won't be reused by other runs.
+# Inter-job data sharing uses upload-artifact/download-artifact with
+# retention-days: 1, scoped to github.run_id. Artifacts (not cache) are used
+# because cache saves are best-effort and can silently fail, leaving consumers
+# to hard-fail on a missing cache; short retention keeps Actions storage clean.
 #
 # Concurrency: only one production deploy runs at a time.
 # We do NOT cancel in-progress runs -- the earlier deploy should finish.
@@ -67,11 +68,13 @@ jobs:
       - name: Build site
         run: pnpm build
 
-      - name: Cache site build output
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Upload site build output
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
+          name: dist-${{ github.run_id }}
           path: dist/
-          key: dist-${{ github.run_id }}
+          retention-days: 1
+          if-no-files-found: error
 
   # ---------------------------------------------------------------------------
   # Job: HTML validate
@@ -100,12 +103,11 @@ jobs:
       - name: Install deps (no scripts)
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Restore dist cache (built by build-site)
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Download dist (built by build-site)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
+          name: dist-${{ github.run_id }}
           path: dist/
-          key: dist-${{ github.run_id }}
-          fail-on-cache-miss: true
 
       - name: Run html-validate
         run: pnpm check:html
@@ -146,11 +148,13 @@ jobs:
             --locale ja:src/content/docs-ja \
             --out-dir doc-history-out
 
-      - name: Cache doc history output
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Upload doc history output
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
+          name: doc-history-${{ github.run_id }}
           path: doc-history-out/
-          key: doc-history-${{ github.run_id }}
+          retention-days: 1
+          if-no-files-found: error
 
   # ---------------------------------------------------------------------------
   # Job 3: Deploy to Cloudflare Workers (production)
@@ -165,19 +169,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - name: Restore site build cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Download site build output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
+          name: dist-${{ github.run_id }}
           path: dist/
-          key: dist-${{ github.run_id }}
-          fail-on-cache-miss: true
 
-      - name: Restore doc history cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Download doc history output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
+          name: doc-history-${{ github.run_id }}
           path: doc-history-out/
-          key: doc-history-${{ github.run_id }}
-          fail-on-cache-miss: true
 
       - name: Prepare deploy directory
         run: |
