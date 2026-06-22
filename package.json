@@ -21,7 +21,8 @@
     "gen:z-index": "node scripts/gen-z-index.mjs",
     "check:z-index": "node scripts/gen-z-index.mjs --check",
     "generate:css-wisdom": "node scripts/generate-css-wisdom.js",
-    "setup:doc-skill": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh"
+    "setup:doc-skill": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh",
+    "setup:doc-skill-silent": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh --silent"
   },
   "dependencies": {
     "@takazudo/zfb": "0.1.0-next.51",

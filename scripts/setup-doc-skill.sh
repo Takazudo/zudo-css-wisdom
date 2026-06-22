@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Accept --silent (alias -y) for uniformity with the rest of the *-wisdom family,
+# where setup-doc-skill.sh removes an interactive prompt under this flag. This script
+# is already non-interactive (skill name is hardcoded below; no prompt), so the flag
+# is a no-op here — but it must be parsed so the shared `setup:doc-skill-silent` flow
+# can call it without set -euo pipefail choking on an unknown argument.
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --silent|-y) shift ;;
+    *)
+      echo "Error: unknown argument: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
 # ── setup-doc-skill.sh ─────────────────────────────────
 # Wires the css-wisdom doc-lookup skill: creates symlinks
 # for docs/ and docs-ja/ inside the skill directory, then
