@@ -47,9 +47,9 @@ export const settings = {
   metaTags: {
     description: true,
     keywords: false,
-    ogImage: false,
+    ogImage: "/img/ogp.png",
     ogSiteName: true,
-    twitterCard: false,
+    twitterCard: "summary_large_image",
     twitterCreator: "@Takazudo",
   } satisfies MetaTagsConfig as MetaTagsConfig,
   docsDir: "src/content/docs",
