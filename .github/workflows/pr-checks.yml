@@ -186,6 +186,7 @@ jobs:
           path: dist/
           retention-days: 1
           if-no-files-found: error
+          overwrite: true
 
   # ---------------------------------------------------------------------------
   # Job: HTML validate
@@ -265,6 +266,7 @@ jobs:
           path: doc-history-out/
           retention-days: 1
           if-no-files-found: error
+          overwrite: true
 
   # ---------------------------------------------------------------------------
   # Job 4: Deploy preview and comment on PR
