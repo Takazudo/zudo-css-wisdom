@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Accept --silent (alias -y) for uniformity with the rest of the *-wisdom family,
-# where setup-doc-skill.sh removes an interactive prompt under this flag. This script
-# is already non-interactive (skill name is hardcoded below; no prompt), so the flag
-# is a no-op here — but it must be parsed so the shared `setup:doc-skill-silent` flow
-# can call it without set -euo pipefail choking on an unknown argument.
+# Parse flags. --silent (alias -y) skips the interactive skill-name prompt and uses the
+# pinned DEFAULT_SKILL_NAME directly, so the script works under non-interactive automation
+# where `read` would fail on EOF. Mirrors the rest of the *-wisdom family.
+SILENT=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --silent|-y) shift ;;
+    --silent|-y) SILENT="true" ;;
     *)
       echo "Error: unknown argument: $1" >&2
       exit 1
       ;;
   esac
+  shift
 done
 
 # ── setup-doc-skill.sh ─────────────────────────────────
@@ -30,8 +30,29 @@ done
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-# Skill name is hardcoded to match generate-css-wisdom.js output and .gitignore entries.
-SKILL_NAME="css-wisdom"
+# Skill name is pinned to "css-wisdom": generate-css-wisdom.js writes SKILL.md/descriptions.json
+# under .claude/skills/css-wisdom/ and the .gitignore entries reference that exact path, so the
+# name cannot vary here (unlike the other *-wisdom repos, which generate SKILL.md inline).
+DEFAULT_SKILL_NAME="css-wisdom"
+
+# Prompt for the skill name for parity with the rest of the *-wisdom family (skipped under --silent).
+if [ -n "$SILENT" ]; then
+  SKILL_NAME="$DEFAULT_SKILL_NAME"
+else
+  echo ""
+  echo "=== css-wisdom Skill Setup ==="
+  echo ""
+  read -rp "Skill name [$DEFAULT_SKILL_NAME]: " SKILL_NAME
+  SKILL_NAME="${SKILL_NAME:-$DEFAULT_SKILL_NAME}"
+fi
+
+# The name is pinned (see above); a custom name would point at a skill dir with no generated
+# SKILL.md/descriptions.json. Reject it explicitly instead of failing later with a confusing error.
+if [ "$SKILL_NAME" != "$DEFAULT_SKILL_NAME" ]; then
+  echo "Error: this repo pins the skill name to '$DEFAULT_SKILL_NAME' (generate-css-wisdom.js and .gitignore reference it)." >&2
+  echo "Custom names are not supported here; press Enter at the prompt (or use --silent) to accept the default." >&2
+  exit 1
+fi
 
 # Resolve the main repo root (handles git worktrees correctly)
 # Use the main worktree path so symlinks survive worktree removal
@@ -40,10 +61,6 @@ REPO_ROOT="$(git -C "$ROOT_DIR" worktree list | head -1 | awk '{print $1}')"
 SKILL_DIR="$ROOT_DIR/.claude/skills/$SKILL_NAME"
 DOCS_DIR="$ROOT_DIR/src/content/docs"
 GLOBAL_SKILLS_DIR="$HOME/.claude/skills"
-
-echo ""
-echo "=== css-wisdom Skill Setup ==="
-echo ""
 
 # Validate docs directory exists
 if [ ! -d "$DOCS_DIR" ]; then
