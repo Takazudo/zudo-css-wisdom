@@ -182,7 +182,7 @@ jobs:
       - name: Upload site build output
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: dist-${{ github.run_id }}
+          name: dist-${{ github.run_id }}-${{ github.run_attempt }}
           path: dist/
           retention-days: 1
           if-no-files-found: error
@@ -216,7 +216,7 @@ jobs:
       - name: Download dist (built by build-site)
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: dist-${{ github.run_id }}
+          name: dist-${{ github.run_id }}-${{ github.run_attempt }}
           path: dist/
 
       - name: Run html-validate
@@ -261,7 +261,7 @@ jobs:
       - name: Upload doc history output
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: doc-history-${{ github.run_id }}
+          name: doc-history-${{ github.run_id }}-${{ github.run_attempt }}
           path: doc-history-out/
           retention-days: 1
           if-no-files-found: error
@@ -282,13 +282,13 @@ jobs:
       - name: Download site build output
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: dist-${{ github.run_id }}
+          name: dist-${{ github.run_id }}-${{ github.run_attempt }}
           path: dist/
 
       - name: Download doc history output
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: doc-history-${{ github.run_id }}
+          name: doc-history-${{ github.run_id }}-${{ github.run_attempt }}
           path: doc-history-out/
 
       - name: Prepare dist for deployment
