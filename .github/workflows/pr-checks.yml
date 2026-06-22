@@ -179,11 +179,14 @@ jobs:
       - name: Check links
         run: pnpm check:links
 
-      - name: Cache site build output
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Upload site build output
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
+          name: dist-${{ github.run_id }}
           path: dist/
-          key: dist-${{ github.run_id }}
+          retention-days: 1
+          if-no-files-found: error
+          overwrite: true
 
   # ---------------------------------------------------------------------------
   # Job: HTML validate
@@ -211,12 +214,11 @@ jobs:
       - name: Install deps (no scripts)
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Restore dist cache (built by build-site)
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Download dist (built by build-site)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
+          name: dist-${{ github.run_id }}
           path: dist/
-          key: dist-${{ github.run_id }}
-          fail-on-cache-miss: true
 
       - name: Run html-validate
         run: pnpm check:html
@@ -257,11 +259,14 @@ jobs:
             --locale ja:src/content/docs-ja \
             --out-dir doc-history-out
 
-      - name: Cache doc history output
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Upload doc history output
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
+          name: doc-history-${{ github.run_id }}
           path: doc-history-out/
-          key: doc-history-${{ github.run_id }}
+          retention-days: 1
+          if-no-files-found: error
+          overwrite: true
 
   # ---------------------------------------------------------------------------
   # Job 4: Deploy preview and comment on PR
@@ -276,19 +281,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - name: Restore site build cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Download site build output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
+          name: dist-${{ github.run_id }}
           path: dist/
-          key: dist-${{ github.run_id }}
-          fail-on-cache-miss: true
 
-      - name: Restore doc history cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Download doc history output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
+          name: doc-history-${{ github.run_id }}
           path: doc-history-out/
-          key: doc-history-${{ github.run_id }}
-          fail-on-cache-miss: true
 
       - name: Prepare dist for deployment
         run: |
