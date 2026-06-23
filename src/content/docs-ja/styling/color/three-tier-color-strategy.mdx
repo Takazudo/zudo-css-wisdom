@@ -21,7 +21,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 
 | ティア | 名前 | 目的 | 例 |
 |------|------|---------|---------|
-| 1 | **パレット** | 生のカラー値 — 利用可能なすべての色 | `--palette-blue-500` |
+| 1 | **パレット** | 生のカラー値 — 利用可能なすべての色 | `--palette-blue-0` |
 | 2 | **テーマ** | セマンティックな役割 — デザインにおける各色の*意味* | `--theme-fg`, `--theme-accent` |
 | 3 | **コンポーネント** | スコープ付きオーバーライド — 1つのコンポーネント固有の色 | `--_button-shadow`, `--_card-highlight` |
 
@@ -43,70 +43,70 @@ import TailwindPreview from '@/components/TailwindPreview';
       <div class="palette-demo__group">
         <span class="palette-demo__label">Blue</span>
         <div class="palette-demo__swatches">
-          <div class="swatch" style="background: var(--palette-blue-100)"></div>
-          <div class="swatch" style="background: var(--palette-blue-300)"></div>
-          <div class="swatch" style="background: var(--palette-blue-500)"></div>
-          <div class="swatch" style="background: var(--palette-blue-700)"></div>
-          <div class="swatch" style="background: var(--palette-blue-900)"></div>
+          <div class="swatch" style="background: var(--palette-blue-0)"></div>
+          <div class="swatch" style="background: var(--palette-blue-1)"></div>
+          <div class="swatch" style="background: var(--palette-blue-2)"></div>
+          <div class="swatch" style="background: var(--palette-blue-3)"></div>
+          <div class="swatch" style="background: var(--palette-blue-4)"></div>
         </div>
       </div>
       <div class="palette-demo__group">
         <span class="palette-demo__label">Red</span>
         <div class="palette-demo__swatches">
-          <div class="swatch" style="background: var(--palette-red-100)"></div>
-          <div class="swatch" style="background: var(--palette-red-300)"></div>
-          <div class="swatch" style="background: var(--palette-red-500)"></div>
-          <div class="swatch" style="background: var(--palette-red-700)"></div>
-          <div class="swatch" style="background: var(--palette-red-900)"></div>
+          <div class="swatch" style="background: var(--palette-red-0)"></div>
+          <div class="swatch" style="background: var(--palette-red-1)"></div>
+          <div class="swatch" style="background: var(--palette-red-2)"></div>
+          <div class="swatch" style="background: var(--palette-red-3)"></div>
+          <div class="swatch" style="background: var(--palette-red-4)"></div>
         </div>
       </div>
       <div class="palette-demo__group">
         <span class="palette-demo__label">Gray</span>
         <div class="palette-demo__swatches">
-          <div class="swatch" style="background: var(--palette-gray-100)"></div>
-          <div class="swatch" style="background: var(--palette-gray-300)"></div>
-          <div class="swatch" style="background: var(--palette-gray-500)"></div>
-          <div class="swatch" style="background: var(--palette-gray-700)"></div>
-          <div class="swatch" style="background: var(--palette-gray-900)"></div>
+          <div class="swatch" style="background: var(--palette-gray-0)"></div>
+          <div class="swatch" style="background: var(--palette-gray-1)"></div>
+          <div class="swatch" style="background: var(--palette-gray-2)"></div>
+          <div class="swatch" style="background: var(--palette-gray-3)"></div>
+          <div class="swatch" style="background: var(--palette-gray-4)"></div>
         </div>
       </div>
       <div class="palette-demo__group">
         <span class="palette-demo__label">Green</span>
         <div class="palette-demo__swatches">
-          <div class="swatch" style="background: var(--palette-green-100)"></div>
-          <div class="swatch" style="background: var(--palette-green-300)"></div>
-          <div class="swatch" style="background: var(--palette-green-500)"></div>
-          <div class="swatch" style="background: var(--palette-green-700)"></div>
-          <div class="swatch" style="background: var(--palette-green-900)"></div>
+          <div class="swatch" style="background: var(--palette-green-0)"></div>
+          <div class="swatch" style="background: var(--palette-green-1)"></div>
+          <div class="swatch" style="background: var(--palette-green-2)"></div>
+          <div class="swatch" style="background: var(--palette-green-3)"></div>
+          <div class="swatch" style="background: var(--palette-green-4)"></div>
         </div>
       </div>
     </div>
     </div>`}
   css={`    :root {
       /* Tier 1: Palette — raw color values */
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-blue-300: oklch(74% 0.14 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-700: oklch(42% 0.16 250);
-      --palette-blue-900: oklch(28% 0.1 250);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(74% 0.14 250);
+      --palette-blue-2: oklch(58% 0.2 250);
+      --palette-blue-3: oklch(42% 0.16 250);
+      --palette-blue-4: oklch(28% 0.1 250);
 
-      --palette-red-100: oklch(92% 0.05 25);
-      --palette-red-300: oklch(72% 0.16 25);
-      --palette-red-500: oklch(58% 0.22 25);
-      --palette-red-700: oklch(42% 0.18 25);
-      --palette-red-900: oklch(28% 0.12 25);
+      --palette-red-0: oklch(92% 0.05 25);
+      --palette-red-1: oklch(72% 0.16 25);
+      --palette-red-2: oklch(58% 0.22 25);
+      --palette-red-3: oklch(42% 0.18 25);
+      --palette-red-4: oklch(28% 0.12 25);
 
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-700: oklch(40% 0.015 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-gray-0: oklch(96% 0.005 264);
+      --palette-gray-1: oklch(82% 0.01 264);
+      --palette-gray-2: oklch(58% 0.01 264);
+      --palette-gray-3: oklch(40% 0.015 264);
+      --palette-gray-4: oklch(22% 0.015 264);
 
-      --palette-green-100: oklch(94% 0.06 150);
-      --palette-green-300: oklch(76% 0.14 150);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-green-700: oklch(42% 0.14 150);
-      --palette-green-900: oklch(28% 0.1 150);
+      --palette-green-0: oklch(94% 0.06 150);
+      --palette-green-1: oklch(76% 0.14 150);
+      --palette-green-2: oklch(58% 0.18 150);
+      --palette-green-3: oklch(42% 0.14 150);
+      --palette-green-4: oklch(28% 0.1 150);
     }
     .palette-demo {
       padding: 1.25rem;
@@ -153,6 +153,183 @@ import TailwindPreview from '@/components/TailwindPreview';
       border-radius: 5px;
     }`} />
 
+### パレットのグループ化（ティア 1 の内側）
+
+実際のプロジェクトでは、パレットが色の平坦な寄せ集めであることはまれです。パレットは頭の中で独立した**グループ**に整理されています。グレースケールのグループ（背景、前景、その間のグレー）、ブランドのグループ、そして1つ以上のアクセントのグループです。これらのグループは単一のスケールを共有しませんが、開発者はそれぞれをまとまった単位として捉えます。3つのティアは変わりません。足りないのは、その整理をティア 1 の*内側で*明示的にする方法です。
+
+:::note[グループ化は4番目のティアではありません]
+グループはパレットティア**の内側**にある整理と命名の層であり、Palette → Theme → Component の上に積み重なる新しいティアではありません。`--group-*` の層を追加しないでください。グループ化はパレットトークンの名前そのもので表現します。
+:::
+
+パレットトークンに `--palette-{group}-{n}` という名前を付けます。`{group}` はランプ（ramp）の名前を表し、`{n}` は単なる連番の識別子です。グループ内の最初の色が `0`、次が `1`、というように続きます（明るい色から順に並べるのはよくある並べ方であり、ルールではありません）。この数字自体に固有の意味はなく、自動採番されるデータベースの ID のように、安定したハンドルとして機能するだけです。スロットに明確な役割がある場合は、代わりに説明的な名前を使ってもかまいません（`--palette-gray-fg`、`--palette-brand-logo`）。ただし、ティア 1 をインデックスのみに保つのは意図的なものです。意味はティア 2 に持たせます。
+
+```css
+:root {
+  /* Tier 1 — Palette, organized into named groups: --palette-{group}-{n} */
+
+  /* grayscale: fg/bg endpoints + grays between — an L ramp at ~0 chroma */
+  --palette-gray-0: oklch(98% 0.003 264); /* bg end */
+  --palette-gray-1: oklch(92% 0.004 264);
+  /* … through … */
+  --palette-gray-8: oklch(20% 0.008 264); /* fg end */
+
+  /* brand: a lightness ramp at a fixed hue (chroma peaks mid-ramp) */
+  --palette-brand-0: oklch(95% 0.03 250);
+  --palette-brand-4: oklch(52% 0.18 250);
+  --palette-brand-6: oklch(32% 0.11 250);
+
+  /* accent: a second, independent ramp */
+  --palette-accent-0: oklch(95% 0.03 50);
+  --palette-accent-5: oklch(45% 0.13 50);
+}
+```
+
+メンタルモデルはグリッドです。**Y 軸 = グループ（どのランプか）、X 軸 = グループ内のステップ**です。各グループは通常、1つか2つの OKLCH チャンネルにおける滑らかなランプです。グレースケールはほぼゼロのクロマでの明度ランプであり、ブランドのランプは色相を固定して明度を変化させます（クロマは中間調でピークになるのが一般的です）。これらのランプの選び方と生成方法については[カラーパレット戦略](./color-palette-strategy.mdx)を、ステップを知覚的に均等に保つ方法については[OKLCH カラースペース](./oklch-color-space.mdx)を参照してください。
+
+<CssPreview client:load
+  title="パレットのグループ化 — 行がグループ、列がステップ"
+  height={320}
+  html={`    <div class="pgroup-demo">
+    <h3 class="pgroup-demo__title">Palette grouping (Tier 1)</h3>
+    <p class="pgroup-demo__desc">Y = group (row) · X = step (column, 0 → max). Independent ramps, one naming scheme.</p>
+    <div class="pgroup-demo__rows">
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">gray</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-5)"></span><span class="pgroup-step__n">5</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-6)"></span><span class="pgroup-step__n">6</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-7)"></span><span class="pgroup-step__n">7</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-8)"></span><span class="pgroup-step__n">8</span></div>
+        </div>
+      </div>
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">brand</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-5)"></span><span class="pgroup-step__n">5</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-6)"></span><span class="pgroup-step__n">6</span></div>
+        </div>
+      </div>
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">accent</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-5)"></span><span class="pgroup-step__n">5</span></div>
+        </div>
+      </div>
+    </div>
+    </div>`}
+  css={`    :root {
+      /* Tier 1 — Palette, grouped: --palette-{group}-{n} (Y = group, X = step) */
+      --palette-gray-0: oklch(98% 0.003 264);
+      --palette-gray-1: oklch(92% 0.004 264);
+      --palette-gray-2: oklch(85% 0.005 264);
+      --palette-gray-3: oklch(76% 0.006 264);
+      --palette-gray-4: oklch(64% 0.007 264);
+      --palette-gray-5: oklch(52% 0.008 264);
+      --palette-gray-6: oklch(40% 0.008 264);
+      --palette-gray-7: oklch(30% 0.008 264);
+      --palette-gray-8: oklch(20% 0.008 264);
+
+      --palette-brand-0: oklch(95% 0.03 250);
+      --palette-brand-1: oklch(86% 0.07 250);
+      --palette-brand-2: oklch(74% 0.12 250);
+      --palette-brand-3: oklch(62% 0.17 250);
+      --palette-brand-4: oklch(52% 0.18 250);
+      --palette-brand-5: oklch(42% 0.15 250);
+      --palette-brand-6: oklch(32% 0.11 250);
+
+      --palette-accent-0: oklch(95% 0.03 50);
+      --palette-accent-1: oklch(85% 0.08 50);
+      --palette-accent-2: oklch(74% 0.13 50);
+      --palette-accent-3: oklch(64% 0.16 50);
+      --palette-accent-4: oklch(55% 0.16 50);
+      --palette-accent-5: oklch(45% 0.13 50);
+    }
+    .pgroup-demo {
+      padding: 1.25rem;
+      font-family: system-ui, sans-serif;
+      background: oklch(99% 0 0);
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .pgroup-demo__title {
+      margin: 0 0 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: oklch(25% 0 0);
+    }
+    .pgroup-demo__desc {
+      margin: 0 0 0.85rem;
+      font-size: 0.75rem;
+      color: oklch(50% 0 0);
+    }
+    .pgroup-demo__rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .pgroup-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .pgroup-row__label {
+      width: 52px;
+      flex-shrink: 0;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: oklch(40% 0 0);
+    }
+    .pgroup-row__steps {
+      display: flex;
+      flex: 1;
+      gap: 4px;
+    }
+    .pgroup-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .pgroup-step__chip {
+      width: 100%;
+      height: 30px;
+      border-radius: 5px;
+      box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.08);
+    }
+    .pgroup-step__n {
+      font-size: 0.75rem;
+      color: oklch(55% 0 0);
+      font-variant-numeric: tabular-nums;
+    }`} />
+
+ティア 2 は変わりません。セマンティックな役割は依然として特定のパレットエントリを指します。今はその名前にグループが見えるようになっただけです。
+
+```css
+:root {
+  /* Tier 2 — Theme: semantic roles point at specific grouped entries */
+  --theme-bg:     var(--palette-gray-0);
+  --theme-fg:     var(--palette-gray-8);
+  --theme-accent: var(--palette-brand-4);
+}
+```
+
 ### ティア 2: テーマ
 
 テーマトークンはパレットカラーに**セマンティックな意味**を与えます。「blue-500」の代わりに、コンポーネントは「アクセントカラー」や「前景色」を参照します。この層がリデザインを容易にします。`--theme-accent` をブルーからインディゴに一箇所で変更するだけで、すべてのコンポーネントが更新されます。
@@ -164,42 +341,42 @@ import TailwindPreview from '@/components/TailwindPreview';
     <div class="theme-demo__col">
       <h3 class="theme-demo__title">Palette &rarr; Theme Mapping</h3>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-gray-900)"></div>
+        <div class="mapping__from" style="background: var(--palette-gray-3)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-fg</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-gray-100)"></div>
+        <div class="mapping__from" style="background: var(--palette-gray-0)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-bg</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-blue-500)"></div>
+        <div class="mapping__from" style="background: var(--palette-blue-1)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-accent</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-blue-100)"></div>
+        <div class="mapping__from" style="background: var(--palette-blue-0)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-accent-subtle</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-gray-500)"></div>
+        <div class="mapping__from" style="background: var(--palette-gray-2)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-muted</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-gray-300)"></div>
+        <div class="mapping__from" style="background: var(--palette-gray-1)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-border</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-red-500)"></div>
+        <div class="mapping__from" style="background: var(--palette-red-0)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-error</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-green-500)"></div>
+        <div class="mapping__from" style="background: var(--palette-green-0)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-success</span>
       </div>
@@ -226,25 +403,25 @@ import TailwindPreview from '@/components/TailwindPreview';
     </div>
     </div>`}
   css={`    :root {
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-red-500: oklch(58% 0.22 25);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-red-0: oklch(58% 0.22 25);
+      --palette-green-0: oklch(58% 0.18 150);
+      --palette-gray-0: oklch(96% 0.005 264);
+      --palette-gray-1: oklch(82% 0.01 264);
+      --palette-gray-2: oklch(58% 0.01 264);
+      --palette-gray-3: oklch(22% 0.015 264);
 
       /* Tier 2: Theme — semantic pointers to palette */
-      --theme-fg: var(--palette-gray-900);
-      --theme-bg: var(--palette-gray-100);
-      --theme-accent: var(--palette-blue-500);
-      --theme-accent-subtle: var(--palette-blue-100);
+      --theme-fg: var(--palette-gray-3);
+      --theme-bg: var(--palette-gray-0);
+      --theme-accent: var(--palette-blue-1);
+      --theme-accent-subtle: var(--palette-blue-0);
       --theme-accent-fg: oklch(98% 0.01 250);
-      --theme-muted: var(--palette-gray-500);
-      --theme-border: var(--palette-gray-300);
-      --theme-error: var(--palette-red-500);
-      --theme-success: var(--palette-green-500);
+      --theme-muted: var(--palette-gray-2);
+      --theme-border: var(--palette-gray-1);
+      --theme-error: var(--palette-red-0);
+      --theme-success: var(--palette-green-0);
     }
     .theme-demo {
       display: grid;
@@ -358,7 +535,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 
 ```css
 .product-card {
-  --_card-variant: var(--palette-blue-500);
+  --_card-variant: var(--palette-blue-1);
   --_card-shadow: oklch(58% 0.2 250 / 0.25);
 }
 ```
@@ -403,25 +580,25 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
     </div>
     </div>`}
   css={`    :root {
-      --palette-blue-300: oklch(74% 0.14 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-700: oklch(42% 0.16 250);
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-blue-0: oklch(74% 0.14 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-blue-2: oklch(42% 0.16 250);
+      --palette-gray-0: oklch(96% 0.005 264);
+      --palette-gray-1: oklch(82% 0.01 264);
+      --palette-gray-2: oklch(58% 0.01 264);
+      --palette-gray-3: oklch(22% 0.015 264);
 
-      --theme-fg: var(--palette-gray-900);
-      --theme-muted: var(--palette-gray-500);
-      --theme-border: var(--palette-gray-300);
-      --theme-accent: var(--palette-blue-500);
+      --theme-fg: var(--palette-gray-3);
+      --theme-muted: var(--palette-gray-2);
+      --theme-border: var(--palette-gray-1);
+      --theme-accent: var(--palette-blue-1);
     }
     /* Tier 3: Component-scoped colors */
     .product-card {
       /* Default variant colors — referencing palette */
-      --_card-variant: var(--palette-blue-500);
-      --_card-variant-light: var(--palette-blue-300);
-      --_card-variant-dark: var(--palette-blue-700);
+      --_card-variant: var(--palette-blue-1);
+      --_card-variant-light: var(--palette-blue-0);
+      --_card-variant-dark: var(--palette-blue-2);
       /* Shadow uses palette with transparency */
       --_card-shadow: oklch(58% 0.2 250 / 0.25);
 
@@ -486,7 +663,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
       gap: 0.75rem;
       padding: 1.5rem;
       font-family: system-ui, sans-serif;
-      background: var(--palette-gray-100);
+      background: var(--palette-gray-0);
       height: 100%;
       box-sizing: border-box;
       align-items: flex-start;
@@ -504,14 +681,14 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
     <div class="full-demo__code">
       <div class="code-block">
         <div class="code-block__label">Tier 1: Palette</div>
-        <code>--palette-blue-500: oklch(58% 0.2 250);</code>
-        <code>--palette-gray-900: oklch(22% ...);</code>
+        <code>--palette-blue-1: oklch(58% 0.2 250);</code>
+        <code>--palette-gray-5: oklch(22% ...);</code>
       </div>
       <div class="code-block__arrow">&darr;</div>
       <div class="code-block">
         <div class="code-block__label">Tier 2: Theme</div>
-        <code>--theme-accent: var(--palette-blue-500);</code>
-        <code>--theme-fg: var(--palette-gray-900);</code>
+        <code>--theme-accent: var(--palette-blue-1);</code>
+        <code>--theme-fg: var(--palette-gray-5);</code>
       </div>
       <div class="code-block__arrow">&darr;</div>
       <div class="code-block">
@@ -548,30 +725,30 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
     </div>`}
   css={`    :root {
       /* ===== Tier 1: Palette ===== */
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-700: oklch(42% 0.16 250);
-      --palette-green-100: oklch(94% 0.06 150);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-gray-50:  oklch(98% 0.003 264);
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-800: oklch(30% 0.015 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-blue-2: oklch(42% 0.16 250);
+      --palette-green-0: oklch(94% 0.06 150);
+      --palette-green-1: oklch(58% 0.18 150);
+      --palette-gray-0:  oklch(98% 0.003 264);
+      --palette-gray-1: oklch(96% 0.005 264);
+      --palette-gray-2: oklch(82% 0.01 264);
+      --palette-gray-3: oklch(58% 0.01 264);
+      --palette-gray-4: oklch(30% 0.015 264);
+      --palette-gray-5: oklch(22% 0.015 264);
 
       /* ===== Tier 2: Theme ===== */
-      --theme-fg:           var(--palette-gray-900);
-      --theme-bg:           var(--palette-gray-50);
+      --theme-fg:           var(--palette-gray-5);
+      --theme-bg:           var(--palette-gray-0);
       --theme-surface:      oklch(100% 0 0);
-      --theme-accent:       var(--palette-blue-500);
-      --theme-accent-hover: var(--palette-blue-700);
-      --theme-accent-subtle: var(--palette-blue-100);
+      --theme-accent:       var(--palette-blue-1);
+      --theme-accent-hover: var(--palette-blue-2);
+      --theme-accent-subtle: var(--palette-blue-0);
       --theme-accent-fg:    oklch(98% 0.01 250);
-      --theme-muted:        var(--palette-gray-500);
-      --theme-border:       var(--palette-gray-300);
-      --theme-success:      var(--palette-green-500);
-      --theme-success-bg:   var(--palette-green-100);
+      --theme-muted:        var(--palette-gray-3);
+      --theme-border:       var(--palette-gray-2);
+      --theme-success:      var(--palette-green-1);
+      --theme-success-bg:   var(--palette-green-0);
     }
     /* ===== Tier 3: Component ===== */
     .demo-btn--primary {
@@ -594,7 +771,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
       gap: 0.2rem;
     }
     .code-block {
-      background: var(--palette-gray-800);
+      background: var(--palette-gray-4);
       border-radius: 6px;
       padding: 0.5rem 0.6rem;
       display: flex;
@@ -752,9 +929,9 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
     </div>`}
   css={`    :root {
       /* Tier 1: Palette (same for all themes) */
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-orange-500: oklch(65% 0.2 55);
-      --palette-purple-500: oklch(55% 0.22 300);
+      --palette-blue-0: oklch(58% 0.2 250);
+      --palette-orange-0: oklch(65% 0.2 55);
+      --palette-purple-0: oklch(55% 0.22 300);
     }
     .swap-demo {
       display: grid;
@@ -768,7 +945,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
       --theme-surface: oklch(100% 0 0);
       --theme-fg: oklch(22% 0.015 250);
       --theme-muted: oklch(55% 0.01 250);
-      --theme-accent: var(--palette-blue-500);
+      --theme-accent: var(--palette-blue-0);
       --theme-accent-fg: oklch(98% 0.01 250);
       --theme-border: oklch(85% 0.01 250);
     }
@@ -777,7 +954,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
       --theme-surface: oklch(100% 0 0);
       --theme-fg: oklch(25% 0.02 55);
       --theme-muted: oklch(55% 0.015 55);
-      --theme-accent: var(--palette-orange-500);
+      --theme-accent: var(--palette-orange-0);
       --theme-accent-fg: oklch(20% 0.05 55);
       --theme-border: oklch(85% 0.015 55);
     }
@@ -786,7 +963,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
       --theme-surface: oklch(24% 0.02 300);
       --theme-fg: oklch(90% 0.01 300);
       --theme-muted: oklch(60% 0.01 300);
-      --theme-accent: var(--palette-purple-500);
+      --theme-accent: var(--palette-purple-0);
       --theme-accent-fg: oklch(95% 0.01 300);
       --theme-border: oklch(32% 0.02 300);
     }
@@ -843,43 +1020,43 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 ```css
 /* ===== tokens/palette.css — Tier 1 ===== */
 :root {
-  --palette-blue-100: oklch(92% 0.06 250);
-  --palette-blue-300: oklch(74% 0.14 250);
-  --palette-blue-500: oklch(58% 0.2 250);
-  --palette-blue-700: oklch(42% 0.16 250);
-  --palette-blue-900: oklch(28% 0.1 250);
+  --palette-blue-0: oklch(92% 0.06 250);
+  --palette-blue-1: oklch(74% 0.14 250);
+  --palette-blue-2: oklch(58% 0.2 250);
+  --palette-blue-3: oklch(42% 0.16 250);
+  --palette-blue-4: oklch(28% 0.1 250);
 
-  --palette-red-500:  oklch(58% 0.22 25);
-  --palette-green-500: oklch(58% 0.18 150);
-  --palette-amber-500: oklch(62% 0.18 65);
+  --palette-red-0:  oklch(58% 0.22 25);
+  --palette-green-0: oklch(58% 0.18 150);
+  --palette-amber-0: oklch(62% 0.18 65);
 
-  --palette-gray-50:  oklch(98% 0.003 264);
-  --palette-gray-100: oklch(96% 0.005 264);
-  --palette-gray-300: oklch(82% 0.01 264);
-  --palette-gray-500: oklch(58% 0.01 264);
-  --palette-gray-700: oklch(40% 0.015 264);
-  --palette-gray-900: oklch(22% 0.015 264);
+  --palette-gray-0:  oklch(98% 0.003 264);
+  --palette-gray-1: oklch(96% 0.005 264);
+  --palette-gray-2: oklch(82% 0.01 264);
+  --palette-gray-3: oklch(58% 0.01 264);
+  --palette-gray-4: oklch(40% 0.015 264);
+  --palette-gray-5: oklch(22% 0.015 264);
 }
 
 /* ===== tokens/theme.css — Tier 2 ===== */
 :root {
   /* Layout */
-  --theme-fg:            var(--palette-gray-900);
-  --theme-bg:            var(--palette-gray-50);
+  --theme-fg:            var(--palette-gray-5);
+  --theme-bg:            var(--palette-gray-0);
   --theme-surface:       oklch(100% 0 0);
-  --theme-border:        var(--palette-gray-300);
-  --theme-muted:         var(--palette-gray-500);
+  --theme-border:        var(--palette-gray-2);
+  --theme-muted:         var(--palette-gray-3);
 
   /* Interactive */
-  --theme-accent:        var(--palette-blue-500);
-  --theme-accent-hover:  var(--palette-blue-700);
-  --theme-accent-subtle: var(--palette-blue-100);
+  --theme-accent:        var(--palette-blue-2);
+  --theme-accent-hover:  var(--palette-blue-3);
+  --theme-accent-subtle: var(--palette-blue-0);
   --theme-accent-fg:     oklch(98% 0.01 250);
 
   /* Feedback */
-  --theme-error:         var(--palette-red-500);
-  --theme-success:       var(--palette-green-500);
-  --theme-warning:       var(--palette-amber-500);
+  --theme-error:         var(--palette-red-0);
+  --theme-success:       var(--palette-green-0);
+  --theme-warning:       var(--palette-amber-0);
 }
 
 /* ===== components/button.css — Tier 3 ===== */
@@ -900,7 +1077,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 /* ===== components/product-card.css — Tier 3 ===== */
 .product-card {
   /* Colors unique to this component, not in theme */
-  --_card-variant: var(--palette-blue-500);
+  --_card-variant: var(--palette-blue-2);
   --_card-glow: oklch(from var(--_card-variant) l c h / 0.15);
 }
 .product-card--sunset {
@@ -940,27 +1117,27 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
     <style>
     :root {
       /* Tier 1: Palette */
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-700: oklch(42% 0.16 250);
-      --palette-red-500: oklch(58% 0.22 25);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-gray-50: oklch(98% 0.003 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-blue-2: oklch(42% 0.16 250);
+      --palette-red-0: oklch(58% 0.22 25);
+      --palette-green-0: oklch(58% 0.18 150);
+      --palette-gray-0: oklch(98% 0.003 264);
+      --palette-gray-1: oklch(82% 0.01 264);
+      --palette-gray-2: oklch(58% 0.01 264);
+      --palette-gray-3: oklch(22% 0.015 264);
 
       /* Tier 2: Theme — pointers to palette */
-      --theme-fg: var(--palette-gray-900);
-      --theme-bg: var(--palette-gray-50);
+      --theme-fg: var(--palette-gray-3);
+      --theme-bg: var(--palette-gray-0);
       --theme-surface: oklch(100% 0 0);
-      --theme-accent: var(--palette-blue-500);
-      --theme-accent-hover: var(--palette-blue-700);
+      --theme-accent: var(--palette-blue-1);
+      --theme-accent-hover: var(--palette-blue-2);
       --theme-accent-fg: oklch(98% 0.01 250);
-      --theme-muted: var(--palette-gray-500);
-      --theme-border: var(--palette-gray-300);
-      --theme-success: var(--palette-green-500);
-      --theme-error: var(--palette-red-500);
+      --theme-muted: var(--palette-gray-2);
+      --theme-border: var(--palette-gray-1);
+      --theme-success: var(--palette-green-0);
+      --theme-error: var(--palette-red-0);
     }
     </style>
 
@@ -1143,31 +1320,31 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
     </div>`}
   css={`    /* Tier 1: Palette — identical for both modes */
     :root {
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-gray-50: oklch(98% 0.003 264);
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-800: oklch(30% 0.015 264);
-      --palette-gray-900: oklch(22% 0.015 264);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-green-100: oklch(94% 0.06 150);
-      --palette-green-900: oklch(28% 0.1 150);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-gray-0: oklch(98% 0.003 264);
+      --palette-gray-1: oklch(96% 0.005 264);
+      --palette-gray-2: oklch(82% 0.01 264);
+      --palette-gray-3: oklch(58% 0.01 264);
+      --palette-gray-4: oklch(30% 0.015 264);
+      --palette-gray-5: oklch(22% 0.015 264);
+      --palette-green-0: oklch(94% 0.06 150);
+      --palette-green-1: oklch(58% 0.18 150);
+      --palette-green-2: oklch(28% 0.1 150);
     }
     /* Tier 2: Light theme — Tier 2 maps palette to semantic roles */
     .dm-col--light {
       color-scheme: light;
-      --theme-bg: var(--palette-gray-50);
+      --theme-bg: var(--palette-gray-0);
       --theme-surface: oklch(100% 0 0);
-      --theme-fg: var(--palette-gray-900);
-      --theme-muted: var(--palette-gray-500);
-      --theme-border: var(--palette-gray-300);
-      --theme-accent: var(--palette-blue-500);
+      --theme-fg: var(--palette-gray-5);
+      --theme-muted: var(--palette-gray-3);
+      --theme-border: var(--palette-gray-2);
+      --theme-accent: var(--palette-blue-1);
       --theme-accent-fg: oklch(98% 0.01 250);
-      --theme-accent-subtle: var(--palette-blue-100);
-      --theme-success: var(--palette-green-500);
-      --theme-success-bg: var(--palette-green-100);
+      --theme-accent-subtle: var(--palette-blue-0);
+      --theme-success: var(--palette-green-1);
+      --theme-success-bg: var(--palette-green-0);
       --theme-success-fg: oklch(30% 0.08 150);
     }
     /* Tier 2: Dark theme — same tokens, different palette picks */
@@ -1261,12 +1438,12 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 :root {
   color-scheme: light dark;
 
-  --theme-bg: light-dark(var(--palette-gray-50), oklch(15% 0.01 264));
+  --theme-bg: light-dark(var(--palette-gray-0), oklch(15% 0.01 264));
   --theme-surface: light-dark(oklch(100% 0 0), oklch(20% 0.015 264));
-  --theme-fg: light-dark(var(--palette-gray-900), oklch(92% 0.005 264));
-  --theme-muted: light-dark(var(--palette-gray-500), oklch(60% 0.01 264));
-  --theme-border: light-dark(var(--palette-gray-300), oklch(30% 0.015 264));
-  --theme-accent: light-dark(var(--palette-blue-500), oklch(70% 0.17 250));
+  --theme-fg: light-dark(var(--palette-gray-5), oklch(92% 0.005 264));
+  --theme-muted: light-dark(var(--palette-gray-3), oklch(60% 0.01 264));
+  --theme-border: light-dark(var(--palette-gray-2), oklch(30% 0.015 264));
+  --theme-accent: light-dark(var(--palette-blue-1), oklch(70% 0.17 250));
   --theme-accent-fg: light-dark(oklch(98% 0.01 250), oklch(15% 0.01 250));
 }
 ```
@@ -1275,10 +1452,12 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 ## AI がよくやるミス
 
-- **ティア 2 をスキップする** — パレットカラーをコンポーネントで直接使う（`color: var(--palette-blue-500)`）と目的が台無しになります。ブランドが変わったとき、すべてのコンポーネントを更新しなければなりません
+- **ティア 2 をスキップする** — パレットカラーをコンポーネントで直接使う（`color: var(--palette-blue-0)`）と目的が台無しになります。ブランドが変わったとき、すべてのコンポーネントを更新しなければなりません
 - **ティア 3 の変数が多すぎる** — コンポーネントが 10 個以上のローカルカラー変数を定義している場合、テーマ層を再発明している可能性があります。ティア 2 に昇格させましょう
 - **パレットとテーマを分離していない** — `--primary: oklch(58% 0.2 250)` のように定義すると、生の値とセマンティックな意味が混在し、パレットの交換が不可能になります
 - **命名の不統一** — 同じ層で `--color-primary`、`--brand-blue`、`--accent` を混在させると混乱を招きます。ティアごとに一貫したプレフィックスを使いましょう（`--palette-*`、`--theme-*`）
+- **グループのために4番目のティアを発明する** — グループ化（グレースケール / ブランド / アクセント）は新しいティアではありません。ティア 1 の内側に命名規則（`--palette-{group}-{n}`）として存在します。Palette → Theme → Component の上に別の `--group-*` 層を追加しても、間接参照が増えるだけです
+- **`--palette-*` に Tailwind の `100`〜`900` のステップスケールを流用する** — それらの数字は Tailwind のカラーシステムに紐づいた絶対的なスケールであり、`500` は常に特定の中間調を指します。自前のパレットトークンは単なる識別子なので、各グループを順番に採番してください（`--palette-blue-0`、`-1`、`-2`、…）。`--palette-blue-500` と `--palette-gray-0` が混在しているのが見分けるサインです。どちらか一方の規則に統一しましょう。手作りのパレットでは連番のインデックスが自然な選択です
 - **ティア 1 が小さすぎる** — パレットに 5 色しかないと、コンポーネントが独自の生の値を発明せざるを得なくなり（ハードコードされた値のティア 3 カラー）、システムが崩壊します
 - **Tailwind ユーティリティにカラーをハードコードする** — `bg-blue-500` を `bg-theme-accent` の代わりに使うと、テーマ層を完全にバイパスしてしまいます
 
@@ -1299,6 +1478,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 ## 関連記事
 
 - [カラーパレット戦略](../color-palette-strategy/) — パレットカラー（ティア 1）の選び方と生成方法
+- [OKLCH カラースペース](./oklch-color-space.mdx) — OKLCH がパレットグループ内で知覚的に均等なステップを生み出す理由（グレースケール = ほぼゼロのクロマでの L ランプ、ブランド = 色相固定での明度ランプ）
 - [ダークモード戦略](../dark-mode-strategies/) — ティア 2 のトークン切り替えと連携するダークモードのテクニック
 - [カスタムプロパティ上級編](../../../methodology/design-systems/custom-properties-advanced/) — フォールバックチェーン、スペーストグル、3層パターンを実装するコンポーネント API
 - [テーマレシピ](../../methodology/design-systems/custom-properties-advanced/theming-recipes) — このアーキテクチャを使った本番向けテーマレシピ
