@@ -153,6 +153,183 @@ import TailwindPreview from '@/components/TailwindPreview';
       border-radius: 5px;
     }`} />
 
+### パレットのグループ化（ティア 1 の内側）
+
+実際のプロジェクトでは、パレットが色の平坦な寄せ集めであることはまれです。パレットは頭の中で独立した**グループ**に整理されています。グレースケールのグループ（背景、前景、その間のグレー）、ブランドのグループ、そして1つ以上のアクセントのグループです。これらのグループは単一のスケールを共有しませんが、開発者はそれぞれをまとまった単位として捉えます。3つのティアは変わりません。足りないのは、その整理をティア 1 の*内側で*明示的にする方法です。
+
+:::note[グループ化は4番目のティアではありません]
+グループはパレットティア**の内側**にある整理と命名の層であり、Palette → Theme → Component の上に積み重なる新しいティアではありません。`--group-*` の層を追加しないでください。グループ化はパレットトークンの名前そのもので表現します。
+:::
+
+パレットトークンに `--palette-{group}-{n}` という名前を付けます。`{group}` セグメントはランプ（ramp）の名前を表し、`{n}` はその中のステップを表します。
+
+```css
+:root {
+  /* Tier 1 — Palette, organized into named groups: --palette-{group}-{n} */
+
+  /* grayscale: fg/bg endpoints + grays between — an L ramp at ~0 chroma */
+  --palette-gray-0: oklch(98% 0.003 264); /* bg end */
+  --palette-gray-1: oklch(92% 0.004 264);
+  /* … through … */
+  --palette-gray-8: oklch(20% 0.008 264); /* fg end */
+
+  /* brand: an L ramp at a fixed hue + chroma */
+  --palette-brand-0: oklch(95% 0.03 250);
+  --palette-brand-4: oklch(52% 0.18 250);
+  --palette-brand-6: oklch(32% 0.11 250);
+
+  /* accent: a second, independent ramp */
+  --palette-accent-0: oklch(95% 0.03 50);
+  --palette-accent-5: oklch(45% 0.13 50);
+}
+```
+
+メンタルモデルはグリッドです。**Y 軸 = グループ（どのランプか）、X 軸 = グループ内のステップ**です。各グループは通常、1つか2つの OKLCH チャンネルにおける滑らかなランプです。グレースケールはほぼゼロのクロマでの明度ランプであり、ブランドのランプは色相とクロマを固定して明度を変化させます。これらのランプの選び方と生成方法については[カラーパレット戦略](./color-palette-strategy.mdx)を、ステップを知覚的に均等に保つ方法については[OKLCH カラースペース](./oklch-color-space.mdx)を参照してください。
+
+<CssPreview client:load
+  title="パレットのグループ化 — 行がグループ、列がステップ"
+  height={320}
+  html={`    <div class="pgroup-demo">
+    <h3 class="pgroup-demo__title">Palette grouping (Tier 1)</h3>
+    <p class="pgroup-demo__desc">Y = group (row) · X = step (column, 0 → max). Independent ramps, one naming scheme.</p>
+    <div class="pgroup-demo__rows">
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">gray</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-5)"></span><span class="pgroup-step__n">5</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-6)"></span><span class="pgroup-step__n">6</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-7)"></span><span class="pgroup-step__n">7</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-8)"></span><span class="pgroup-step__n">8</span></div>
+        </div>
+      </div>
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">brand</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-5)"></span><span class="pgroup-step__n">5</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-6)"></span><span class="pgroup-step__n">6</span></div>
+        </div>
+      </div>
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">accent</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-5)"></span><span class="pgroup-step__n">5</span></div>
+        </div>
+      </div>
+    </div>
+    </div>`}
+  css={`    :root {
+      /* Tier 1 — Palette, grouped: --palette-{group}-{n} (Y = group, X = step) */
+      --palette-gray-0: oklch(98% 0.003 264);
+      --palette-gray-1: oklch(92% 0.004 264);
+      --palette-gray-2: oklch(85% 0.005 264);
+      --palette-gray-3: oklch(76% 0.006 264);
+      --palette-gray-4: oklch(64% 0.007 264);
+      --palette-gray-5: oklch(52% 0.008 264);
+      --palette-gray-6: oklch(40% 0.008 264);
+      --palette-gray-7: oklch(30% 0.008 264);
+      --palette-gray-8: oklch(20% 0.008 264);
+
+      --palette-brand-0: oklch(95% 0.03 250);
+      --palette-brand-1: oklch(86% 0.07 250);
+      --palette-brand-2: oklch(74% 0.12 250);
+      --palette-brand-3: oklch(62% 0.17 250);
+      --palette-brand-4: oklch(52% 0.18 250);
+      --palette-brand-5: oklch(42% 0.15 250);
+      --palette-brand-6: oklch(32% 0.11 250);
+
+      --palette-accent-0: oklch(95% 0.03 50);
+      --palette-accent-1: oklch(85% 0.08 50);
+      --palette-accent-2: oklch(74% 0.13 50);
+      --palette-accent-3: oklch(64% 0.16 50);
+      --palette-accent-4: oklch(55% 0.16 50);
+      --palette-accent-5: oklch(45% 0.13 50);
+    }
+    .pgroup-demo {
+      padding: 1.25rem;
+      font-family: system-ui, sans-serif;
+      background: oklch(99% 0 0);
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .pgroup-demo__title {
+      margin: 0 0 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: oklch(25% 0 0);
+    }
+    .pgroup-demo__desc {
+      margin: 0 0 0.85rem;
+      font-size: 0.75rem;
+      color: oklch(50% 0 0);
+    }
+    .pgroup-demo__rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .pgroup-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .pgroup-row__label {
+      width: 52px;
+      flex-shrink: 0;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: oklch(40% 0 0);
+    }
+    .pgroup-row__steps {
+      display: flex;
+      flex: 1;
+      gap: 4px;
+    }
+    .pgroup-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .pgroup-step__chip {
+      width: 100%;
+      height: 30px;
+      border-radius: 5px;
+      box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.08);
+    }
+    .pgroup-step__n {
+      font-size: 0.75rem;
+      color: oklch(55% 0 0);
+      font-variant-numeric: tabular-nums;
+    }`} />
+
+ティア 2 は変わりません。セマンティックな役割は依然として特定のパレットエントリを指します。今はその名前にグループが見えるようになっただけです。
+
+```css
+:root {
+  /* Tier 2 — Theme: semantic roles point at specific grouped entries */
+  --theme-bg:     var(--palette-gray-0);
+  --theme-fg:     var(--palette-gray-8);
+  --theme-accent: var(--palette-brand-4);
+}
+```
+
 ### ティア 2: テーマ
 
 テーマトークンはパレットカラーに**セマンティックな意味**を与えます。「blue-500」の代わりに、コンポーネントは「アクセントカラー」や「前景色」を参照します。この層がリデザインを容易にします。`--theme-accent` をブルーからインディゴに一箇所で変更するだけで、すべてのコンポーネントが更新されます。
@@ -1279,6 +1456,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 - **ティア 3 の変数が多すぎる** — コンポーネントが 10 個以上のローカルカラー変数を定義している場合、テーマ層を再発明している可能性があります。ティア 2 に昇格させましょう
 - **パレットとテーマを分離していない** — `--primary: oklch(58% 0.2 250)` のように定義すると、生の値とセマンティックな意味が混在し、パレットの交換が不可能になります
 - **命名の不統一** — 同じ層で `--color-primary`、`--brand-blue`、`--accent` を混在させると混乱を招きます。ティアごとに一貫したプレフィックスを使いましょう（`--palette-*`、`--theme-*`）
+- **グループのために4番目のティアを発明する** — グループ化（グレースケール / ブランド / アクセント）は新しいティアではありません。ティア 1 の内側に命名規則（`--palette-{group}-{n}`）として存在します。Palette → Theme → Component の上に別の `--group-*` 層を追加しても、間接参照が増えるだけです
 - **ティア 1 が小さすぎる** — パレットに 5 色しかないと、コンポーネントが独自の生の値を発明せざるを得なくなり（ハードコードされた値のティア 3 カラー）、システムが崩壊します
 - **Tailwind ユーティリティにカラーをハードコードする** — `bg-blue-500` を `bg-theme-accent` の代わりに使うと、テーマ層を完全にバイパスしてしまいます
 
@@ -1299,6 +1477,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 ## 関連記事
 
 - [カラーパレット戦略](../color-palette-strategy/) — パレットカラー（ティア 1）の選び方と生成方法
+- [OKLCH カラースペース](./oklch-color-space.mdx) — OKLCH がパレットグループ内で知覚的に均等なステップを生み出す理由（グレースケール = ほぼゼロのクロマでの L ランプ、ブランド = 色相・クロマ固定での L ランプ）
 - [ダークモード戦略](../dark-mode-strategies/) — ティア 2 のトークン切り替えと連携するダークモードのテクニック
 - [カスタムプロパティ上級編](../../../methodology/design-systems/custom-properties-advanced/) — フォールバックチェーン、スペーストグル、3層パターンを実装するコンポーネント API
 - [テーマレシピ](../../methodology/design-systems/custom-properties-advanced/theming-recipes) — このアーキテクチャを使った本番向けテーマレシピ
