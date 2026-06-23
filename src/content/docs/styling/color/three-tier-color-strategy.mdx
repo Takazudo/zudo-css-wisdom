@@ -153,6 +153,183 @@ The palette is the raw material — every color available in the system. These a
       border-radius: 5px;
     }`} />
 
+### Palette grouping (within Tier 1)
+
+In real projects the palette is rarely a flat bag of colors. It is mentally organized into independent **groups** — a grayscale group (background, foreground, and the grays between), a brand group, and one or more accent groups. These groups share no single scale, but developers reason about them as units. The three tiers do not change; what is missing is a way to make that organization explicit *inside* Tier 1.
+
+:::note[Grouping is not a fourth tier]
+A group is an organization and naming layer **within** the Palette tier — not a new tier stacked on top of Palette → Theme → Component. Do not add a `--group-*` layer; express the grouping through the palette token name itself.
+:::
+
+Name palette tokens `--palette-{group}-{n}`: the `{group}` segment names the ramp, and `{n}` is the step within it.
+
+```css
+:root {
+  /* Tier 1 — Palette, organized into named groups: --palette-{group}-{n} */
+
+  /* grayscale: fg/bg endpoints + grays between — an L ramp at ~0 chroma */
+  --palette-gray-0: oklch(98% 0.003 264); /* bg end */
+  --palette-gray-1: oklch(92% 0.004 264);
+  /* … through … */
+  --palette-gray-8: oklch(20% 0.008 264); /* fg end */
+
+  /* brand: an L ramp at a fixed hue + chroma */
+  --palette-brand-0: oklch(95% 0.03 250);
+  --palette-brand-4: oklch(52% 0.18 250);
+  --palette-brand-6: oklch(32% 0.11 250);
+
+  /* accent: a second, independent ramp */
+  --palette-accent-0: oklch(95% 0.03 50);
+  --palette-accent-5: oklch(45% 0.13 50);
+}
+```
+
+The mental model is a grid: **Y axis = group (which ramp), X axis = step within the group**. Each group is usually a smooth ramp in one or two OKLCH channels — grayscale is a lightness ramp at near-zero chroma; a brand ramp holds hue and chroma fixed and varies lightness. See [Color Palette Strategy](./color-palette-strategy.mdx) for choosing and generating these ramps, and [OKLCH Color Space](./oklch-color-space.mdx) for keeping the steps perceptually even.
+
+<CssPreview client:load
+  title="Palette grouping — groups as rows, steps as columns"
+  height={320}
+  html={`    <div class="pgroup-demo">
+    <h3 class="pgroup-demo__title">Palette grouping (Tier 1)</h3>
+    <p class="pgroup-demo__desc">Y = group (row) · X = step (column, 0 → max). Independent ramps, one naming scheme.</p>
+    <div class="pgroup-demo__rows">
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">gray</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-5)"></span><span class="pgroup-step__n">5</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-6)"></span><span class="pgroup-step__n">6</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-7)"></span><span class="pgroup-step__n">7</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-gray-8)"></span><span class="pgroup-step__n">8</span></div>
+        </div>
+      </div>
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">brand</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-5)"></span><span class="pgroup-step__n">5</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-brand-6)"></span><span class="pgroup-step__n">6</span></div>
+        </div>
+      </div>
+      <div class="pgroup-row">
+        <span class="pgroup-row__label">accent</span>
+        <div class="pgroup-row__steps">
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-0)"></span><span class="pgroup-step__n">0</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-1)"></span><span class="pgroup-step__n">1</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-2)"></span><span class="pgroup-step__n">2</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-3)"></span><span class="pgroup-step__n">3</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-4)"></span><span class="pgroup-step__n">4</span></div>
+          <div class="pgroup-step"><span class="pgroup-step__chip" style="background: var(--palette-accent-5)"></span><span class="pgroup-step__n">5</span></div>
+        </div>
+      </div>
+    </div>
+    </div>`}
+  css={`    :root {
+      /* Tier 1 — Palette, grouped: --palette-{group}-{n} (Y = group, X = step) */
+      --palette-gray-0: oklch(98% 0.003 264);
+      --palette-gray-1: oklch(92% 0.004 264);
+      --palette-gray-2: oklch(85% 0.005 264);
+      --palette-gray-3: oklch(76% 0.006 264);
+      --palette-gray-4: oklch(64% 0.007 264);
+      --palette-gray-5: oklch(52% 0.008 264);
+      --palette-gray-6: oklch(40% 0.008 264);
+      --palette-gray-7: oklch(30% 0.008 264);
+      --palette-gray-8: oklch(20% 0.008 264);
+
+      --palette-brand-0: oklch(95% 0.03 250);
+      --palette-brand-1: oklch(86% 0.07 250);
+      --palette-brand-2: oklch(74% 0.12 250);
+      --palette-brand-3: oklch(62% 0.17 250);
+      --palette-brand-4: oklch(52% 0.18 250);
+      --palette-brand-5: oklch(42% 0.15 250);
+      --palette-brand-6: oklch(32% 0.11 250);
+
+      --palette-accent-0: oklch(95% 0.03 50);
+      --palette-accent-1: oklch(85% 0.08 50);
+      --palette-accent-2: oklch(74% 0.13 50);
+      --palette-accent-3: oklch(64% 0.16 50);
+      --palette-accent-4: oklch(55% 0.16 50);
+      --palette-accent-5: oklch(45% 0.13 50);
+    }
+    .pgroup-demo {
+      padding: 1.25rem;
+      font-family: system-ui, sans-serif;
+      background: oklch(99% 0 0);
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .pgroup-demo__title {
+      margin: 0 0 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: oklch(25% 0 0);
+    }
+    .pgroup-demo__desc {
+      margin: 0 0 0.85rem;
+      font-size: 0.75rem;
+      color: oklch(50% 0 0);
+    }
+    .pgroup-demo__rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .pgroup-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .pgroup-row__label {
+      width: 52px;
+      flex-shrink: 0;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: oklch(40% 0 0);
+    }
+    .pgroup-row__steps {
+      display: flex;
+      flex: 1;
+      gap: 4px;
+    }
+    .pgroup-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .pgroup-step__chip {
+      width: 100%;
+      height: 30px;
+      border-radius: 5px;
+      box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.08);
+    }
+    .pgroup-step__n {
+      font-size: 0.75rem;
+      color: oklch(55% 0 0);
+      font-variant-numeric: tabular-nums;
+    }`} />
+
+Tier 2 is unchanged: semantic roles still point at specific palette entries — now with the group visible in the name.
+
+```css
+:root {
+  /* Tier 2 — Theme: semantic roles point at specific grouped entries */
+  --theme-bg:     var(--palette-gray-0);
+  --theme-fg:     var(--palette-gray-8);
+  --theme-accent: var(--palette-brand-4);
+}
+```
+
 ### Tier 2: The Theme
 
 Theme tokens give **semantic meaning** to palette colors. Instead of "blue-500", components see "accent color" or "foreground color". This is the layer that makes redesigns painless — change `--theme-accent` from blue to indigo in one place, and every component updates.
@@ -1279,6 +1456,7 @@ Tier 1 and Tier 3 stay exactly the same — only Tier 2 changes. Components neve
 - **Too many Tier 3 variables** — if a component defines 10+ local color variables, it's likely reinventing the theme layer; promote those to Tier 2
 - **Not separating palette from theme** — defining `--primary: oklch(58% 0.2 250)` mixes raw values with semantic meaning, making it impossible to swap palettes
 - **Inconsistent naming** — mixing `--color-primary`, `--brand-blue`, and `--accent` at the same level creates confusion; use consistent prefixes per tier (`--palette-*`, `--theme-*`)
+- **Inventing a fourth tier for groups** — grouping (grayscale / brand / accent) is not a new tier; it lives inside Tier 1 as a naming convention (`--palette-{group}-{n}`). Adding a separate `--group-*` layer on top of Palette → Theme → Component just adds indirection
 - **Making Tier 1 too small** — a palette with only 5 colors forces components to invent their own raw values (Tier 3 colors with hardcoded values), breaking the system
 - **Hardcoding colors in Tailwind utilities** — using `bg-blue-500` instead of `bg-theme-accent` bypasses the theme layer entirely
 
@@ -1299,6 +1477,7 @@ Tier 1 and Tier 3 stay exactly the same — only Tier 2 changes. Components neve
 ## Related Articles
 
 - [Color Palette Strategy](../color-palette-strategy/) — How to choose and generate palette colors (Tier 1)
+- [OKLCH Color Space](./oklch-color-space.mdx) — Why OKLCH gives perceptually-even steps within a palette group (grayscale = L ramp at ~0 chroma; brand = L ramp at fixed hue/chroma)
 - [Dark Mode Strategies](../dark-mode-strategies/) — Dark mode techniques that work with Tier 2 token swapping
 - [Advanced Custom Properties](../../../methodology/design-systems/custom-properties-advanced/) — Fallback chains, space toggles, and component APIs that implement the three-tier pattern
 - [Theming Recipes](../../methodology/design-systems/custom-properties-advanced/theming-recipes) — Production-ready theme recipes using this architecture
