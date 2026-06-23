@@ -21,7 +21,7 @@ Organize colors into **three tiers**, each with a clear purpose:
 
 | Tier | Name | Purpose | Example |
 |------|------|---------|---------|
-| 1 | **Palette** | Raw color values — the full set of available colors | `--palette-blue-500` |
+| 1 | **Palette** | Raw color values — the full set of available colors | `--palette-blue-0` |
 | 2 | **Theme** | Semantic roles — what each color *means* in the design | `--theme-fg`, `--theme-accent` |
 | 3 | **Component** | Scoped overrides — colors specific to one component | `--_button-shadow`, `--_card-highlight` |
 
@@ -43,70 +43,70 @@ The palette is the raw material — every color available in the system. These a
       <div class="palette-demo__group">
         <span class="palette-demo__label">Blue</span>
         <div class="palette-demo__swatches">
-          <div class="swatch" style="background: var(--palette-blue-100)"></div>
-          <div class="swatch" style="background: var(--palette-blue-300)"></div>
-          <div class="swatch" style="background: var(--palette-blue-500)"></div>
-          <div class="swatch" style="background: var(--palette-blue-700)"></div>
-          <div class="swatch" style="background: var(--palette-blue-900)"></div>
+          <div class="swatch" style="background: var(--palette-blue-0)"></div>
+          <div class="swatch" style="background: var(--palette-blue-1)"></div>
+          <div class="swatch" style="background: var(--palette-blue-2)"></div>
+          <div class="swatch" style="background: var(--palette-blue-3)"></div>
+          <div class="swatch" style="background: var(--palette-blue-4)"></div>
         </div>
       </div>
       <div class="palette-demo__group">
         <span class="palette-demo__label">Red</span>
         <div class="palette-demo__swatches">
-          <div class="swatch" style="background: var(--palette-red-100)"></div>
-          <div class="swatch" style="background: var(--palette-red-300)"></div>
-          <div class="swatch" style="background: var(--palette-red-500)"></div>
-          <div class="swatch" style="background: var(--palette-red-700)"></div>
-          <div class="swatch" style="background: var(--palette-red-900)"></div>
+          <div class="swatch" style="background: var(--palette-red-0)"></div>
+          <div class="swatch" style="background: var(--palette-red-1)"></div>
+          <div class="swatch" style="background: var(--palette-red-2)"></div>
+          <div class="swatch" style="background: var(--palette-red-3)"></div>
+          <div class="swatch" style="background: var(--palette-red-4)"></div>
         </div>
       </div>
       <div class="palette-demo__group">
         <span class="palette-demo__label">Gray</span>
         <div class="palette-demo__swatches">
-          <div class="swatch" style="background: var(--palette-gray-100)"></div>
-          <div class="swatch" style="background: var(--palette-gray-300)"></div>
-          <div class="swatch" style="background: var(--palette-gray-500)"></div>
-          <div class="swatch" style="background: var(--palette-gray-700)"></div>
-          <div class="swatch" style="background: var(--palette-gray-900)"></div>
+          <div class="swatch" style="background: var(--palette-gray-0)"></div>
+          <div class="swatch" style="background: var(--palette-gray-1)"></div>
+          <div class="swatch" style="background: var(--palette-gray-2)"></div>
+          <div class="swatch" style="background: var(--palette-gray-3)"></div>
+          <div class="swatch" style="background: var(--palette-gray-4)"></div>
         </div>
       </div>
       <div class="palette-demo__group">
         <span class="palette-demo__label">Green</span>
         <div class="palette-demo__swatches">
-          <div class="swatch" style="background: var(--palette-green-100)"></div>
-          <div class="swatch" style="background: var(--palette-green-300)"></div>
-          <div class="swatch" style="background: var(--palette-green-500)"></div>
-          <div class="swatch" style="background: var(--palette-green-700)"></div>
-          <div class="swatch" style="background: var(--palette-green-900)"></div>
+          <div class="swatch" style="background: var(--palette-green-0)"></div>
+          <div class="swatch" style="background: var(--palette-green-1)"></div>
+          <div class="swatch" style="background: var(--palette-green-2)"></div>
+          <div class="swatch" style="background: var(--palette-green-3)"></div>
+          <div class="swatch" style="background: var(--palette-green-4)"></div>
         </div>
       </div>
     </div>
     </div>`}
   css={`    :root {
       /* Tier 1: Palette — raw color values */
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-blue-300: oklch(74% 0.14 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-700: oklch(42% 0.16 250);
-      --palette-blue-900: oklch(28% 0.1 250);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(74% 0.14 250);
+      --palette-blue-2: oklch(58% 0.2 250);
+      --palette-blue-3: oklch(42% 0.16 250);
+      --palette-blue-4: oklch(28% 0.1 250);
 
-      --palette-red-100: oklch(92% 0.05 25);
-      --palette-red-300: oklch(72% 0.16 25);
-      --palette-red-500: oklch(58% 0.22 25);
-      --palette-red-700: oklch(42% 0.18 25);
-      --palette-red-900: oklch(28% 0.12 25);
+      --palette-red-0: oklch(92% 0.05 25);
+      --palette-red-1: oklch(72% 0.16 25);
+      --palette-red-2: oklch(58% 0.22 25);
+      --palette-red-3: oklch(42% 0.18 25);
+      --palette-red-4: oklch(28% 0.12 25);
 
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-700: oklch(40% 0.015 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-gray-0: oklch(96% 0.005 264);
+      --palette-gray-1: oklch(82% 0.01 264);
+      --palette-gray-2: oklch(58% 0.01 264);
+      --palette-gray-3: oklch(40% 0.015 264);
+      --palette-gray-4: oklch(22% 0.015 264);
 
-      --palette-green-100: oklch(94% 0.06 150);
-      --palette-green-300: oklch(76% 0.14 150);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-green-700: oklch(42% 0.14 150);
-      --palette-green-900: oklch(28% 0.1 150);
+      --palette-green-0: oklch(94% 0.06 150);
+      --palette-green-1: oklch(76% 0.14 150);
+      --palette-green-2: oklch(58% 0.18 150);
+      --palette-green-3: oklch(42% 0.14 150);
+      --palette-green-4: oklch(28% 0.1 150);
     }
     .palette-demo {
       padding: 1.25rem;
@@ -161,7 +161,7 @@ In real projects the palette is rarely a flat bag of colors. It is mentally orga
 A group is an organization and naming layer **within** the Palette tier — not a new tier stacked on top of Palette → Theme → Component. Do not add a `--group-*` layer; express the grouping through the palette token name itself.
 :::
 
-Name palette tokens `--palette-{group}-{n}`: the `{group}` segment names the ramp, and `{n}` is the step within it.
+Name palette tokens `--palette-{group}-{n}`: `{group}` names the ramp, and `{n}` is just an incremental identifier — `0` for the first color in the group, `1` for the next, and so on (lightest-first is a common ordering, not a rule). The number carries no inherent meaning; it is only a stable handle, like an auto-incrementing database ID. When a slot has a clear role you may use a descriptive name instead (`--palette-gray-fg`, `--palette-brand-logo`) — but keeping Tier 1 index-only is intentional: meaning belongs in Tier 2.
 
 ```css
 :root {
@@ -341,42 +341,42 @@ Theme tokens give **semantic meaning** to palette colors. Instead of "blue-500",
     <div class="theme-demo__col">
       <h3 class="theme-demo__title">Palette &rarr; Theme Mapping</h3>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-gray-900)"></div>
+        <div class="mapping__from" style="background: var(--palette-gray-3)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-fg</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-gray-100)"></div>
+        <div class="mapping__from" style="background: var(--palette-gray-0)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-bg</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-blue-500)"></div>
+        <div class="mapping__from" style="background: var(--palette-blue-1)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-accent</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-blue-100)"></div>
+        <div class="mapping__from" style="background: var(--palette-blue-0)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-accent-subtle</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-gray-500)"></div>
+        <div class="mapping__from" style="background: var(--palette-gray-2)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-muted</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-gray-300)"></div>
+        <div class="mapping__from" style="background: var(--palette-gray-1)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-border</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-red-500)"></div>
+        <div class="mapping__from" style="background: var(--palette-red-0)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-error</span>
       </div>
       <div class="mapping">
-        <div class="mapping__from" style="background: var(--palette-green-500)"></div>
+        <div class="mapping__from" style="background: var(--palette-green-0)"></div>
         <span class="mapping__arrow">&rarr;</span>
         <span class="mapping__to-name">--theme-success</span>
       </div>
@@ -403,25 +403,25 @@ Theme tokens give **semantic meaning** to palette colors. Instead of "blue-500",
     </div>
     </div>`}
   css={`    :root {
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-red-500: oklch(58% 0.22 25);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-red-0: oklch(58% 0.22 25);
+      --palette-green-0: oklch(58% 0.18 150);
+      --palette-gray-0: oklch(96% 0.005 264);
+      --palette-gray-1: oklch(82% 0.01 264);
+      --palette-gray-2: oklch(58% 0.01 264);
+      --palette-gray-3: oklch(22% 0.015 264);
 
       /* Tier 2: Theme — semantic pointers to palette */
-      --theme-fg: var(--palette-gray-900);
-      --theme-bg: var(--palette-gray-100);
-      --theme-accent: var(--palette-blue-500);
-      --theme-accent-subtle: var(--palette-blue-100);
+      --theme-fg: var(--palette-gray-3);
+      --theme-bg: var(--palette-gray-0);
+      --theme-accent: var(--palette-blue-1);
+      --theme-accent-subtle: var(--palette-blue-0);
       --theme-accent-fg: oklch(98% 0.01 250);
-      --theme-muted: var(--palette-gray-500);
-      --theme-border: var(--palette-gray-300);
-      --theme-error: var(--palette-red-500);
-      --theme-success: var(--palette-green-500);
+      --theme-muted: var(--palette-gray-2);
+      --theme-border: var(--palette-gray-1);
+      --theme-error: var(--palette-red-0);
+      --theme-success: var(--palette-green-0);
     }
     .theme-demo {
       display: grid;
@@ -535,7 +535,7 @@ Use a leading underscore (`--_`) for component-scoped custom properties to signa
 
 ```css
 .product-card {
-  --_card-variant: var(--palette-blue-500);
+  --_card-variant: var(--palette-blue-1);
   --_card-shadow: oklch(58% 0.2 250 / 0.25);
 }
 ```
@@ -580,25 +580,25 @@ In Tailwind + component-first projects (React, Vue, Astro with utility classes),
     </div>
     </div>`}
   css={`    :root {
-      --palette-blue-300: oklch(74% 0.14 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-700: oklch(42% 0.16 250);
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-blue-0: oklch(74% 0.14 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-blue-2: oklch(42% 0.16 250);
+      --palette-gray-0: oklch(96% 0.005 264);
+      --palette-gray-1: oklch(82% 0.01 264);
+      --palette-gray-2: oklch(58% 0.01 264);
+      --palette-gray-3: oklch(22% 0.015 264);
 
-      --theme-fg: var(--palette-gray-900);
-      --theme-muted: var(--palette-gray-500);
-      --theme-border: var(--palette-gray-300);
-      --theme-accent: var(--palette-blue-500);
+      --theme-fg: var(--palette-gray-3);
+      --theme-muted: var(--palette-gray-2);
+      --theme-border: var(--palette-gray-1);
+      --theme-accent: var(--palette-blue-1);
     }
     /* Tier 3: Component-scoped colors */
     .product-card {
       /* Default variant colors — referencing palette */
-      --_card-variant: var(--palette-blue-500);
-      --_card-variant-light: var(--palette-blue-300);
-      --_card-variant-dark: var(--palette-blue-700);
+      --_card-variant: var(--palette-blue-1);
+      --_card-variant-light: var(--palette-blue-0);
+      --_card-variant-dark: var(--palette-blue-2);
       /* Shadow uses palette with transparency */
       --_card-shadow: oklch(58% 0.2 250 / 0.25);
 
@@ -663,7 +663,7 @@ In Tailwind + component-first projects (React, Vue, Astro with utility classes),
       gap: 0.75rem;
       padding: 1.5rem;
       font-family: system-ui, sans-serif;
-      background: var(--palette-gray-100);
+      background: var(--palette-gray-0);
       height: 100%;
       box-sizing: border-box;
       align-items: flex-start;
@@ -681,14 +681,14 @@ Here's a complete example showing how the three tiers connect. Notice how easy i
     <div class="full-demo__code">
       <div class="code-block">
         <div class="code-block__label">Tier 1: Palette</div>
-        <code>--palette-blue-500: oklch(58% 0.2 250);</code>
-        <code>--palette-gray-900: oklch(22% ...);</code>
+        <code>--palette-blue-1: oklch(58% 0.2 250);</code>
+        <code>--palette-gray-5: oklch(22% ...);</code>
       </div>
       <div class="code-block__arrow">&darr;</div>
       <div class="code-block">
         <div class="code-block__label">Tier 2: Theme</div>
-        <code>--theme-accent: var(--palette-blue-500);</code>
-        <code>--theme-fg: var(--palette-gray-900);</code>
+        <code>--theme-accent: var(--palette-blue-1);</code>
+        <code>--theme-fg: var(--palette-gray-5);</code>
       </div>
       <div class="code-block__arrow">&darr;</div>
       <div class="code-block">
@@ -725,30 +725,30 @@ Here's a complete example showing how the three tiers connect. Notice how easy i
     </div>`}
   css={`    :root {
       /* ===== Tier 1: Palette ===== */
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-700: oklch(42% 0.16 250);
-      --palette-green-100: oklch(94% 0.06 150);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-gray-50:  oklch(98% 0.003 264);
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-800: oklch(30% 0.015 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-blue-2: oklch(42% 0.16 250);
+      --palette-green-0: oklch(94% 0.06 150);
+      --palette-green-1: oklch(58% 0.18 150);
+      --palette-gray-0:  oklch(98% 0.003 264);
+      --palette-gray-1: oklch(96% 0.005 264);
+      --palette-gray-2: oklch(82% 0.01 264);
+      --palette-gray-3: oklch(58% 0.01 264);
+      --palette-gray-4: oklch(30% 0.015 264);
+      --palette-gray-5: oklch(22% 0.015 264);
 
       /* ===== Tier 2: Theme ===== */
-      --theme-fg:           var(--palette-gray-900);
-      --theme-bg:           var(--palette-gray-50);
+      --theme-fg:           var(--palette-gray-5);
+      --theme-bg:           var(--palette-gray-0);
       --theme-surface:      oklch(100% 0 0);
-      --theme-accent:       var(--palette-blue-500);
-      --theme-accent-hover: var(--palette-blue-700);
-      --theme-accent-subtle: var(--palette-blue-100);
+      --theme-accent:       var(--palette-blue-1);
+      --theme-accent-hover: var(--palette-blue-2);
+      --theme-accent-subtle: var(--palette-blue-0);
       --theme-accent-fg:    oklch(98% 0.01 250);
-      --theme-muted:        var(--palette-gray-500);
-      --theme-border:       var(--palette-gray-300);
-      --theme-success:      var(--palette-green-500);
-      --theme-success-bg:   var(--palette-green-100);
+      --theme-muted:        var(--palette-gray-3);
+      --theme-border:       var(--palette-gray-2);
+      --theme-success:      var(--palette-green-1);
+      --theme-success-bg:   var(--palette-green-0);
     }
     /* ===== Tier 3: Component ===== */
     .demo-btn--primary {
@@ -771,7 +771,7 @@ Here's a complete example showing how the three tiers connect. Notice how easy i
       gap: 0.2rem;
     }
     .code-block {
-      background: var(--palette-gray-800);
+      background: var(--palette-gray-4);
       border-radius: 6px;
       padding: 0.5rem 0.6rem;
       display: flex;
@@ -929,9 +929,9 @@ The biggest advantage of the three-tier system is visible when you change the th
     </div>`}
   css={`    :root {
       /* Tier 1: Palette (same for all themes) */
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-orange-500: oklch(65% 0.2 55);
-      --palette-purple-500: oklch(55% 0.22 300);
+      --palette-blue-0: oklch(58% 0.2 250);
+      --palette-orange-0: oklch(65% 0.2 55);
+      --palette-purple-0: oklch(55% 0.22 300);
     }
     .swap-demo {
       display: grid;
@@ -945,7 +945,7 @@ The biggest advantage of the three-tier system is visible when you change the th
       --theme-surface: oklch(100% 0 0);
       --theme-fg: oklch(22% 0.015 250);
       --theme-muted: oklch(55% 0.01 250);
-      --theme-accent: var(--palette-blue-500);
+      --theme-accent: var(--palette-blue-0);
       --theme-accent-fg: oklch(98% 0.01 250);
       --theme-border: oklch(85% 0.01 250);
     }
@@ -954,7 +954,7 @@ The biggest advantage of the three-tier system is visible when you change the th
       --theme-surface: oklch(100% 0 0);
       --theme-fg: oklch(25% 0.02 55);
       --theme-muted: oklch(55% 0.015 55);
-      --theme-accent: var(--palette-orange-500);
+      --theme-accent: var(--palette-orange-0);
       --theme-accent-fg: oklch(20% 0.05 55);
       --theme-border: oklch(85% 0.015 55);
     }
@@ -963,7 +963,7 @@ The biggest advantage of the three-tier system is visible when you change the th
       --theme-surface: oklch(24% 0.02 300);
       --theme-fg: oklch(90% 0.01 300);
       --theme-muted: oklch(60% 0.01 300);
-      --theme-accent: var(--palette-purple-500);
+      --theme-accent: var(--palette-purple-0);
       --theme-accent-fg: oklch(95% 0.01 300);
       --theme-border: oklch(32% 0.02 300);
     }
@@ -1020,43 +1020,43 @@ Here's how a real project would organize the three tiers across files:
 ```css
 /* ===== tokens/palette.css — Tier 1 ===== */
 :root {
-  --palette-blue-100: oklch(92% 0.06 250);
-  --palette-blue-300: oklch(74% 0.14 250);
-  --palette-blue-500: oklch(58% 0.2 250);
-  --palette-blue-700: oklch(42% 0.16 250);
-  --palette-blue-900: oklch(28% 0.1 250);
+  --palette-blue-0: oklch(92% 0.06 250);
+  --palette-blue-1: oklch(74% 0.14 250);
+  --palette-blue-2: oklch(58% 0.2 250);
+  --palette-blue-3: oklch(42% 0.16 250);
+  --palette-blue-4: oklch(28% 0.1 250);
 
-  --palette-red-500:  oklch(58% 0.22 25);
-  --palette-green-500: oklch(58% 0.18 150);
-  --palette-amber-500: oklch(62% 0.18 65);
+  --palette-red-0:  oklch(58% 0.22 25);
+  --palette-green-0: oklch(58% 0.18 150);
+  --palette-amber-0: oklch(62% 0.18 65);
 
-  --palette-gray-50:  oklch(98% 0.003 264);
-  --palette-gray-100: oklch(96% 0.005 264);
-  --palette-gray-300: oklch(82% 0.01 264);
-  --palette-gray-500: oklch(58% 0.01 264);
-  --palette-gray-700: oklch(40% 0.015 264);
-  --palette-gray-900: oklch(22% 0.015 264);
+  --palette-gray-0:  oklch(98% 0.003 264);
+  --palette-gray-1: oklch(96% 0.005 264);
+  --palette-gray-2: oklch(82% 0.01 264);
+  --palette-gray-3: oklch(58% 0.01 264);
+  --palette-gray-4: oklch(40% 0.015 264);
+  --palette-gray-5: oklch(22% 0.015 264);
 }
 
 /* ===== tokens/theme.css — Tier 2 ===== */
 :root {
   /* Layout */
-  --theme-fg:            var(--palette-gray-900);
-  --theme-bg:            var(--palette-gray-50);
+  --theme-fg:            var(--palette-gray-5);
+  --theme-bg:            var(--palette-gray-0);
   --theme-surface:       oklch(100% 0 0);
-  --theme-border:        var(--palette-gray-300);
-  --theme-muted:         var(--palette-gray-500);
+  --theme-border:        var(--palette-gray-2);
+  --theme-muted:         var(--palette-gray-3);
 
   /* Interactive */
-  --theme-accent:        var(--palette-blue-500);
-  --theme-accent-hover:  var(--palette-blue-700);
-  --theme-accent-subtle: var(--palette-blue-100);
+  --theme-accent:        var(--palette-blue-2);
+  --theme-accent-hover:  var(--palette-blue-3);
+  --theme-accent-subtle: var(--palette-blue-0);
   --theme-accent-fg:     oklch(98% 0.01 250);
 
   /* Feedback */
-  --theme-error:         var(--palette-red-500);
-  --theme-success:       var(--palette-green-500);
-  --theme-warning:       var(--palette-amber-500);
+  --theme-error:         var(--palette-red-0);
+  --theme-success:       var(--palette-green-0);
+  --theme-warning:       var(--palette-amber-0);
 }
 
 /* ===== components/button.css — Tier 3 ===== */
@@ -1077,7 +1077,7 @@ Here's how a real project would organize the three tiers across files:
 /* ===== components/product-card.css — Tier 3 ===== */
 .product-card {
   /* Colors unique to this component, not in theme */
-  --_card-variant: var(--palette-blue-500);
+  --_card-variant: var(--palette-blue-2);
   --_card-glow: oklch(from var(--_card-variant) l c h / 0.15);
 }
 .product-card--sunset {
@@ -1117,27 +1117,27 @@ The three-tier strategy maps naturally to Tailwind's configuration. Palette colo
     <style>
     :root {
       /* Tier 1: Palette */
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-700: oklch(42% 0.16 250);
-      --palette-red-500: oklch(58% 0.22 25);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-gray-50: oklch(98% 0.003 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-900: oklch(22% 0.015 264);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-blue-2: oklch(42% 0.16 250);
+      --palette-red-0: oklch(58% 0.22 25);
+      --palette-green-0: oklch(58% 0.18 150);
+      --palette-gray-0: oklch(98% 0.003 264);
+      --palette-gray-1: oklch(82% 0.01 264);
+      --palette-gray-2: oklch(58% 0.01 264);
+      --palette-gray-3: oklch(22% 0.015 264);
 
       /* Tier 2: Theme — pointers to palette */
-      --theme-fg: var(--palette-gray-900);
-      --theme-bg: var(--palette-gray-50);
+      --theme-fg: var(--palette-gray-3);
+      --theme-bg: var(--palette-gray-0);
       --theme-surface: oklch(100% 0 0);
-      --theme-accent: var(--palette-blue-500);
-      --theme-accent-hover: var(--palette-blue-700);
+      --theme-accent: var(--palette-blue-1);
+      --theme-accent-hover: var(--palette-blue-2);
       --theme-accent-fg: oklch(98% 0.01 250);
-      --theme-muted: var(--palette-gray-500);
-      --theme-border: var(--palette-gray-300);
-      --theme-success: var(--palette-green-500);
-      --theme-error: var(--palette-red-500);
+      --theme-muted: var(--palette-gray-2);
+      --theme-border: var(--palette-gray-1);
+      --theme-success: var(--palette-green-0);
+      --theme-error: var(--palette-red-0);
     }
     </style>
 
@@ -1320,31 +1320,31 @@ For a deep dive into dark mode techniques, see [Dark Mode Strategies](../dark-mo
     </div>`}
   css={`    /* Tier 1: Palette — identical for both modes */
     :root {
-      --palette-blue-500: oklch(58% 0.2 250);
-      --palette-blue-100: oklch(92% 0.06 250);
-      --palette-gray-50: oklch(98% 0.003 264);
-      --palette-gray-100: oklch(96% 0.005 264);
-      --palette-gray-300: oklch(82% 0.01 264);
-      --palette-gray-500: oklch(58% 0.01 264);
-      --palette-gray-800: oklch(30% 0.015 264);
-      --palette-gray-900: oklch(22% 0.015 264);
-      --palette-green-500: oklch(58% 0.18 150);
-      --palette-green-100: oklch(94% 0.06 150);
-      --palette-green-900: oklch(28% 0.1 150);
+      --palette-blue-0: oklch(92% 0.06 250);
+      --palette-blue-1: oklch(58% 0.2 250);
+      --palette-gray-0: oklch(98% 0.003 264);
+      --palette-gray-1: oklch(96% 0.005 264);
+      --palette-gray-2: oklch(82% 0.01 264);
+      --palette-gray-3: oklch(58% 0.01 264);
+      --palette-gray-4: oklch(30% 0.015 264);
+      --palette-gray-5: oklch(22% 0.015 264);
+      --palette-green-0: oklch(94% 0.06 150);
+      --palette-green-1: oklch(58% 0.18 150);
+      --palette-green-2: oklch(28% 0.1 150);
     }
     /* Tier 2: Light theme — Tier 2 maps palette to semantic roles */
     .dm-col--light {
       color-scheme: light;
-      --theme-bg: var(--palette-gray-50);
+      --theme-bg: var(--palette-gray-0);
       --theme-surface: oklch(100% 0 0);
-      --theme-fg: var(--palette-gray-900);
-      --theme-muted: var(--palette-gray-500);
-      --theme-border: var(--palette-gray-300);
-      --theme-accent: var(--palette-blue-500);
+      --theme-fg: var(--palette-gray-5);
+      --theme-muted: var(--palette-gray-3);
+      --theme-border: var(--palette-gray-2);
+      --theme-accent: var(--palette-blue-1);
       --theme-accent-fg: oklch(98% 0.01 250);
-      --theme-accent-subtle: var(--palette-blue-100);
-      --theme-success: var(--palette-green-500);
-      --theme-success-bg: var(--palette-green-100);
+      --theme-accent-subtle: var(--palette-blue-0);
+      --theme-success: var(--palette-green-1);
+      --theme-success-bg: var(--palette-green-0);
       --theme-success-fg: oklch(30% 0.08 150);
     }
     /* Tier 2: Dark theme — same tokens, different palette picks */
@@ -1438,12 +1438,12 @@ With `light-dark()`, the same Tier 2 mapping can be expressed without separate s
 :root {
   color-scheme: light dark;
 
-  --theme-bg: light-dark(var(--palette-gray-50), oklch(15% 0.01 264));
+  --theme-bg: light-dark(var(--palette-gray-0), oklch(15% 0.01 264));
   --theme-surface: light-dark(oklch(100% 0 0), oklch(20% 0.015 264));
-  --theme-fg: light-dark(var(--palette-gray-900), oklch(92% 0.005 264));
-  --theme-muted: light-dark(var(--palette-gray-500), oklch(60% 0.01 264));
-  --theme-border: light-dark(var(--palette-gray-300), oklch(30% 0.015 264));
-  --theme-accent: light-dark(var(--palette-blue-500), oklch(70% 0.17 250));
+  --theme-fg: light-dark(var(--palette-gray-5), oklch(92% 0.005 264));
+  --theme-muted: light-dark(var(--palette-gray-3), oklch(60% 0.01 264));
+  --theme-border: light-dark(var(--palette-gray-2), oklch(30% 0.015 264));
+  --theme-accent: light-dark(var(--palette-blue-1), oklch(70% 0.17 250));
   --theme-accent-fg: light-dark(oklch(98% 0.01 250), oklch(15% 0.01 250));
 }
 ```
@@ -1452,11 +1452,12 @@ Tier 1 and Tier 3 stay exactly the same — only Tier 2 changes. Components neve
 
 ## Common AI Mistakes
 
-- **Skipping Tier 2** — using palette colors directly in components (`color: var(--palette-blue-500)`) defeats the purpose; when the brand changes, every component must be updated
+- **Skipping Tier 2** — using palette colors directly in components (`color: var(--palette-blue-0)`) defeats the purpose; when the brand changes, every component must be updated
 - **Too many Tier 3 variables** — if a component defines 10+ local color variables, it's likely reinventing the theme layer; promote those to Tier 2
 - **Not separating palette from theme** — defining `--primary: oklch(58% 0.2 250)` mixes raw values with semantic meaning, making it impossible to swap palettes
 - **Inconsistent naming** — mixing `--color-primary`, `--brand-blue`, and `--accent` at the same level creates confusion; use consistent prefixes per tier (`--palette-*`, `--theme-*`)
 - **Inventing a fourth tier for groups** — grouping (grayscale / brand / accent) is not a new tier; it lives inside Tier 1 as a naming convention (`--palette-{group}-{n}`). Adding a separate `--group-*` layer on top of Palette → Theme → Component just adds indirection
+- **Borrowing Tailwind's `100`–`900` step scale for `--palette-*`** — those numbers are an absolute scale tied to Tailwind's color system, where `500` always denotes a specific mid-tone. Your own palette tokens are just identifiers, so number each group sequentially (`--palette-blue-0`, `-1`, `-2`, …). The tell is a system that mixes `--palette-blue-500` with `--palette-gray-0` — pick one convention, and for a hand-rolled palette the incremental index is the natural one
 - **Making Tier 1 too small** — a palette with only 5 colors forces components to invent their own raw values (Tier 3 colors with hardcoded values), breaking the system
 - **Hardcoding colors in Tailwind utilities** — using `bg-blue-500` instead of `bg-theme-accent` bypasses the theme layer entirely
 
