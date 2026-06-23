@@ -173,7 +173,7 @@ Name palette tokens `--palette-{group}-{n}`: the `{group}` segment names the ram
   /* … through … */
   --palette-gray-8: oklch(20% 0.008 264); /* fg end */
 
-  /* brand: an L ramp at a fixed hue + chroma */
+  /* brand: a lightness ramp at a fixed hue (chroma peaks mid-ramp) */
   --palette-brand-0: oklch(95% 0.03 250);
   --palette-brand-4: oklch(52% 0.18 250);
   --palette-brand-6: oklch(32% 0.11 250);
@@ -184,7 +184,7 @@ Name palette tokens `--palette-{group}-{n}`: the `{group}` segment names the ram
 }
 ```
 
-The mental model is a grid: **Y axis = group (which ramp), X axis = step within the group**. Each group is usually a smooth ramp in one or two OKLCH channels — grayscale is a lightness ramp at near-zero chroma; a brand ramp holds hue and chroma fixed and varies lightness. See [Color Palette Strategy](./color-palette-strategy.mdx) for choosing and generating these ramps, and [OKLCH Color Space](./oklch-color-space.mdx) for keeping the steps perceptually even.
+The mental model is a grid: **Y axis = group (which ramp), X axis = step within the group**. Each group is usually a smooth ramp in one or two OKLCH channels — grayscale is a lightness ramp at near-zero chroma; a brand ramp fixes the hue and varies lightness (chroma usually peaks in the mid-tones). See [Color Palette Strategy](./color-palette-strategy.mdx) for choosing and generating these ramps, and [OKLCH Color Space](./oklch-color-space.mdx) for keeping the steps perceptually even.
 
 <CssPreview client:load
   title="Palette grouping — groups as rows, steps as columns"
@@ -1477,7 +1477,7 @@ Tier 1 and Tier 3 stay exactly the same — only Tier 2 changes. Components neve
 ## Related Articles
 
 - [Color Palette Strategy](../color-palette-strategy/) — How to choose and generate palette colors (Tier 1)
-- [OKLCH Color Space](./oklch-color-space.mdx) — Why OKLCH gives perceptually-even steps within a palette group (grayscale = L ramp at ~0 chroma; brand = L ramp at fixed hue/chroma)
+- [OKLCH Color Space](./oklch-color-space.mdx) — Why OKLCH gives perceptually-even steps within a palette group (grayscale = L ramp at ~0 chroma; brand = lightness ramp at a fixed hue)
 - [Dark Mode Strategies](../dark-mode-strategies/) — Dark mode techniques that work with Tier 2 token swapping
 - [Advanced Custom Properties](../../../methodology/design-systems/custom-properties-advanced/) — Fallback chains, space toggles, and component APIs that implement the three-tier pattern
 - [Theming Recipes](../../methodology/design-systems/custom-properties-advanced/theming-recipes) — Production-ready theme recipes using this architecture

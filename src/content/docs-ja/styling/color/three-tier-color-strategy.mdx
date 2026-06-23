@@ -173,7 +173,7 @@ import TailwindPreview from '@/components/TailwindPreview';
   /* … through … */
   --palette-gray-8: oklch(20% 0.008 264); /* fg end */
 
-  /* brand: an L ramp at a fixed hue + chroma */
+  /* brand: a lightness ramp at a fixed hue (chroma peaks mid-ramp) */
   --palette-brand-0: oklch(95% 0.03 250);
   --palette-brand-4: oklch(52% 0.18 250);
   --palette-brand-6: oklch(32% 0.11 250);
@@ -184,7 +184,7 @@ import TailwindPreview from '@/components/TailwindPreview';
 }
 ```
 
-メンタルモデルはグリッドです。**Y 軸 = グループ（どのランプか）、X 軸 = グループ内のステップ**です。各グループは通常、1つか2つの OKLCH チャンネルにおける滑らかなランプです。グレースケールはほぼゼロのクロマでの明度ランプであり、ブランドのランプは色相とクロマを固定して明度を変化させます。これらのランプの選び方と生成方法については[カラーパレット戦略](./color-palette-strategy.mdx)を、ステップを知覚的に均等に保つ方法については[OKLCH カラースペース](./oklch-color-space.mdx)を参照してください。
+メンタルモデルはグリッドです。**Y 軸 = グループ（どのランプか）、X 軸 = グループ内のステップ**です。各グループは通常、1つか2つの OKLCH チャンネルにおける滑らかなランプです。グレースケールはほぼゼロのクロマでの明度ランプであり、ブランドのランプは色相を固定して明度を変化させます（クロマは中間調でピークになるのが一般的です）。これらのランプの選び方と生成方法については[カラーパレット戦略](./color-palette-strategy.mdx)を、ステップを知覚的に均等に保つ方法については[OKLCH カラースペース](./oklch-color-space.mdx)を参照してください。
 
 <CssPreview client:load
   title="パレットのグループ化 — 行がグループ、列がステップ"
@@ -1477,7 +1477,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 ## 関連記事
 
 - [カラーパレット戦略](../color-palette-strategy/) — パレットカラー（ティア 1）の選び方と生成方法
-- [OKLCH カラースペース](./oklch-color-space.mdx) — OKLCH がパレットグループ内で知覚的に均等なステップを生み出す理由（グレースケール = ほぼゼロのクロマでの L ランプ、ブランド = 色相・クロマ固定での L ランプ）
+- [OKLCH カラースペース](./oklch-color-space.mdx) — OKLCH がパレットグループ内で知覚的に均等なステップを生み出す理由（グレースケール = ほぼゼロのクロマでの L ランプ、ブランド = 色相固定での明度ランプ）
 - [ダークモード戦略](../dark-mode-strategies/) — ティア 2 のトークン切り替えと連携するダークモードのテクニック
 - [カスタムプロパティ上級編](../../../methodology/design-systems/custom-properties-advanced/) — フォールバックチェーン、スペーストグル、3層パターンを実装するコンポーネント API
 - [テーマレシピ](../../methodology/design-systems/custom-properties-advanced/theming-recipes) — このアーキテクチャを使った本番向けテーマレシピ
