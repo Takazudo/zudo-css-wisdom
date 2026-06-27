@@ -3,15 +3,12 @@ allowBuilds:
   lefthook: true
   sharp: true
   workerd: true
+# Exempt the first-party toolchain from pnpm's minimumReleaseAge supply-chain
+# gate (~24h). We deliberately track freshly-published @takazudo/* + create-zudo-doc
+# releases, which are routinely newer than the cutoff. NOTE: the lockfile verify
+# (`pnpm install --frozen-lockfile`, what CI runs) only honors NAME / glob patterns
+# here — the `name@version` entries pnpm auto-adds are ignored by that pass, so use
+# the scope glob instead.
 minimumReleaseAgeExclude:
-  - '@takazudo/zfb-adapter-cloudflare@0.1.0-next.51'
-  - '@takazudo/zfb-darwin-arm64@0.1.0-next.51'
-  - '@takazudo/zfb-darwin-x64@0.1.0-next.51'
-  - '@takazudo/zfb-linux-arm64-gnu@0.1.0-next.51'
-  - '@takazudo/zfb-linux-x64-gnu@0.1.0-next.51'
-  - '@takazudo/zfb-runtime@0.1.0-next.51'
-  - '@takazudo/zfb-win32-x64-msvc@0.1.0-next.51'
-  - '@takazudo/zfb@0.1.0-next.51'
-  - '@takazudo/zudo-doc-history-server@0.2.11'
-  - '@takazudo/zudo-doc@0.2.11'
-  - create-zudo-doc@0.2.11
+  - '@takazudo/*'
+  - create-zudo-doc
