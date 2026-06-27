@@ -32,24 +32,15 @@ import type { VNode, JSX } from "preact";
 import { Island } from "@takazudo/zfb";
 import { settings } from "@/config/settings";
 
-import AiChatModal from "@/components/ai-chat-modal";
-import ClientRouterBootstrap from "@/components/client-router-bootstrap";
-import ImageEnlarge, { ImageEnlargeSsrFallback } from "@/components/image-enlarge";
-import MermaidEnlarge, { MermaidEnlargeSsrFallback } from "@/components/mermaid-enlarge";
-import { PageLoadingOverlay } from "@takazudo/zudo-doc/page-loading";
+import { AiChatModal } from "@takazudo/zudo-doc/ai-chat-modal";
+import { ImageEnlarge, ImageEnlargeSsrFallback } from "@takazudo/zudo-doc/image-enlarge";
+import { MermaidEnlarge, MermaidEnlargeSsrFallback } from "@takazudo/zudo-doc/mermaid-enlarge";
+// @slot:body-end-islands:imports
 
-// Set explicit `displayName` on each default-exported island so zfb's
-// `captureComponentName` produces a stable marker even after the SSR
-// pipeline runs the components through a function-name-rewriting layer.
-// The marker must match the third-arg literal that zfb's scanner records
-// for the same source-level identifier (zfb PR #150). esbuild preserves
-// function names by default, but the explicit assignment is a
-// belt-and-braces guard for production minification regressions.
-(AiChatModal as { displayName?: string }).displayName = "AiChatModal";
-(ClientRouterBootstrap as { displayName?: string }).displayName =
-  "ClientRouterBootstrap";
-(ImageEnlarge as { displayName?: string }).displayName = "ImageEnlarge";
-(MermaidEnlarge as { displayName?: string }).displayName = "MermaidEnlarge";
+// AiChatModal, ImageEnlarge, MermaidEnlarge pin displayName internally in the
+// package. Optional feature islands that still need explicit call-site pinning
+// inject their displayName assignment at the slot below only when selected.
+// @slot:body-end-islands:display-names
 
 /**
  * Default sr-only label rendered as the AiChatModal SSR fallback. This
@@ -102,16 +93,6 @@ export function BodyEndIslands({
   basePath,
   aiChatBodyLabel = DEFAULT_AI_CHAT_BODY_LABEL,
 }: BodyEndIslandsProps): JSX.Element {
-  // Hydrates first (when="load") so the SPA-router click intercept is
-  // registered as soon as the islands runtime mounts the marker. The
-  // component renders nothing visually — the island bundle's top-level
-  // `import "@takazudo/zfb-runtime/client-router"` is what actually
-  // wires up the router (zudolab/zudo-doc#1524 W7A fix).
-  const clientRouterBootstrap = Island({
-    when: "load",
-    children: <ClientRouterBootstrap />,
-  }) as unknown as VNode;
-
   // Gated on `settings.aiAssistant` (zudolab/zudo-doc#2058): when the AI
   // assistant feature is off, neither the AiChatModal island marker nor the
   // sr-only "AI Assistant" landmark heading should reach the SSG output —
@@ -175,15 +156,10 @@ export function BodyEndIslands({
 
   return (
     <>
-      {/* Pure SSR — no Island wrap. The component emits its overlay div,
-          inline styles, and a small inline script that self-wires
-          zfb:before-preparation / zfb:after-swap listeners at runtime. */}
-      <PageLoadingOverlay />
-      {clientRouterBootstrap}
       {aiAssistant}
       {imageEnlarge}
       {mermaidEnlarge}
-
+      {/* @slot:body-end-islands:extra-islands */}
     </>
   );
 }

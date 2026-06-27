@@ -17,37 +17,11 @@
 // are wired by the page template directly on the `<FrontmatterPreview>` call site
 // via the `renderers` prop. This helper only produces the filtered entries array.
 
+import { createBuildFrontmatterPreviewEntries } from "@takazudo/zudo-doc/frontmatter-preview-data";
 import { settings } from "@/config/settings";
 import { DEFAULT_FRONTMATTER_IGNORE_KEYS } from "@/config/frontmatter-preview-defaults";
 
-export function buildFrontmatterPreviewEntries(
-  data: Record<string, unknown> | null | undefined,
-): Array<[string, unknown]> {
-  if (!data) return [];
-
-  // `frontmatterPreview` may be absent (undefined) in fixtures that
-  // don't opt into the feature. `false` means the host explicitly
-  // disabled the block. Both should produce an empty entries array.
-  const config = (settings as { frontmatterPreview?: unknown })
-    .frontmatterPreview;
-  if (config === false || config === undefined) return [];
-
-  const cfg = config as {
-    ignoreKeys?: string[];
-    extraIgnoreKeys?: string[];
-  };
-  const ignoreSet = new Set<string>(
-    cfg.ignoreKeys ?? [
-      ...DEFAULT_FRONTMATTER_IGNORE_KEYS,
-      ...(cfg.extraIgnoreKeys ?? []),
-    ],
-  );
-
-  const entries: Array<[string, unknown]> = [];
-  for (const [key, value] of Object.entries(data)) {
-    if (ignoreSet.has(key)) continue;
-    if (value === null || value === undefined) continue;
-    entries.push([key, value]);
-  }
-  return entries;
-}
+export const buildFrontmatterPreviewEntries = createBuildFrontmatterPreviewEntries({
+  frontmatterPreview: settings.frontmatterPreview,
+  defaultIgnoreKeys: DEFAULT_FRONTMATTER_IGNORE_KEYS,
+});

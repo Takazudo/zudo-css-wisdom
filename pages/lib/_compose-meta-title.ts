@@ -19,11 +19,7 @@
  *   has it in practice), fall back to the bare title.
  *
  */
+import { createComposeMetaTitle } from "@takazudo/zudo-doc/compose-meta-title";
 import { settings } from "@/config/settings";
 
-export function composeMetaTitle(title: string): string {
-  const siteName = settings.siteName;
-  if (!siteName) return title;
-  if (title === siteName) return siteName;
-  return `${title} | ${siteName}`;
-}
+export const composeMetaTitle = createComposeMetaTitle(settings.siteName);

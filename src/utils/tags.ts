@@ -1,7 +1,23 @@
+// Host thin-stub — see @takazudo/zudo-doc/tag-helpers (epic #2344, S7).
+//
+// `resolveTag` and `resolvePageTags` are now parameterized pure functions in the
+// package; this module remains backward-compatible by wrapping them with the
+// host's `settings.tagVocabulary` / `settings.tagGovernance` + the
+// `tagVocabulary` entries from `@/config/tag-vocabulary`.
+//
+// `collectTags` stays host-side because it depends on `DocsEntry` from the
+// host's content collections. It calls the local `resolveTag` wrapper which
+// in turn delegates to the package.
+
 import type { DocsEntry } from "@/types/docs-entry";
 import { settings } from "@/config/settings";
 import { tagVocabulary } from "@/config/tag-vocabulary";
-import type { TagVocabularyEntry } from "@/config/tag-vocabulary-types";
+import {
+  resolveTag as _resolveTag,
+  resolvePageTags as _resolvePageTags,
+} from "@takazudo/zudo-doc/tag-helpers";
+
+export type { ResolvedTag } from "@takazudo/zudo-doc/tag-helpers";
 
 export interface TagInfo {
   tag: string;
@@ -9,69 +25,19 @@ export interface TagInfo {
   docs: { slug: string; title: string; description?: string }[];
 }
 
-export interface ResolvedTag {
-  /** Canonical id after alias/redirect rewrites. Equal to the raw input when unchanged. */
-  canonical: string;
-  /** True when the canonical id should be dropped from aggregation (deprecated without redirect). */
-  deprecated: boolean;
-  /** True when the raw input matched a vocabulary entry (as id or alias). */
-  known: boolean;
-}
-
-interface VocabularyIndex {
-  byId: Map<string, TagVocabularyEntry>;
-  byAlias: Map<string, TagVocabularyEntry>;
-}
-
-let cachedIndex: VocabularyIndex | null = null;
-function getIndex(): VocabularyIndex {
-  if (cachedIndex) return cachedIndex;
-  const byId = new Map<string, TagVocabularyEntry>();
-  const byAlias = new Map<string, TagVocabularyEntry>();
-  for (const entry of tagVocabulary) {
-    byId.set(entry.id, entry);
-    for (const alias of entry.aliases ?? []) byAlias.set(alias, entry);
-  }
-  cachedIndex = { byId, byAlias };
-  return cachedIndex;
-}
-
-function vocabularyActive(): boolean {
-  return Boolean(settings.tagVocabulary) && settings.tagGovernance !== "off";
+// Helpers that pass the host's settings + vocabulary entries to the package fns.
+function getVocab() {
+  return settings.tagVocabulary ? tagVocabulary : false;
 }
 
 /**
  * Resolve a raw tag string to its canonical form.
  *
- * When the vocabulary is inactive (`tagVocabulary: false` or
- * `tagGovernance: "off"`), the raw value passes through unchanged with
- * `known: false, deprecated: false`. Otherwise:
- *
- * - A direct id match returns that id.
- * - An alias match returns the aliased entry's id.
- * - `deprecated: { redirect: "<id>" }` rewrites to the redirect target.
- * - `deprecated: true` (no redirect) returns `deprecated: true` so callers
- *   can drop the tag from aggregation.
- * - An unknown value returns the raw string with `known: false`.
+ * Thin wrapper around `@takazudo/zudo-doc/tag-helpers` `resolveTag` that
+ * injects the host's tag vocabulary and governance settings.
  */
-export function resolveTag(raw: string): ResolvedTag {
-  if (!vocabularyActive()) {
-    return { canonical: raw, deprecated: false, known: false };
-  }
-  const { byId, byAlias } = getIndex();
-  const entry = byId.get(raw) ?? byAlias.get(raw);
-  if (!entry) return { canonical: raw, deprecated: false, known: false };
-  const dep = entry.deprecated;
-  if (dep && typeof dep === "object" && dep.redirect) {
-    const target = byId.get(dep.redirect);
-    if (target) return { canonical: target.id, deprecated: false, known: true };
-    // Redirect points at a missing id — treat like plain deprecation.
-    return { canonical: entry.id, deprecated: true, known: true };
-  }
-  if (dep === true) {
-    return { canonical: entry.id, deprecated: true, known: true };
-  }
-  return { canonical: entry.id, deprecated: false, known: true };
+export function resolveTag(raw: string) {
+  return _resolveTag(raw, getVocab(), settings.tagGovernance);
 }
 
 /**
@@ -80,16 +46,7 @@ export function resolveTag(raw: string): ResolvedTag {
  * produced by alias collapse are removed.
  */
 export function resolvePageTags(rawTags: readonly string[]): string[] {
-  const out: string[] = [];
-  const seen = new Set<string>();
-  for (const raw of rawTags) {
-    const { canonical, deprecated } = resolveTag(raw);
-    if (deprecated) continue;
-    if (seen.has(canonical)) continue;
-    seen.add(canonical);
-    out.push(canonical);
-  }
-  return out;
+  return _resolvePageTags(rawTags, getVocab(), settings.tagGovernance);
 }
 
 export function collectTags(

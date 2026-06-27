@@ -3,6 +3,7 @@ node_modules
 dist
 .zfb
 .zfb-build
+.zudo-doc/
 
 # Astro (legacy; kept harmless during migration)
 .astro

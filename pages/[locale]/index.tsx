@@ -30,7 +30,7 @@ import { DocLayoutWithDefaults } from "@takazudo/zudo-doc/doclayout";
 import type { JSX } from "preact";
 import type { VNode } from "preact";
 import { Island } from "@takazudo/zfb";
-import SiteTreeNav from "@/components/site-tree-nav";
+import { SiteTreeNav } from "@takazudo/zudo-doc/site-tree-nav-island";
 import { resolveNavSource } from "../lib/_nav-source-docs";
 import { FooterWithDefaults } from "../lib/_footer-with-defaults";
 import { HeaderWithDefaults } from "../lib/_header-with-defaults";

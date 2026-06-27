@@ -1,10 +1,11 @@
 // z-index design tokens — single source of truth.
 //
 // This file is the ONE place z-index tiers are defined. The CSS `@theme` block
-// in `src/styles/global.css` is GENERATED from this list by
-// `scripts/gen-z-index.mjs` (run `pnpm gen:z-index`); never hand-edit the
-// generated block. `pnpm check:z-index` re-runs the generator into a buffer and
-// fails on drift, so the committed CSS can never silently diverge from this list.
+// in `src/styles/global.css` is GENERATED from this list by the
+// `gen-z-index` bin from `@takazudo/zudo-doc` (run `pnpm gen:z-index`); never
+// hand-edit the generated block. `pnpm check:z-index` re-runs the generator
+// into a buffer and fails on drift, so the committed CSS can never silently
+// diverge from this list.
 //
 // Strategy (from zudolab/zudo-css-wisdom z-index-strategy): semantic single-
 // namespace tokens — names describe ROLES, never magnitudes. One flat ordered
