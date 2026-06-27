@@ -2,6 +2,8 @@ import { defineConfig } from "zfb/config";
 import { zudoDocPreset } from "@takazudo/zudo-doc/preset";
 import { settings } from "./src/config/settings";
 import { buildDocsSchema } from "./src/config/docs-schema";
+import { translations } from "./src/config/i18n";
+import { colorSchemes } from "./src/config/color-schemes";
 
 // The seven canonical directives registered in pages/_mdx-components.ts.
 // "details" routes to DetailsWrapper — a collapsible, NOT an admonition.
@@ -30,5 +32,5 @@ export default defineConfig({
 
   // ── Preset-owned fields (content collections, plugins, markdown,
   //    codeHighlight, resolveMarkdownLinks, trailingSlash, package-owned routes) ──
-  ...zudoDocPreset({ settings, buildDocsSchema, directiveVocabulary }),
+  ...zudoDocPreset({ settings, buildDocsSchema, directiveVocabulary, translations, colorSchemes }),
 });
