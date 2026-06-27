@@ -1,12 +1,11 @@
-"use client";
-
-// W6A stub — no-op default export.
+// W6A stub — no-op default + AiChatModal named exports.
 //
-// The host (zudo-doc showcase) ships a full AI-chat modal island here. In
-// generated downstream projects the AI assistant is gated behind a future
-// settings flag; for now the file exists so unconditional page imports
-// (`pages/lib/_body-end-islands.tsx`) resolve, and the component renders
-// nothing. Wire a real implementation by replacing this file.
+// The AiChatModal island now ships from the package
+// (`@takazudo/zudo-doc/ai-chat-modal`); the unconditional
+// `pages/lib/_body-end-islands.tsx` imports it directly from there. This
+// stub exists only so any project-local code that references the
+// `@/components/ai-chat-modal` path still resolves — it renders nothing.
+// Replace this file to wire a project-specific modal.
 import type { JSX } from "preact";
 
 function AiChatModal(): JSX.Element | null {
@@ -15,3 +14,5 @@ function AiChatModal(): JSX.Element | null {
 AiChatModal.displayName = "AiChatModal";
 
 export default AiChatModal;
+
+export { AiChatModal };

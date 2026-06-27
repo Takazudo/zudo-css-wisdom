@@ -1,72 +1,45 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource preact */
-// Host-side MDX wrapper for <CategoryTreeNav category="..." />.
-//
-// Data-resolution steps performed before forwarding to the v2 CategoryTreeNav component:
-//   1. Load docs for the active locale (defaultLocale when not passed).
-//   2. Build the full nav tree with buildNavTree() + groupSatelliteNodes()
-//      (category slug is passed as the grouping prefix list).
-//   3. Find the target category node via findNode().
-//   4. Filter to children with hasPage === true or children.length > 0.
-//   5. Forward the resolved children to the v2 CategoryTreeNav component.
-//
-// All data access is synchronous (ADR-004 zfb content snapshot contract).
-// The `lang` prop is injected by createMdxComponents() in
-// pages/_mdx-components.ts so locale routes get locale-aware nav data.
+// Thin stub — category-tree-nav moved to the package (epic #2344, S8).
+// Calls `createCategoryTreeNavWrapper(deps)` from
+// @takazudo/zudo-doc/category-tree-nav with host singletons injected,
+// then re-exports the resulting component so all existing call sites continue
+// to work unchanged.
 
-import type { JSX } from "preact";
-import { CategoryTreeNav as CategoryTreeNavV2 } from "@takazudo/zudo-doc/nav-indexing";
-import {
-  buildNavTree,
-  groupSatelliteNodes,
-  findNode,
-} from "@/utils/docs";
+import { createCategoryTreeNavWrapper } from "@takazudo/zudo-doc/category-tree-nav";
+import type {
+  CategoryTreeNavNode,
+  CategoryTreeNavSource,
+} from "@takazudo/zudo-doc/category-tree-nav";
+import { buildNavTree, groupSatelliteNodes, findNode, type NavNode } from "@/utils/docs";
 import { defaultLocale, type Locale } from "@/config/i18n";
+import type { DocsEntry } from "@/types/docs-entry";
+import type { CategoryMeta } from "@/utils/docs";
 import { resolveNavSource } from "./_nav-source-docs";
 
-export interface CategoryTreeNavWrapperProps {
-  /**
-   * Slug of the category whose children should be rendered as a tree,
-   * e.g. "guides" or "getting-started".
-   */
-  category: string;
-  /**
-   * Active locale. Injected via createMdxComponents() closure.
-   * Defaults to defaultLocale when not provided.
-   */
-  lang?: Locale | string;
-}
+export type { CategoryTreeNavWrapperProps } from "@takazudo/zudo-doc/category-tree-nav";
 
-/**
- * MDX wrapper for CategoryTreeNav. Resolves nav tree data host-side and
- * forwards the resolved category children into the v2 CategoryTreeNav
- * component.
- *
- * Returns null when the category is not found or has no renderable children —
- * matching the original Astro component's guard.
- */
-export function CategoryTreeNavWrapper({
-  category,
-  lang = defaultLocale,
-}: CategoryTreeNavWrapperProps): JSX.Element | null {
-  const locale = lang as Locale;
-
-  // No defaultLocaleOnly filter — tree nav intentionally shows all EN pages
-  // (same variant as _category-nav.tsx).
-  const { navDocs, categoryMeta } = resolveNavSource(locale, undefined, {
-    keepUnlisted: true,
-  });
-  const rawTree = buildNavTree(navDocs, locale, categoryMeta);
-  // groupSatelliteNodes with [category] groups satellite nodes under the
-  // target category — matching the original Astro component.
-  const tree = groupSatelliteNodes(rawTree, [category]);
-
-  const categoryNode = findNode(tree, category);
-  const children =
-    categoryNode?.children.filter((c) => c.hasPage || c.children.length > 0) ??
-    [];
-
-  if (children.length === 0) return null;
-
-  return <CategoryTreeNavV2 children={children} />;
-}
+// The factory describes its injected nav helpers with the minimal
+// CategoryTreeNavNode view (no `slug` / `position`), while the host helpers are
+// typed against the full NavNode. At runtime the nodes are real NavNodes; the
+// wrappers re-view them as the minimal type at the injection boundary (cast via
+// `unknown` because NavNode is a structural supertype of CategoryTreeNavNode,
+// so a direct cast is rejected as non-overlapping).
+export const CategoryTreeNavWrapper = createCategoryTreeNavWrapper({
+  defaultLocale,
+  resolveNavSource: resolveNavSource as (
+    lang: string,
+    currentVersion: string | undefined,
+    options?: { applyDefaultLocaleOnlyFilter?: boolean; keepUnlisted?: boolean },
+  ) => CategoryTreeNavSource,
+  buildNavTree: (docs: unknown[], locale: string, categoryMeta: Map<string, unknown>) =>
+    buildNavTree(
+      docs as DocsEntry[],
+      locale as Locale,
+      categoryMeta as Map<string, CategoryMeta>,
+    ) as unknown as CategoryTreeNavNode[],
+  groupSatelliteNodes: (tree: CategoryTreeNavNode[], prefixes: string[]) =>
+    groupSatelliteNodes(tree as unknown as NavNode[], prefixes) as unknown as CategoryTreeNavNode[],
+  findNode: (tree: CategoryTreeNavNode[], slug: string) =>
+    findNode(tree as unknown as NavNode[], slug) as unknown as CategoryTreeNavNode | undefined,
+});

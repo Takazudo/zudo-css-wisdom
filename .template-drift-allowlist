@@ -21,12 +21,6 @@ scripts/run-b4push.sh
 # real ENLARGE_SVG + paragraph override inlined (imageEnlarge: true).
 pages/_mdx-components.ts
 
-# pages/lib/_body-end-islands.tsx — @slot injection markers removed.
-# The base template ships three @slot: markers (body-end-islands imports,
-# display-names, extra-islands) so the compose framework can inject island
-# registrations. Production has these slots resolved and removed.
-pages/lib/_body-end-islands.tsx
-
 # src/config/settings-types.ts — @slot:settings-types:trigger-names markers removed.
 # The base template ships @slot: markers so compose can inject feature-specific
 # trigger name types. Production has these slots resolved and removed.
@@ -39,10 +33,12 @@ src/config/settings-types.ts
 # in place of the feature-styles slot (docHistory: true).
 src/styles/global.css
 
-# Component stubs vs. real implementations — the base template ships no-op
-# W6A stubs for these components (so imports resolve at typecheck on scaffold
-# without any features). The corresponding features are enabled in this site,
-# so production ships real island implementations that differ from the stubs.
+# Feature-island re-export shims — these three components ship a base no-op
+# W6A stub AND a feature re-export shim in create-zudo-doc 1.x. This site has
+# the corresponding features enabled (imageEnlarge, docHistory, sidebarToggle),
+# so production carries the FEATURE shim (re-exporting the real island from the
+# package), which differs from the base stub the drift check compares first.
+# Intentional: matches the package-first 1.x baseline.
 src/components/desktop-sidebar-toggle.tsx
 src/components/doc-history.tsx
 src/components/image-enlarge.tsx

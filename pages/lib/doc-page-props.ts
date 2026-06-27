@@ -1,48 +1,30 @@
-// Shared discriminated-union props types for all 4 doc-route pages.
+// Thin stub — types moved to the package (epic #2344, S6).
+// Re-exports the shared discriminated-union props types for all 4 doc-route
+// pages from @takazudo/zudo-doc/doc-page-props.
 //
-// Each route file has its own DocPageProps interface that extends one of these
-// two branches by merging in route-specific fields (locale, version, etc.).
-// Discriminating on `kind` lets TypeScript narrow `entry` / `autoIndex` to
-// non-null inside each branch — eliminating all `entry!` assertions.
+// S5 and downstream (S7) consumers import `DocPageBaseProps`, `DocPageEntry`,
+// `AutoIndexNode`, `DocPageEntryProps`, `DocPageAutoIndexProps` from this path
+// unchanged — all are re-exported below.
 
-import type { CollectionEntry } from "zfb/content";
-import type { DocsEntry } from "@/types/docs-entry";
-import type { NavNode, BreadcrumbItem } from "@/utils/docs";
-import type { extractHeadings } from "./_extract-headings";
+export type {
+  DocNavNode,
+  DocPageEntry,
+  DocPageFrontmatter,
+  AutoIndexNode,
+  DocPageEntryProps,
+  DocPageAutoIndexProps,
+  DocPageBaseProps,
+  HeadingItem,
+} from "@takazudo/zudo-doc/doc-page-props";
 
-export interface DocPageEntry extends DocsEntry {
-  /** zfb content renderer. */
-  Content: CollectionEntry<unknown>["Content"];
-  /** zfb module specifier (for Content bridge). */
-  module_specifier: string;
-}
+// Backward-compatible alias: downstream callers that import `NavNode` from
+// this path (e.g. _doc-route-entries.ts, route-enumerators.ts) continue to
+// resolve. `DocNavNode` is structurally identical to the host's `NavNode` from
+// src/utils/docs.ts (same required fields, same optional fields).
+export type { DocNavNode as NavNode } from "@takazudo/zudo-doc/doc-page-props";
 
-export interface AutoIndexNode extends NavNode {
-  children: NavNode[];
-}
-
-/** Shared fields present in every doc-page route. */
-interface DocPagePropsBase {
-  breadcrumbs: BreadcrumbItem[];
-  prev: NavNode | null;
-  next: NavNode | null;
-  /** Depth-2/3/4 headings extracted from the MDX body, for SSG TOC links. */
-  headings: ReturnType<typeof extractHeadings>;
-}
-
-/** Branch: a real content entry. `autoIndex` is absent. */
-export interface DocPageEntryProps extends DocPagePropsBase {
-  kind: "entry";
-  entry: DocPageEntry;
-  autoIndex?: undefined;
-}
-
-/** Branch: an auto-generated category index. `entry` is absent. */
-export interface DocPageAutoIndexProps extends DocPagePropsBase {
-  kind: "autoIndex";
-  autoIndex: AutoIndexNode;
-  entry?: undefined;
-}
-
-/** Discriminated union for the `kind` prop. Narrow via `props.kind === "entry"`. */
-export type DocPageBaseProps = DocPageEntryProps | DocPageAutoIndexProps;
+// Backward-compatible alias: `BreadcrumbItem` was previously imported from
+// @/utils/docs in some files. The package's `DocPageBaseProps` uses
+// `BreadcrumbItem` from @takazudo/zudo-doc/breadcrumb/types — re-export it
+// here so callers importing from this path still resolve.
+export type { BreadcrumbItem } from "@takazudo/zudo-doc/breadcrumb";

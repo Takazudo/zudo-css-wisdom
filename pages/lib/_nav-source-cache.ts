@@ -32,10 +32,20 @@
 // HMR intent preserved: a content edit produces a NEW snapshot object (new
 // `collections[name]` array identity), so every memo here misses and
 // recomputes — matching the old content-keyed cache's change detection.
+//
+// PACKAGE SPLIT (epic #2344, S6):
+//   `memoizeDerived` — the generic two-level WeakMap memo — is now in the
+//   package at @takazudo/zudo-doc/nav-source-cache (no zfb imports needed).
+//   `stableDocs` stays here because it imports `getCollection` /
+//   `getContentSnapshot` from "zfb/content", which is a virtual module
+//   provided by the zfb SSG build system at compile time — not an npm package.
 
 import { getCollection, getContentSnapshot } from "zfb/content";
 import { bridgeDocsEntries, type ZfbDocsData } from "../_data";
 import type { DocPageEntry } from "./doc-page-props";
+
+// Re-export memoizeDerived from the package (pure, no zfb dep).
+export { memoizeDerived } from "@takazudo/zudo-doc/nav-source-cache";
 
 // ---------------------------------------------------------------------------
 // Snapshot anchor → stable bridged arrays
@@ -70,6 +80,8 @@ function buildBridged(collectionName: string): DocPageEntry[] {
  * `buildNavTree` — can rely on reference equality. The entries carry the full
  * `DocPageEntry` shape (Content, body, module_specifier, id, collection) the
  * route `paths()` props need.
+ *
+ * Passed as `stableDocs` to `createNavSourceDocs` in `_nav-source-docs.ts`.
  */
 export function stableDocs(collectionName: string): DocPageEntry[] {
   const anchor = snapshotAnchor(collectionName);
@@ -85,61 +97,4 @@ export function stableDocs(collectionName: string): DocPageEntry[] {
   const built = buildBridged(collectionName);
   bridgedByAnchor.set(anchor, built);
   return built;
-}
-
-// ---------------------------------------------------------------------------
-// Generic derived-array memo (merge / filter results)
-// ---------------------------------------------------------------------------
-
-// Two-level memo: a WeakMap on the FIRST stable input array (so a new snapshot
-// drops the whole sub-map), then a string key combining the remaining stable
-// inputs' identities and the option signature.
-const derivedMemo = new WeakMap<object, Map<string, unknown>>();
-// Per-build incrementing ids for stable arrays, so a multi-array key can be a
-// cheap string. Lives in a WeakMap so it does not retain arrays past their
-// snapshot.
-const arrayId = new WeakMap<object, number>();
-let nextArrayId = 1;
-function idOf(arr: object): number {
-  let id = arrayId.get(arr);
-  if (id === undefined) {
-    id = nextArrayId++;
-    arrayId.set(arr, id);
-  }
-  return id;
-}
-
-// Anchor object for the rare case of an empty `inputs` array (e.g. an absent
-// locale collection). Lets the WeakMap still key the derived memo.
-const EMPTY_INPUT_ANCHOR: object = {};
-
-/**
- * Memoize a derived array (e.g. a locale merge or an `isNavVisible` filter)
- * on the identity of its stable inputs plus a caller-supplied option
- * signature.
- *
- * `inputs` MUST be the stable arrays returned by {@link stableDocs} (or arrays
- * derived from them through this same helper) — passing a fresh array defeats
- * the memo. `optionSig` distinguishes call sites that differ only in filter
- * options (e.g. `applyDefaultLocaleOnlyFilter`, `keepUnlisted`), so they never
- * collide on the same key.
- */
-export function memoizeDerived<T>(
-  inputs: readonly object[],
-  optionSig: string,
-  compute: () => T,
-): T {
-  const primary = inputs[0] ?? EMPTY_INPUT_ANCHOR;
-  let sub = derivedMemo.get(primary);
-  if (!sub) {
-    sub = new Map();
-    derivedMemo.set(primary, sub);
-  }
-  const key = `${inputs.map((a) => idOf(a)).join("/")}::${optionSig}`;
-  // Use has(): a legitimately-`undefined` computed result must still register
-  // as a cache hit, otherwise it recomputes every call.
-  if (sub.has(key)) return sub.get(key) as T;
-  const computed = compute();
-  sub.set(key, computed);
-  return computed;
 }

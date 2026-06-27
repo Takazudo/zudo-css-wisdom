@@ -1,88 +1,37 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource preact */
-// Host-side MDX wrapper for <SiteTreeNav /> and <SiteTreeNavDemo />.
+// Thin stub — site-tree-nav moved to the package (epic #2344, S8).
+// Calls `createSiteTreeNavWrapper(deps)` from @takazudo/zudo-doc/site-tree-nav
+// with host singletons injected, then re-exports the resulting component so
+// all existing call sites continue to work unchanged.
 //
-// Both <SiteTreeNav> and <SiteTreeNavDemo> MDX tags are mapped to this
-// wrapper, which loads the full site nav tree and renders the interactive
-// SiteTreeNav island (refs #1453):
-//
-//   1. Load the full docs collection for the active locale.
-//   2. Build nav tree via buildNavTree().
-//   3. Group satellite nodes via groupSatelliteNodes().
-//   4. Wrap the interactive SiteTreeNav in Island({when:"idle"}) so the MDX
-//      page gets the collapsible grid rendered at
-//      /docs/components/site-tree-nav/ (refs #1453/#1442).
-//
-// All data access is synchronous (ADR-004 zfb content snapshot contract).
-// The `lang` prop is injected by createMdxComponents() in
-// pages/_mdx-components.ts so locale routes get locale-aware nav data.
-//
-// categoryIgnore defaults to ["inbox", "develop"] — matching the index page
-// and SiteTreeNavDemo defaults.
+// IMPORTANT: Island({when:"idle"}) is PRESERVED in the package factory —
+// the island mounts after the page is idle for performance (refs #1453).
 
-import type { JSX } from "preact";
-import { Island } from "@takazudo/zfb";
-import SiteTreeNav from "@/components/site-tree-nav";
-import {
-  buildNavTree,
-  groupSatelliteNodes,
-} from "@/utils/docs";
-import { defaultLocale, type Locale } from "@/config/i18n";
+import { createSiteTreeNavWrapper } from "@takazudo/zudo-doc/site-tree-nav";
+import type { SidebarNavNode } from "@takazudo/zudo-doc/sidebar/types";
+import { buildNavTree, groupSatelliteNodes } from "@/utils/docs";
+import { defaultLocale } from "@/config/i18n";
 import { getCategoryOrder } from "@/utils/nav-scope";
 import { resolveNavSource } from "./_nav-source-docs";
 
-export interface SiteTreeNavWrapperProps {
-  /**
-   * Active locale. Injected via createMdxComponents() closure.
-   * Defaults to defaultLocale when not provided.
-   */
-  lang?: Locale | string;
-  /**
-   * Optional aria-label for the wrapping <nav> element.
-   * Forwarded to the v2 SiteTreeNavDemo component.
-   */
-  ariaLabel?: string;
-}
+export type { SiteTreeNavWrapperProps } from "@takazudo/zudo-doc/site-tree-nav";
 
-/**
- * MDX wrapper shared by both <SiteTreeNav> and <SiteTreeNavDemo> tags.
- *
- * Builds the full site nav tree and renders it via the interactive SiteTreeNav
- * island (wrapped in Island({when:"idle"})) — restoring byte-parity with the
- * Astro reference at /docs/components/site-tree-nav/ (refs #1453/#1442).
- *
- * The island renders the collapsible multi-column grid the reference shows.
- * SiteTreeNavDemo (static <details> list) is no longer used for MDX content.
- *
- * Returns null when the tree is empty after filtering.
- */
-export function SiteTreeNavWrapper({
-  lang = defaultLocale,
-  ariaLabel,
-}: SiteTreeNavWrapperProps): JSX.Element | null {
-  const locale = lang as Locale;
-
-  // SiteTreeNav mirrors the route nav: applies the defaultLocaleOnly filter for
-  // non-default locales (same options the sidebar/route enumeration use).
-  const { navDocs, categoryMeta } = resolveNavSource(locale, undefined, {
-    applyDefaultLocaleOnlyFilter: true,
-    keepUnlisted: true,
-  });
-  const tree = buildNavTree(navDocs, locale, categoryMeta);
-  const categoryOrder = getCategoryOrder();
-  const groupedTree = groupSatelliteNodes(tree, categoryOrder);
-
-  if (groupedTree.length === 0) return null;
-
-  return Island({
-    when: "idle",
-    children: (
-      <SiteTreeNav
-        tree={groupedTree}
-        categoryOrder={categoryOrder}
-        categoryIgnore={["inbox", "develop"]}
-        ariaLabel={ariaLabel}
-      />
-    ),
-  }) as unknown as JSX.Element;
-}
+export const SiteTreeNavWrapper = createSiteTreeNavWrapper({
+  defaultLocale,
+  resolveNavSource: resolveNavSource as (
+    lang: string,
+    currentVersion: string | undefined,
+    options?: { applyDefaultLocaleOnlyFilter?: boolean; keepUnlisted?: boolean },
+  ) => import("@takazudo/zudo-doc/site-tree-nav").SiteTreeNavSource,
+  buildNavTree: buildNavTree as (
+    docs: unknown[],
+    locale: string,
+    categoryMeta: Map<string, unknown>,
+  ) => SidebarNavNode[],
+  groupSatelliteNodes: groupSatelliteNodes as (
+    tree: SidebarNavNode[],
+    prefixes: string[],
+  ) => SidebarNavNode[],
+  getCategoryOrder,
+});
