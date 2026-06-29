@@ -33,7 +33,7 @@ import type { JSX } from "preact";
 import { resolveNavSource } from "../lib/_nav-source-docs";
 import type { DocPageEntryProps, DocPageAutoIndexProps } from "../lib/doc-page-props";
 import { buildDocRouteEntries } from "../lib/_doc-route-entries";
-import { renderDocPage } from "../lib/_doc-page-renderer";
+import { renderDocPage } from "../lib/_chrome";
 
 export const frontmatter = { title: "Docs" };
 
