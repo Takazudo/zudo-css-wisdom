@@ -28,6 +28,7 @@ import type {
   TagGovernanceMode,
   MetaTagsConfig,
 } from "./settings-types";
+import type { SiteHeadConfig } from "@takazudo/zudo-doc/settings";
 export const settings = {
   colorScheme: "Default Dark",
   colorMode: {
@@ -52,6 +53,24 @@ export const settings = {
     twitterCard: "summary_large_image",
     twitterCreator: "@Takazudo",
   } satisfies MetaTagsConfig as MetaTagsConfig,
+  // Site webfont — Noto Sans JP for JA + Latin body text. Emitted as real <head>
+  // links via the zudo-doc 2.0.1 `settings.head` hook (preconnect + async-loaded
+  // stylesheet) — the supported way to add custom <head> content after the 2.0.0
+  // chrome collapse. Replaces the former global.css @import, which Tailwind v4
+  // bundling could push past the first style rule, making the browser silently
+  // drop it (zudolab/zudo-doc#2435).
+  head: {
+    preconnect: [
+      { href: "https://fonts.googleapis.com" },
+      { href: "https://fonts.gstatic.com", crossorigin: "anonymous" },
+    ],
+    stylesheets: [
+      {
+        href: "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap",
+        async: true,
+      },
+    ],
+  } satisfies SiteHeadConfig as SiteHeadConfig,
   docsDir: "src/content/docs",
   defaultLocale: "en" as const,
   locales: {

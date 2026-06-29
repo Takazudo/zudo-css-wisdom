@@ -10,20 +10,9 @@
  * unlayered and continue to outrank it). */
 @layer zd-preflight, zd-flow;
 
-/* Noto Sans JP — body webfont for Japanese (and Latin) content, applied via
- * --font-noto / --font-sans below. Loaded as a CSS @import (not a <head> <link>)
- * because zudo-doc 2.0.0 collapsed the host head into the package-owned chrome
- * (no custom-head hook), so it must apply uniformly to the homepage and every
- * doc page. (was: async media=print <link> in the former
- * pages/lib/_head-with-defaults.tsx, removed in the 2.0.0 Collapse Wiring Shells
- * migration.)
- * MUST stay ABOVE the `@import "tailwindcss/..."` lines: Tailwind v4 inlines
- * those local imports into real style rules in place, and the CSS spec only
- * honors an @import that precedes all style rules — placed below them the
- * browser silently drops this remote @import and the webfont never loads, while
- * every build/lint gate still passes (regression caught in the 2.0.0 pilot). */
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap");
-
+/* Noto Sans JP webfont is loaded via settings.head (preconnect + async <link>),
+ * not a CSS @import — see src/config/settings.ts. The --font-noto / --font-sans
+ * stacks below reference it. */
 @import "tailwindcss/preflight" layer(zd-preflight);
 @import "tailwindcss/utilities";
 
