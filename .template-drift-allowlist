@@ -14,23 +14,32 @@
 # + html + links; replaces the 4-step template default).
 scripts/run-b4push.sh
 
-# pages/_mdx-components.ts — imageEnlarge feature slots resolved.
-# The base template ships @slot:mdx-components:enlarge-imports and
-# @slot:mdx-components:enlarge-defs markers so the compose framework can inject
-# the image-enlarge implementation. Production has these slots resolved and the
-# real ENLARGE_SVG + paragraph override inlined (imageEnlarge: true).
-pages/_mdx-components.ts
+# pages/lib/_chrome.ts — site-specific MDX `mdxExtras` added (zudo-doc 2.0.0).
+# The 2.0.0 host chrome adapter (Collapse Wiring Shells) threads host-bound MDX
+# component overrides through `createChrome(..., { mdxExtras })`. This site adds
+# its zcss-specific demo islands (CssPreview / TailwindPreview) plus showcase
+# placeholder stubs (Badge / Dialog / MDXRemote / ProductCard / Teleport) to the
+# template's default extras block so the docs corpus's custom tags resolve.
+# (The former pages/_mdx-components.ts — incl. the imageEnlarge ENLARGE_SVG +
+# paragraph override and the img base-rewrite — is gone: createMdxComponents now
+# bakes img/p/admonitions/CodeGroup/Math/nav in the package; only the genuinely
+# site-bound extras remain here.) Intentional divergence from the base template.
+pages/lib/_chrome.ts
 
 # src/config/settings-types.ts — @slot:settings-types:trigger-names markers removed.
 # The base template ships @slot: markers so compose can inject feature-specific
 # trigger name types. Production has these slots resolved and removed.
 src/config/settings-types.ts
 
-# src/styles/global.css — @slot markers resolved; doc-history diff viewer CSS added.
+# src/styles/global.css — @slot markers resolved; doc-history diff viewer CSS added;
+# Noto Sans JP webfont @import added.
 # The base template ships @slot:global-css:theme-tokens and
 # @slot:global-css:feature-styles injection markers. Production has these
 # slots resolved (removed) and the real doc-history diff viewer CSS inlined
-# in place of the feature-styles slot (docHistory: true).
+# in place of the feature-styles slot (docHistory: true). It also @imports the
+# Noto Sans JP webfont here (zudo-doc 2.0.0 collapsed the host <head> into the
+# package chrome, so the former async <link> in pages/lib/_head-with-defaults.tsx
+# moved to CSS — applies uniformly to home + every doc page via --font-noto).
 src/styles/global.css
 
 # Feature-island re-export shims — these three components ship a base no-op
@@ -66,13 +75,6 @@ scripts/tags-suggest.ts
 # global.css. This site has NOT opted into it (no references in prod). Intentionally
 # absent; adopt later as a separate task if mermaid-diagram enlarge is wanted.
 src/components/mermaid-enlarge.tsx
-
-# pages/lib/_head-with-defaults.tsx — Noto Sans JP font loading added.
-# This bilingual site uses Noto Sans JP for body text (Japanese content);
-# the font is loaded asynchronously in the <head> via the media="print" → onload
-# trick. The base template does not ship this font-loading block (it is
-# site-specific typography). Intentional divergence.
-pages/lib/_head-with-defaults.tsx
 
 # src/components/css-preview.tsx — zcss-specific CssPreview demo component.
 # This component is unique to zudo-css-wisdom (no template equivalent).

@@ -28,10 +28,12 @@ import type { JSX } from "preact";
 import type { VNode } from "preact";
 import { Island } from "@takazudo/zfb";
 import { SiteTreeNav } from "@takazudo/zudo-doc/site-tree-nav-island";
-import { FooterWithDefaults } from "./lib/_footer-with-defaults";
-import { HeaderWithDefaults } from "./lib/_header-with-defaults";
-import { HeadWithDefaults } from "./lib/_head-with-defaults";
-import { composeMetaTitle } from "./lib/_compose-meta-title";
+import {
+  FooterWithDefaults,
+  HeaderWithDefaults,
+  HeadWithDefaults,
+  composeMetaTitle,
+} from "./lib/_chrome";
 import { BodyEndIslands } from "./lib/_body-end-islands";
 
 export const frontmatter = { title: "Home" };
