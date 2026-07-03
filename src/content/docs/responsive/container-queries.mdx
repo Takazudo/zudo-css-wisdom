@@ -14,6 +14,14 @@ Media queries respond to the viewport width, not the width of the component's co
 
 CSS Container Queries (`@container`) allow components to respond to the size of their parent container rather than the viewport. This makes components truly reusable across different layout contexts. Container queries are Baseline 2023 and supported in all modern browsers.
 
+<Warning title="Safari 16 / iOS 16 required">
+
+Container queries need Safari 16 (iOS 16, released September 2022) or later. Older Safari does not error or crash on `@container` — it silently ignores the entire rule block, so any element inside only ever receives its un-queried base styles.
+
+If a project's browserslist targets older iOS (for example `ios >= 15.4`), treat those un-queried base styles as the acceptable standalone result for that slice of visitors, not as a placeholder waiting for a fallback. Tailwind ships no polyfill for container queries — there is no automatic degrade to fall back on.
+
+</Warning>
+
 ### Setting Up a Container
 
 A parent element must be declared as a containment context using `container-type`. The most common value is `inline-size`, which enables queries based on the container's inline (horizontal) dimension.
@@ -241,6 +249,102 @@ The shorthand `container` property combines both:
     }
     `}
   height={220} />
+
+## The Tailwind Way
+
+Tailwind CSS v4 has native support for container queries — no plugin required. Each utility below maps directly onto one of the plain-CSS patterns already on this page.
+
+### Marking a Container
+
+The `@container` class is the utility equivalent of `container-type: inline-size` — the same thing the "Setting Up a Container" section above does with plain CSS.
+
+```html
+<div class="@container">
+  <div class="flex flex-col @sm:flex-row @lg:gap-8">
+    <!-- ... -->
+  </div>
+</div>
+```
+
+For a block-size (height-based) container, use `@container-size` instead — the utility equivalent of `container-type: size`.
+
+### The Container Query Variant Scale
+
+`@sm:`, `@md:`, `@lg:`, and the rest are **container-width** variants. They are a completely different scale from the `sm:` / `md:` / `lg:` / `xl:` / `2xl:` **viewport-width** breakpoints used everywhere else in Tailwind — same-looking prefixes, different axis, different pixel values. Tailwind's default container scale runs from `@3xs` to `@7xl`:
+
+| Variant | Minimum container width |
+| --- | --- |
+| `@3xs` | 16rem (256px) |
+| `@2xs` | 18rem (288px) |
+| `@xs` | 20rem (320px) |
+| `@sm` | 24rem (384px) |
+| `@md` | 28rem (448px) |
+| `@lg` | 32rem (512px) |
+| `@xl` | 36rem (576px) |
+| `@2xl` | 42rem (672px) |
+| `@3xl` | 48rem (768px) |
+| `@4xl` | 56rem (896px) |
+| `@5xl` | 64rem (1024px) |
+| `@6xl` | 72rem (1152px) |
+| `@7xl` | 80rem (1280px) |
+
+Compare that to the viewport breakpoint scale: `sm` is 40rem (640px), `md` is 48rem (768px), `lg` is 64rem (1024px), `xl` is 80rem (1280px), `2xl` is 96rem (1536px). `@md:` and `md:` do not activate at the same width — they are not the same scale wearing different notation.
+
+### Theme Tokens: `--container-*` vs. `--breakpoint-*`
+
+The two scales come from two independent theme namespaces:
+
+- `--breakpoint-*` generates the `sm:` / `md:` / ... viewport variants.
+- `--container-*` generates the `@sm:` / `@md:` / ... container-query variants.
+
+A normal `@import "tailwindcss";` ships both namespaces fully populated with their defaults, and the two do not interact — redefining `--breakpoint-*` (say, adding a custom `3xl` viewport breakpoint) has no effect on `--container-*`, and vice versa.
+
+The trap shows up in **theme-reset projects**: setups that wipe Tailwind's default theme (`--*: initial;` inside `@theme`) and rebuild only the tokens they need. It's easy to redefine `--breakpoint-*` for a custom viewport scale and never redefine `--container-*`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --*: initial;
+  --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  /* --container-* was never redefined */
+}
+```
+
+In this setup, `@sm:`, `@md:`, and every other named container variant has no matching theme value. Nothing errors — the variant just never generates a rule, so a class like `@sm:flex-row` silently does nothing. There are two ways out:
+
+- Skip the named scale and use arbitrary values instead: `@min-[384px]:flex-row`, `@max-[900px]:gap-2`.
+- Define the `--container-*` tokens the project actually uses:
+
+```css
+@theme {
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+}
+```
+
+### Named Containers in Tailwind
+
+`@container/label` names the containment context; `@sm/label:` (and the rest of the scale) target it — the utility equivalent of the `container-name` plus `@container name (...)` pattern from the "Named Containers" section above.
+
+```html
+<div class="@container/sidebar">
+  <nav class="flex flex-col @sm/sidebar:flex-row">
+    <!-- ... -->
+  </nav>
+</div>
+```
+
+### Mapping Back to the Plain-CSS Patterns
+
+| Tailwind | Plain CSS | Section on this page |
+| --- | --- | --- |
+| `@container` | `container-type: inline-size;` | "Setting Up a Container" |
+| `@sm:`, `@md:`, ... | `@container (min-width: ...) { }` | "Querying the Container" |
+| `@container/sidebar` + `@sm/sidebar:` | `container: sidebar / inline-size;` + `@container sidebar (min-width: ...)` | "Named Containers" |
 
 ## Container Query Units
 
@@ -708,10 +812,156 @@ In the demo above, the `@container` cards adapt independently: the card in the n
 
 ## When to Use
 
-- **Component-level responsiveness**: Any reusable component that may appear in different layout widths (cards, navigation, form groups).
-- **Sidebar vs. main content**: When the same component appears in both wide and narrow contexts on the same page.
-- **Design system components**: Components built for reuse across different applications and layouts.
-- **Not for page-level layout**: Continue using `@media` queries for macro layout concerns like switching between single-column and multi-column page layouts.
+### The Core Signal
+
+The deciding question is not "is this component small." It is whether the right size or layout for this element is a function of **its own box**, or a function of **the viewport**. If two instances of the same component can need different layouts at the exact same viewport width, a media query cannot express that — a media query only ever knows the viewport. A container query, scoped to the component's own wrapper, can.
+
+### Worked Example: A Lead Component Next to an Optional Sidebar
+
+A homepage "lead" component (thumbnail, title, blurb) is a common case. Its ideal thumbnail width does not depend on the viewport directly — it depends on whether a sidebar shares the page with it. At the exact same viewport width, the lead's wrapper can be nearly the full page width on one template and noticeably narrower on another, once a sidebar column takes some of that space. A viewport media query cannot see this difference; it only ever sees the one viewport width both templates share. A container query on the lead's own wrapper sees the actual, different result.
+
+In the demo below, both homepage layouts render at the same viewport. Layout A has no sidebar; layout B has one. Compare the two lead components: same viewport, different container widths, different layouts — driven entirely by `@container`, not by any media query on the lead component itself.
+
+<CssPreview client:load
+  title="Lead component: same viewport, two different container widths"
+  html={`
+    <div class="lead-demo">
+      <section class="lead-scenario">
+        <h4 class="lead-scenario__label">Homepage layout A — no sidebar</h4>
+        <div class="page-shell">
+          <div class="lead-slot">
+            <article class="lead-card">
+              <div class="lead-card__thumb"></div>
+              <div class="lead-card__body">
+                <h3 class="lead-card__title">Weekend Trail Guide</h3>
+                <p class="lead-card__text">Five day-hike routes worth the drive, picked by the editors this week.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="lead-scenario">
+        <h4 class="lead-scenario__label">Homepage layout B — same viewport, sidebar present</h4>
+        <div class="page-shell page-shell--with-sidebar">
+          <aside class="page-sidebar">Sidebar widgets</aside>
+          <div class="lead-slot">
+            <article class="lead-card">
+              <div class="lead-card__thumb"></div>
+              <div class="lead-card__body">
+                <h3 class="lead-card__title">Weekend Trail Guide</h3>
+                <p class="lead-card__text">Five day-hike routes worth the drive, picked by the editors this week.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </div>
+    `}
+  css={`
+    .lead-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+    }
+
+    .lead-scenario__label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 0.5rem;
+    }
+
+    .page-shell {
+      background: hsl(210, 45%, 96%);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+    }
+
+    .page-sidebar {
+      display: block;
+      background: hsl(260, 40%, 90%);
+      color: hsl(260, 30%, 35%);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* The sidebar only becomes a real page column once the viewport
+       allows it. This @media breakpoint lives on the page shell --
+       the lead component itself never queries the viewport. */
+    @media (min-width: 640px) {
+    .page-shell--with-sidebar {
+      display: grid;
+      grid-template-columns: 34% 1fr;
+      gap: 1rem;
+    }
+    .page-sidebar {
+      margin-bottom: 0;
+    }
+    }
+
+    /* This wrapper is the actual query container -- sized by whatever
+       the surrounding page layout leaves for it, not by the viewport. */
+    .lead-slot {
+      container-type: inline-size;
+    }
+
+    .lead-card__thumb {
+      width: 100%;
+      height: 90px;
+      border-radius: 0.375rem;
+      background: linear-gradient(135deg, hsl(20, 90%, 60%), hsl(340, 80%, 60%));
+      margin-bottom: 0.5rem;
+    }
+
+    .lead-card__title {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem;
+      color: hsl(220, 20%, 20%);
+    }
+
+    .lead-card__text {
+      font-size: 0.8125rem;
+      line-height: 1.4;
+      color: hsl(215, 15%, 40%);
+      margin: 0;
+    }
+
+    @container (min-width: 500px) {
+    .lead-card {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .lead-card__thumb {
+      width: 40%;
+      height: 100px;
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+    .lead-card__body {
+      flex: 1;
+    }
+    }
+    `}
+  height={460} />
+
+Layout A's lead sits alone in the page shell, so its container is close to the full available width — wide enough to trigger the horizontal layout. Layout B's lead shares the shell with a sidebar; its container is narrower even though the page's viewport has not changed at all, so it stays in the compact, stacked layout. Neither lead component queries the viewport — each only reacts to its own wrapper.
+
+### Decision Guide
+
+- **Reach for `@container` when the component's own box determines its layout**: cards, nav bars, form groups, and any "designed once, placed everywhere" component where the surrounding page structure (sidebars, modals, grid columns) is outside the component's control.
+- **Reach for `@container` when the same component needs different layouts at the same viewport width**: the lead/sidebar case above. A media query cannot see this difference; a container query, scoped to the component's own wrapper, can.
+- **Reach for `@container` for design system components**: anything shipped for reuse across products or pages, where you cannot assume what will surround it.
+- **Keep `@media` for page-level layout**: macro decisions like switching the whole page between single-column and multi-column, or showing and hiding page chrome, are viewport decisions, not decisions about any one component's box.
 
 ## References
 
@@ -720,3 +970,5 @@ In the demo above, the `@container` cards adapt independently: the card in the n
 - [Container Query Units — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries#container_query_length_units)
 - [Container Queries Unleashed — Josh W. Comeau](https://www.joshwcomeau.com/css/container-queries-unleashed/)
 - [CSS Container Queries — CSS-Tricks](https://css-tricks.com/css-container-queries/)
+- [Responsive Design: Container Queries — Tailwind CSS docs](https://tailwindcss.com/docs/responsive-design#container-queries)
+- [Theme Variables: Namespaces — Tailwind CSS docs](https://tailwindcss.com/docs/theme#theme-variable-namespaces)
