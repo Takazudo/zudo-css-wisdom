@@ -126,12 +126,26 @@ small {
 
 ### With Container Queries
 
+Container query units (`cqi`, `cqw`, and the rest) apply the same `clamp()` pattern relative to a container's size instead of the viewport. See [Container Query Units](../../responsive/container-queries.mdx#container-query-units) for the full unit reference.
+
 ```css
 /* Fluid sizing relative to container width instead of viewport */
+
+/* Additive: rem base + cqi term */
 .card-title {
   font-size: clamp(1rem, 0.5rem + 3cqi, 1.5rem);
 }
+
+/* Pure: cqi only, no rem base */
+.card-title {
+  font-size: clamp(1rem, 5cqi, 2rem);
+}
 ```
+
+| Pattern | Formula | When to use |
+| --- | --- | --- |
+| Additive | `clamp(1rem, 0.5rem + 3cqi, 1.5rem)` | The `rem` base is a size floor independent of container width — text degrades gracefully even in a near-zero-width container. Use for headings that must stay legible at any container size. |
+| Pure | `clamp(1rem, 5cqi, 2rem)` | Font size is directly proportional to the container's inline size (`5cqi` = 5% of it). Use when the container already has hard min/max width bounds set elsewhere in the CSS, and text should track the container's actual rendered size rather than degrade gracefully. |
 
 ## Common AI Mistakes
 
@@ -141,6 +155,7 @@ small {
 - Not testing the formula at extreme viewport widths, leading to absurdly large text on ultrawide monitors
 - Using `calc()` with `vw` alone (e.g., `calc(1rem + 1vw)`) without upper or lower bounds, which `clamp()` naturally provides
 - Applying fluid sizing to every text element when only headings and display text benefit from it — body text often works fine at a fixed `1rem`
+- Re-deriving a `cqi` coefficient from an old viewport-breakpoint font-size when migrating to container-query sizing, without checking whether that breakpoint value was correctly sized in the first place — a formula can be mathematically continuous across container widths and still render visibly wrong against the design's stated intent
 
 ## When to Use
 
