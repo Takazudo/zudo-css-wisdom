@@ -14,6 +14,14 @@ import CssPreview from '@/components/CssPreview';
 
 CSSコンテナクエリ（`@container`）を使うと、コンポーネントをビューポートではなく親コンテナのサイズに応じて変化させることができます。これにより、コンポーネントが異なるレイアウトコンテキストで真に再利用可能になります。コンテナクエリは Baseline 2023 であり、すべてのモダンブラウザでサポートされています。
 
+<Warning title="Safari 16 / iOS 16 が必要">
+
+コンテナクエリには Safari 16（iOS 16、2022年9月リリース）以降が必要です。古い Safari は `@container` に対してエラーやクラッシュを起こすわけではなく、ルールブロック全体を黙って無視します。そのため、内部の要素はクエリされていないベーススタイルしか受け取りません。
+
+プロジェクトの browserslist が古い iOS（例えば `ios >= 15.4`）をターゲットにしている場合、そうしたクエリされていないベーススタイルは、フォールバックを待つ仮の状態ではなく、その層の訪問者にとって許容できる単独の結果として扱いましょう。Tailwind はコンテナクエリのポリフィルを提供していないため、自動的にフォールバックする仕組みはありません。
+
+</Warning>
+
 ### コンテナの設定
 
 親要素を `container-type` を使ってコンテインメントコンテキスト（containment context）として宣言する必要があります。最も一般的な値は `inline-size` で、コンテナのインライン方向（水平方向）のサイズに基づくクエリを有効にします。
@@ -241,6 +249,102 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
     }
     `}
   height={220} />
+
+## Tailwind CSSでの書き方
+
+Tailwind CSS v4 はコンテナクエリをネイティブでサポートしており、プラグインは不要です。以下の各ユーティリティは、このページですでに紹介したプレーンCSSのパターンにそれぞれ直接対応しています。
+
+### コンテナのマーキング
+
+`@container` クラスは `container-type: inline-size` に相当するユーティリティです。これは上の「コンテナの設定」セクションでプレーンCSSが行っているのと同じことです。
+
+```html
+<div class="@container">
+  <div class="flex flex-col @sm:flex-row @lg:gap-8">
+    <!-- ... -->
+  </div>
+</div>
+```
+
+ブロックサイズ（高さ基準）のコンテナが必要な場合、Tailwind には対応する静的ユーティリティがありません。代わりに任意の値を使う `@container-[size]` を使います。これが `container-type: size` に相当します。
+
+### コンテナクエリのバリアントスケール
+
+`@sm:`、`@md:`、`@lg:` などは**コンテナ幅**のバリアントです。これらは、Tailwind の他の場所で使われている `sm:` / `md:` / `lg:` / `xl:` / `2xl:` という**ビューポート幅**のブレークポイントとはまったく別のスケールです。見た目のプレフィックスは似ていますが、対象の軸もピクセル値も異なります。Tailwind のデフォルトのコンテナスケールは `@3xs` から `@7xl` まであります。
+
+| バリアント | コンテナの最小幅 |
+| --- | --- |
+| `@3xs` | 16rem (256px) |
+| `@2xs` | 18rem (288px) |
+| `@xs` | 20rem (320px) |
+| `@sm` | 24rem (384px) |
+| `@md` | 28rem (448px) |
+| `@lg` | 32rem (512px) |
+| `@xl` | 36rem (576px) |
+| `@2xl` | 42rem (672px) |
+| `@3xl` | 48rem (768px) |
+| `@4xl` | 56rem (896px) |
+| `@5xl` | 64rem (1024px) |
+| `@6xl` | 72rem (1152px) |
+| `@7xl` | 80rem (1280px) |
+
+これをビューポートブレークポイントのスケールと比べると、`sm` は 40rem (640px)、`md` は 48rem (768px)、`lg` は 64rem (1024px)、`xl` は 80rem (1280px)、`2xl` は 96rem (1536px) です。`@md:` と `md:` は同じ幅で発動するわけではありません。これらは表記が違うだけの同じスケールではありません。
+
+### テーマトークン: `--container-*` と `--breakpoint-*`
+
+この2つのスケールは、それぞれ独立した2つのテーマ名前空間から生成されています。
+
+- `--breakpoint-*` は `sm:` / `md:` / ... というビューポートバリアントを生成します。
+- `--container-*` は `@sm:` / `@md:` / ... というコンテナクエリバリアントを生成します。
+
+通常の `@import "tailwindcss";` では、両方の名前空間がデフォルト値で完全に埋まった状態で提供され、両者は互いに影響しません。`--breakpoint-*` を再定義しても（例えばカスタムの `3xl` ビューポートブレークポイントを追加しても）`--container-*` には何の影響もありませんし、その逆も同様です。
+
+この罠は**テーマをリセットするプロジェクト**で発生します。Tailwind のデフォルトテーマを消去し（`@theme` 内で `--*: initial;`）、必要なトークンだけを再構築するようなセットアップです。`--breakpoint-*` をカスタムのビューポートスケール用に再定義しても、`--container-*` を再定義し忘れることは簡単に起こります。
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --*: initial;
+  --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  /* --container-* was never redefined */
+}
+```
+
+このセットアップでは、`@sm:`、`@md:`、その他すべての名前付きコンテナバリアントに対応するテーマ値が存在しません。エラーは何も出ませんが、バリアントはルールを一切生成しないため、`@sm:flex-row` のようなクラスは黙って何もしません。これには2つの回避策があります。
+
+- 名前付きスケールを使わず、代わりに任意の値を使う: `@min-[384px]:flex-row`、`@max-[900px]:gap-2`。
+- プロジェクトが実際に使う `--container-*` トークンを定義する。
+
+```css
+@theme {
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+}
+```
+
+### Tailwindでの名前付きコンテナ
+
+`@container/label` はコンテインメントコンテキストに名前を付け、`@sm/label:`（およびスケールの他の値）はそれをターゲットにします。これは上の「名前付きコンテナ」セクションで紹介した `container-name` と `@container name (...)` パターンに相当するユーティリティです。
+
+```html
+<div class="@container/sidebar">
+  <nav class="flex flex-col @sm/sidebar:flex-row">
+    <!-- ... -->
+  </nav>
+</div>
+```
+
+### プレーンCSSパターンとの対応表
+
+| Tailwind | プレーンCSS | このページの該当セクション |
+| --- | --- | --- |
+| `@container` | `container-type: inline-size;` | 「コンテナの設定」 |
+| `@sm:`、`@md:`、... | `@container (min-width: ...) { }` | 「コンテナへのクエリ」 |
+| `@container/sidebar` + `@sm/sidebar:` | `container: sidebar / inline-size;` + `@container sidebar (min-width: ...)` | 「名前付きコンテナ」 |
 
 ## コンテナクエリの単位
 
@@ -708,10 +812,156 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
 
 ## 使い分け
 
-- **コンポーネントレベルのレスポンシブ対応**: 異なるレイアウト幅に配置される可能性のある再利用可能なコンポーネント（カード、ナビゲーション、フォームグループ）に使いましょう。
-- **サイドバーとメインコンテンツ**: 同じページ上で、同じコンポーネントが広いコンテキストと狭いコンテキストの両方に表示される場合に使いましょう。
-- **デザインシステムのコンポーネント**: 異なるアプリケーションやレイアウトで再利用するために構築されたコンポーネントに使いましょう。
-- **ページレベルのレイアウトには不向き**: シングルカラムとマルチカラムのページレイアウト切り替えなど、マクロなレイアウトの関心事には引き続き `@media` クエリを使いましょう。
+### 判断の核となる基準
+
+決め手となる問いは「このコンポーネントは小さいかどうか」ではありません。この要素にとって適切なサイズやレイアウトが、**自分自身のボックス**の関数なのか、それとも**ビューポート**の関数なのか、という点です。同じコンポーネントの2つのインスタンスが、まったく同じビューポート幅で異なるレイアウトを必要とすることがあるなら、メディアクエリはそれを表現できません。メディアクエリが知っているのはビューポートだけだからです。コンポーネント自身のラッパーにスコープされたコンテナクエリなら、それができます。
+
+### 実例: サイドバーの有無で変わるリードコンポーネント
+
+ホームページの「リード」コンポーネント（サムネイル、タイトル、説明文）はよくあるケースです。理想的なサムネイル幅はビューポートに直接依存するのではなく、サイドバーが同じページにあるかどうかに依存します。まったく同じビューポート幅でも、あるテンプレートではリードのラッパーがページ幅にほぼ等しくなり、別のテンプレートではサイドバーカラムがスペースの一部を占めるため明らかに狭くなります。ビューポートのメディアクエリはこの違いを見ることができません。両方のテンプレートが共有する、たった一つのビューポート幅しか見えないからです。リード自身のラッパーに対するコンテナクエリなら、実際に異なる結果を見ることができます。
+
+下のデモでは、2つのホームページレイアウトが同じビューポートで描画されています。レイアウトAにはサイドバーがなく、レイアウトBにはあります。2つのリードコンポーネントを比較してください。同じビューポート、異なるコンテナ幅、異なるレイアウト——これはすべて `@container` によるものであり、リードコンポーネント自体に対するメディアクエリは一切ありません。
+
+<CssPreview client:load
+  title="リードコンポーネント: 同じビューポート、2つの異なるコンテナ幅"
+  html={`
+    <div class="lead-demo">
+      <section class="lead-scenario">
+        <h4 class="lead-scenario__label">Homepage layout A — no sidebar</h4>
+        <div class="page-shell">
+          <div class="lead-slot">
+            <article class="lead-card">
+              <div class="lead-card__thumb"></div>
+              <div class="lead-card__body">
+                <h3 class="lead-card__title">Weekend Trail Guide</h3>
+                <p class="lead-card__text">Five day-hike routes worth the drive, picked by the editors this week.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="lead-scenario">
+        <h4 class="lead-scenario__label">Homepage layout B — same viewport, sidebar present</h4>
+        <div class="page-shell page-shell--with-sidebar">
+          <aside class="page-sidebar">Sidebar widgets</aside>
+          <div class="lead-slot">
+            <article class="lead-card">
+              <div class="lead-card__thumb"></div>
+              <div class="lead-card__body">
+                <h3 class="lead-card__title">Weekend Trail Guide</h3>
+                <p class="lead-card__text">Five day-hike routes worth the drive, picked by the editors this week.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </div>
+    `}
+  css={`
+    .lead-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+    }
+
+    .lead-scenario__label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 0.5rem;
+    }
+
+    .page-shell {
+      background: hsl(210, 45%, 96%);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+    }
+
+    .page-sidebar {
+      display: block;
+      background: hsl(260, 40%, 90%);
+      color: hsl(260, 30%, 35%);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* The sidebar only becomes a real page column once the viewport
+       allows it. This @media breakpoint lives on the page shell --
+       the lead component itself never queries the viewport. */
+    @media (min-width: 640px) {
+    .page-shell--with-sidebar {
+      display: grid;
+      grid-template-columns: 34% 1fr;
+      gap: 1rem;
+    }
+    .page-sidebar {
+      margin-bottom: 0;
+    }
+    }
+
+    /* This wrapper is the actual query container -- sized by whatever
+       the surrounding page layout leaves for it, not by the viewport. */
+    .lead-slot {
+      container-type: inline-size;
+    }
+
+    .lead-card__thumb {
+      width: 100%;
+      height: 90px;
+      border-radius: 0.375rem;
+      background: linear-gradient(135deg, hsl(20, 90%, 60%), hsl(340, 80%, 60%));
+      margin-bottom: 0.5rem;
+    }
+
+    .lead-card__title {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem;
+      color: hsl(220, 20%, 20%);
+    }
+
+    .lead-card__text {
+      font-size: 0.8125rem;
+      line-height: 1.4;
+      color: hsl(215, 15%, 40%);
+      margin: 0;
+    }
+
+    @container (min-width: 500px) {
+    .lead-card {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .lead-card__thumb {
+      width: 40%;
+      height: 100px;
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+    .lead-card__body {
+      flex: 1;
+    }
+    }
+    `}
+  height={460} />
+
+レイアウトAのリードはページシェル内に単独で置かれているため、そのコンテナは利用可能な幅にほぼ等しく、横並びレイアウトを発動させるのに十分な広さです。レイアウトBのリードはシェルをサイドバーと共有しているため、ページのビューポートがまったく変わっていないにもかかわらず、そのコンテナは狭くなり、コンパクトな縦積みレイアウトのままになります。どちらのリードコンポーネントもビューポートをクエリしておらず、それぞれが自分自身のラッパーにのみ反応しています。
+
+### 判断ガイド
+
+- **コンポーネント自身のボックスがレイアウトを決める場合は `@container` を使いましょう**: カード、ナビゲーションバー、フォームグループなど、「一度設計してどこにでも配置する」タイプのコンポーネントで、周囲のページ構造（サイドバー、モーダル、グリッドカラム）がコンポーネントの制御外にある場合です。
+- **同じコンポーネントが同じビューポート幅で異なるレイアウトを必要とする場合は `@container` を使いましょう**: 上記のリード/サイドバーのケースです。メディアクエリはこの違いを見ることができませんが、コンポーネント自身のラッパーにスコープされたコンテナクエリなら見ることができます。
+- **デザインシステムのコンポーネントには `@container` を使いましょう**: 何が周囲に配置されるか前提にできない、複数の製品やページで再利用するために出荷されるものすべてに当てはまります。
+- **ページレベルのレイアウトには `@media` を使い続けましょう**: ページ全体をシングルカラムとマルチカラムで切り替える、あるいはページ全体のクロームを表示・非表示にするといったマクロな判断は、どれか一つのコンポーネントのボックスに関する判断ではなく、ビューポートに関する判断です。
 
 ## 参考リンク
 
@@ -720,3 +970,5 @@ CSSコンテナクエリ（`@container`）を使うと、コンポーネント�
 - [Container Query Units — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries#container_query_length_units)
 - [Container Queries Unleashed — Josh W. Comeau](https://www.joshwcomeau.com/css/container-queries-unleashed/)
 - [CSS Container Queries — CSS-Tricks](https://css-tricks.com/css-container-queries/)
+- [レスポンシブデザイン: コンテナクエリ — Tailwind CSS docs](https://tailwindcss.com/docs/responsive-design#container-queries)
+- [テーマ変数: 名前空間 — Tailwind CSS docs](https://tailwindcss.com/docs/theme#theme-variable-namespaces)

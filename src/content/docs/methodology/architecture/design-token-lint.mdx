@@ -154,6 +154,25 @@ The point is not the specific syntax — it is that every raw literal in compone
   `}
 />
 
+### The exact allow/ban boundary for Tailwind utilities
+
+"No bare numeric utilities" is easy to over-read. In one project, an AI agent implementing this lint policy read the rule as "ban everything with a number" and flagged Tailwind's **fraction** utilities (`w-1/2`, `w-1/3`) alongside the freedom-scale ones the rule was meant to catch — breaking every proportional-width layout in the codebase until a human caught the mistake. A fraction expresses a proportion; it is not part of the numeric freedom scale the rule targets.
+
+Ban the default numeric **scale** and default color **palette**; everything explicit (tokens, arbitrary `[...]`, fractions, keywords) is allowed.
+
+| Category | Verdict | Examples |
+| --- | --- | --- |
+| Numeric spacing scale | Ban | `p-4`, `m-8`, `gap-6`, `inset-2`, ... |
+| Numeric sizing scale | Ban | `w-24`, `h-3`, `size-2`, `min-w-4`, `max-w-8`, ... |
+| Default color palette | Ban | `bg-gray-500`, `text-blue-600`, `border-red-400`, ... |
+| Semantic tokens | Allow | `px-hsp-sm`, `py-vsp-md`, `bg-surface`, `text-ink` |
+| Arbitrary values (escape hatch for one-off, component-specific values) | Allow | `w-[30px]`, `p-[6px]`, `grid-cols-[120px_1fr]`, `bg-[hsl(...)]` |
+| Fractions (proportional, NOT the freedom scale) | Allow | `w-1/2`, `w-1/3`, `basis-2/3` |
+| Keywords | Allow | `w-full`, `h-screen`, `max-w-prose`, `min-w-0` |
+| Zero | Allow | `p-0`, `w-0` |
+
+The numeric sizing scale is banned in policy, but the current reference implementation cannot safely enforce any of it yet — see the tooling-gap note in the Reference implementation section below.
+
 ## Pass 2: zone awareness for semantic tokens
 
 Pass 1 alone is too broad. Some files **must** contain raw literals — that is the whole point of a `:root` block:
@@ -289,9 +308,20 @@ The lint config also supports `allowed`, `ignore`, and `prohibited` fields for p
 [`@takazudo/zudo-design-token-lint`](https://github.com/Takazudo/zudo-design-token-lint) is the working reference implementation. It currently ships **Pass 1 for Tailwind class names**:
 
 - Forbids numeric spacing utilities (`p-4`, `m-8`, `gap-6`, `mt-16`, `space-x-4`, `inset-2`, ...)
+- Does not yet forbid any numeric sizing utility (`w-{n}`, `h-{n}`, `size-{n}`, `min-w-{n}`, `max-w-{n}`, `min-h-{n}`, `max-h-{n}`, `basis-{n}`) — see the tooling-gap note below for why
 - Forbids default Tailwind colors (`bg-gray-500`, `text-blue-600`, `border-red-300`, `ring-indigo-500`, ...)
-- Allows semantic tokens (`bg-surface`, `text-fg`, `p-hgap-sm`), arbitrary values (`w-[28px]`), zero values (`p-0`), and any non-default colour name
+- Allows semantic tokens (`bg-surface`, `text-fg`, `p-hgap-sm`), arbitrary values (`w-[28px]`), zero values (`p-0`), fractions (`w-1/2`), and any non-default colour name
 - Static-analysis based: scans `className=`, `class=`, `cn(...)`, `clsx(...)`, `classNames(...)`, `twMerge(...)` and Astro `class:list` expressions
+
+<Warning title="Fraction vs. opacity-modifier conflict (v1.0.0)">
+
+`@takazudo/zudo-design-token-lint` v1.0.0 strips everything after `/` as a Tailwind opacity modifier before matching a class against its ban rules. That normalization turns `w-1/2` into `w-1`, and `w-1` matches a `w-{n}` ban rule — the valid fraction is flagged as if it were the freedom-scale utility `w-1`. This is the exact failure mode from the motivating incident above, at the tooling level.
+
+Tailwind opacity modifiers (`bg-black/50`) apply only to **color** utilities. They do not exist for sizing utilities — a trailing `/N` on `w`, `h`, `size`, `min-w`, `max-w`, `min-h`, `max-h`, or `basis` is always a fraction, never an opacity value. In Tailwind v4, every one of those prefixes accepts fraction syntax — `size-1/2`, `min-w-1/3`, `max-h-2/3` are all real, valid utilities, not just `w-1/2` / `h-1/3` / `basis-2/3`. A bare `{prefix}-{n}` ban rule risks the same false positive on all of them, not only on `w` / `h` / `basis`. The fix direction is for the linter to strip a trailing `/N` as an opacity modifier only when the base utility is a color utility; for sizing utilities, `1/2` would then never match a bare-number pattern and every fraction would correctly pass.
+
+Until that lands upstream, the numeric sizing scale cannot be safely banned by a bare `{prefix}-{n}` rule for any of these prefixes — banning any of `w-{n}`, `h-{n}`, `size-{n}`, `min-w-{n}`, `max-w-{n}`, `min-h-{n}`, `max-h-{n}`, or `basis-{n}` with the current v1.0.0 matcher would false-positive a real fraction built on that prefix. The numeric spacing scale (`p-{n}`, `m-{n}`, `gap-{n}`, `space-x-{n}`, …) has no fraction syntax in Tailwind and remains safely bannable today.
+
+</Warning>
 
 The same package is vendored in [zudo-pattern-gen `packages/design-token-lint`](https://github.com/zudolab/zudo-pattern-gen/tree/main/packages/design-token-lint) — the pgen project consumes it as a workspace package, which is one of three legitimate adoption strategies:
 
