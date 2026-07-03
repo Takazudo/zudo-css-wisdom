@@ -307,7 +307,7 @@ The lint config also supports `allowed`, `ignore`, and `prohibited` fields for p
 
 [`@takazudo/zudo-design-token-lint`](https://github.com/Takazudo/zudo-design-token-lint) is the working reference implementation. It currently ships **Pass 1 for Tailwind class names**:
 
-- Forbids numeric spacing utilities (`p-4`, `m-8`, `gap-6`, `mt-16`, `space-x-4`, `inset-2`, ...)
+- Forbids numeric spacing utilities (`p-4`, `m-8`, `gap-6`, `mt-16`, `space-x-4`, `inset-2`, ...) — note that the shipped `inset` coverage is affected by the fraction conflict below (`inset-1/2` is a valid fraction), so a v1.0.0 config should keep `inset-{n}` off a bare ban list (see the Warning)
 - Does not yet forbid any numeric sizing utility (`w-{n}`, `h-{n}`, `size-{n}`, `min-w-{n}`, `max-w-{n}`, `min-h-{n}`, `max-h-{n}`, `basis-{n}`) — see the tooling-gap note below for why
 - Forbids default Tailwind colors (`bg-gray-500`, `text-blue-600`, `border-red-300`, `ring-indigo-500`, ...)
 - Allows semantic tokens (`bg-surface`, `text-fg`, `p-hgap-sm`), arbitrary values (`w-[28px]`), zero values (`p-0`), fractions (`w-1/2`), and any non-default colour name

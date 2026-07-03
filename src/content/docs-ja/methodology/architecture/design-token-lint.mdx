@@ -307,7 +307,7 @@ lint 設定はプロジェクト全体のルールに対して `allowed`、`igno
 
 [`@takazudo/zudo-design-token-lint`](https://github.com/Takazudo/zudo-design-token-lint) が動作するリファレンス実装です。現時点では **Tailwind class 名向けの Pass 1** を出荷しています。
 
-- 数値スペーシングユーティリティ（`p-4`、`m-8`、`gap-6`、`mt-16`、`space-x-4`、`inset-2` ...）を禁止
+- 数値スペーシングユーティリティ（`p-4`、`m-8`、`gap-6`、`mt-16`、`space-x-4`、`inset-2` ...）を禁止 ―― ただし、同梱の `inset` のカバレッジは後述のフラクション衝突の影響を受けるため（`inset-1/2` は正当なフラクションです）、v1.0.0 の設定では `inset-{n}` を裸の禁止リストから外しておくべきです（Warning を参照）
 - 数値サイジングユーティリティ（`w-{n}`、`h-{n}`、`size-{n}`、`min-w-{n}`、`max-w-{n}`、`min-h-{n}`、`max-h-{n}`、`basis-{n}`）はまだ一切禁止していない ―― 理由は後述のツール面のギャップに関する注記を参照してください
 - Tailwind デフォルト色（`bg-gray-500`、`text-blue-600`、`border-red-300`、`ring-indigo-500` ...）を禁止
 - セマンティックトークン（`bg-surface`、`text-fg`、`p-hgap-sm`）、任意値（`w-[28px]`）、ゼロ値（`p-0`）、フラクション（`w-1/2`）、デフォルトでない色名はすべて許可
