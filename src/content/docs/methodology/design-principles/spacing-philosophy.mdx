@@ -1,0 +1,385 @@
+---
+title: "Spacing Philosophy: Proximity Grouping"
+description: "Space between groups must clearly exceed space within a group, or the layout reads as the wrong hierarchy — no matter how \"correct\" each individual value is."
+sidebar_position: 1
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+Spacing communicates structure. Readers do not parse a page by reading its DOM tree — they parse it by eye, and the eye groups elements by how close together they are. This is the Gestalt law of proximity: elements placed near each other are perceived as related; elements placed farther apart are perceived as separate.
+
+Token systems and lint rules — see [Design Token Lint](../architecture/design-token-lint.mdx) and [Two-Tier Size Strategy](../design-systems/two-tier-size-strategy.mdx) — enforce that spacing values come from an approved scale. They cannot enforce that two adjacent values, placed next to each other, produce a legible grouping. A layout can use nothing but valid tokens and still read as the wrong hierarchy, because the failure is not in any single value — it is in the **ratio** between the gap within a group and the gap between groups.
+
+Consider a spacing scale with steps at 8px, 12px, 16px, 24px, and 32px. Every one of these is a "correct" token. But using 12px for the space between related items and 16px for the space before the next section is a mistake the lint layer will never catch: 16px is only 1.33× larger than 12px, which is too weak a signal to read as a boundary. The eye blurs the two groups into one.
+
+## The Solution
+
+Make the gap **between** groups clearly larger than the gap **within** a group — as a rule of thumb, at least roughly double. The absolute values matter less than the ratio between them. Two spacing values are both valid tokens and still describe two different structures depending on how they relate to each other.
+
+<CssPreview client:load
+  title="Ratio Over Absolute Value — Same Token Scale, Different Grouping"
+  html={`
+<div class="ratio-demo">
+  <div class="ratio-demo__col">
+    <p class="ratio-demo__label">Weak ratio — 12px / 16px (1.33×)</p>
+    <div class="ratio-demo__group">
+      <div class="ratio-demo__item">Product A</div>
+      <div class="ratio-demo__item">Product B</div>
+      <div class="ratio-demo__item">Product C</div>
+    </div>
+    <p class="ratio-demo__footer ratio-demo__footer--weak">3 items in stock</p>
+  </div>
+  <div class="ratio-demo__col">
+    <p class="ratio-demo__label">Strong ratio — 12px / 32px (2.67×)</p>
+    <div class="ratio-demo__group">
+      <div class="ratio-demo__item">Product A</div>
+      <div class="ratio-demo__item">Product B</div>
+      <div class="ratio-demo__item">Product C</div>
+    </div>
+    <p class="ratio-demo__footer ratio-demo__footer--strong">3 items in stock</p>
+  </div>
+</div>
+  `}
+  css={`
+  .ratio-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .ratio-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .ratio-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .ratio-demo__group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ratio-demo__item {
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: hsl(24, 70%, 45%);
+    color: hsl(0, 0%, 100%);
+    font-size: 0.85rem;
+  }
+  .ratio-demo__footer {
+    font-size: 0.75rem;
+    color: hsl(220, 10%, 45%);
+  }
+  .ratio-demo__footer--weak {
+    margin-top: 16px;
+  }
+  .ratio-demo__footer--strong {
+    margin-top: 32px;
+  }
+  `}
+  height={260}
+/>
+
+Both columns use the same 12px value for spacing within the group of three products. The left column pairs it with a 16px gap before the footer — a valid token, but too close to 12px to read as a boundary, so the footer looks like a fourth member of the list. The right column pairs the same 12px with 32px — the footer now clearly reads as separate from the product group. No value here is "wrong" in isolation. The ratio is what decides the reading.
+
+For the mechanics of producing these gaps — `gap` versus `margin`, and when each applies — see [gap vs margin](../../layout/flexbox-and-grid/gap-vs-margin.mdx). This article is about deciding *how much* space to put on each side of a boundary; that one is about *which property* creates it.
+
+## Separators Bind to the Section They Introduce
+
+A divider — an `<hr>`, a border, a label — is a boundary marker. It should read as the **opening** of the section that follows it, not the closing of the section before it. That means the space before the separator should be large (it is leaving the previous section) and the space after it should be small (it belongs to, and introduces, the next section).
+
+A common implementation inverts this by accident. Tailwind's `border-t` + `pt-*` pattern applies the top border and the top padding to the same element — the section that comes *after* the divider:
+
+```css
+/* The line sits at the very top of the box.
+   padding-top lands BELOW the line, not above it. */
+.section-next {
+  border-top: 1px dashed hsl(30, 15%, 55%);
+  padding-top: 2rem;
+}
+```
+
+The border is drawn at the top edge of the box; `padding-top` is space *inside* the box, below that line. If nothing supplies space before the box (no `margin-top` on it, no `margin-bottom` on what precedes it), the line sits flush against the previous section — visually joining it — while the generous padding pushes the next section's content away from its own separator.
+
+<CssPreview client:load
+  title="The border-top + padding-top Trap"
+  html={`
+<div class="trap-demo">
+  <div class="trap-demo__col">
+    <p class="trap-demo__label">Broken — space lands below the line</p>
+    <div class="trap-demo__page">
+      <p class="trap-demo__text">Previous section content ends here.</p>
+      <div class="trap-demo__divider trap-demo__divider--broken">
+        <p class="trap-demo__next">Next section starts here.</p>
+      </div>
+    </div>
+  </div>
+  <div class="trap-demo__col">
+    <p class="trap-demo__label">Fixed — space moved above the line</p>
+    <div class="trap-demo__page">
+      <p class="trap-demo__text">Previous section content ends here.</p>
+      <div class="trap-demo__divider trap-demo__divider--fixed">
+        <p class="trap-demo__next">Next section starts here.</p>
+      </div>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .trap-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .trap-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .trap-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .trap-demo__page {
+    background: hsl(30, 30%, 97%);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .trap-demo__text,
+  .trap-demo__next {
+    font-size: 0.85rem;
+    color: hsl(220, 15%, 25%);
+    margin: 0;
+  }
+  .trap-demo__divider--broken {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    padding-top: 32px;
+    margin-top: 0;
+  }
+  .trap-demo__divider--fixed {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    padding-top: 8px;
+    margin-top: 32px;
+  }
+  `}
+  height={260}
+/>
+
+In the broken version the line has almost no space above it, so it visually clumps with the previous paragraph — the two read as one group, and "Next section starts here" floats disconnected below its own separator. In the fixed version the large `margin-top` on the divider pushes the line away from the previous section, and the small `padding-top` keeps the next section's text close beneath the line. The line now reads as what it is: the start of the next section.
+
+## The Squint Test
+
+A fast, reliable review heuristic: blur your vision (or literally squint) at the layout and ask which elements clump together. Fine details — text content, icon shapes, exact colors — disappear under blur. What remains is pure spatial grouping: the same signal a reader's peripheral vision and first-glance scan pick up before they read a single word.
+
+Compare the result against the intended outline. If a boundary element — a divider, a heading, a label — clumps with the wrong neighbor, the fix is to adjust the **gap ratio** around it, not to restyle the element itself. A divider that reads as attached to the wrong section is a spacing bug, not a border-color or line-weight bug.
+
+<CssPreview client:load
+  title="Squint Test — Toggle Blur to Check Grouping"
+  html={`
+<div class="squint-demo">
+  <input type="checkbox" id="squint-toggle" class="squint-demo__toggle" />
+  <label for="squint-toggle" class="squint-demo__toggle-label">Squint (blur the layout)</label>
+  <div class="squint-demo__content">
+    <div class="squint-demo__group">
+      <div class="squint-demo__item">Filters</div>
+      <div class="squint-demo__item">Sort</div>
+      <div class="squint-demo__item">View</div>
+    </div>
+    <div class="squint-demo__group squint-demo__group--secondary">
+      <div class="squint-demo__item squint-demo__item--muted">24 results</div>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .squint-demo {
+    font-family: system-ui, sans-serif;
+    padding: 24px;
+  }
+  .squint-demo__toggle {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .squint-demo__toggle-label {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: hsl(24, 70%, 45%);
+    color: hsl(0, 0%, 100%);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  .squint-demo__toggle:focus-visible + .squint-demo__toggle-label {
+    outline: 2px solid hsl(24, 70%, 45%);
+    outline-offset: 2px;
+  }
+  .squint-demo__content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    transition: filter 0.15s ease;
+  }
+  .squint-demo__toggle:checked ~ .squint-demo__content {
+    filter: blur(5px);
+  }
+  .squint-demo__group {
+    display: flex;
+    gap: 10px;
+  }
+  .squint-demo__item {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: hsl(220, 15%, 90%);
+    color: hsl(220, 20%, 25%);
+    font-size: 0.8rem;
+  }
+  .squint-demo__item--muted {
+    background: transparent;
+    color: hsl(220, 10%, 50%);
+    padding: 8px 0;
+  }
+  `}
+  height={230}
+/>
+
+Toggle the checkbox above. At full clarity, "24 results" reads as ordinary text below a toolbar. Blurred, the large gap above it and its lack of a background box read clearly as "not part of the toolbar group" — the grouping intent survives the blur. If it did not — if the blurred shapes fused into a single blob — that would be the signal to widen the gap between groups.
+
+## Worked Example: Page Outro
+
+A page outro is a common place for this failure to slip through: a block of related-content links, followed by a divider, followed by a small footnote. Every individual spacing value can be lifted straight from the token scale and the result can still misread.
+
+<CssPreview client:load
+  title="Page Outro — Broken vs Fixed Grouping"
+  html={`
+<div class="outro-demo">
+  <div class="outro-demo__col">
+    <p class="outro-demo__label">Broken — hr clumps with the nav above</p>
+    <div class="outro-demo__page">
+      <nav class="outro-demo__nav outro-demo__nav--broken">
+        <a class="outro-demo__link" href="#">Related Product A</a>
+        <a class="outro-demo__link" href="#">Related Product B</a>
+        <a class="outro-demo__link" href="#">Related Product C</a>
+      </nav>
+      <hr class="outro-demo__hr outro-demo__hr--broken" />
+      <p class="outro-demo__footnote outro-demo__footnote--broken">Data sourced from the Q3 2026 product catalog.</p>
+    </div>
+  </div>
+  <div class="outro-demo__col">
+    <p class="outro-demo__label">Fixed — hr binds forward to the footnote</p>
+    <div class="outro-demo__page">
+      <nav class="outro-demo__nav outro-demo__nav--fixed">
+        <a class="outro-demo__link" href="#">Related Product A</a>
+        <a class="outro-demo__link" href="#">Related Product B</a>
+        <a class="outro-demo__link" href="#">Related Product C</a>
+      </nav>
+      <hr class="outro-demo__hr outro-demo__hr--fixed" />
+      <p class="outro-demo__footnote outro-demo__footnote--fixed">Data sourced from the Q3 2026 product catalog.</p>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .outro-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .outro-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .outro-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .outro-demo__page {
+    background: hsl(30, 30%, 97%);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .outro-demo__nav {
+    display: flex;
+    flex-direction: column;
+  }
+  .outro-demo__link {
+    font-size: 0.85rem;
+    color: hsl(24, 70%, 40%);
+    text-decoration: none;
+  }
+  .outro-demo__nav--broken .outro-demo__link,
+  .outro-demo__nav--fixed .outro-demo__link {
+    margin-bottom: 8px;
+  }
+  .outro-demo__hr {
+    border: none;
+  }
+  .outro-demo__hr--broken {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    margin: 0 0 32px;
+  }
+  .outro-demo__hr--fixed {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    margin: 32px 0 8px;
+  }
+  .outro-demo__footnote {
+    font-size: 0.75rem;
+    color: hsl(220, 10%, 45%);
+    margin: 0;
+  }
+  `}
+  height={280}
+/>
+
+**Broken**: the divider sits directly under the related-product links with almost no space above it (only the 8px link spacing), then a 32px gap opens up before the footnote. The `<hr>` visually joins the navigation — it reads as "the bottom border of the nav block" — and the footnote floats as an orphaned, disconnected line. **Fixed**: a 32px gap separates the divider from the nav above, and only 8px sits between the divider and the footnote below. The `<hr>` now reads as what it is: the opening marker of the footnote section, not the closing marker of the navigation. The two versions use the same content and the same set of spacing values (8px, 32px) — only which side of the divider gets which value changed.
+
+## Quick Reference
+
+| Scenario | Technique |
+| --- | --- |
+| Related items in a list or toolbar | Small, uniform gap (`gap` on the container) |
+| Boundary between unrelated sections | Gap roughly 2× or more the within-group gap |
+| Divider (`<hr>`, border) introducing a section | Large space before it, small space after it |
+| Reviewing a shipped layout for grouping errors | Squint/blur the page; check clumping against the intended outline |
+| Auditing spacing values for hierarchy bugs | Compare the *ratio* between adjacent gaps, not each value in isolation |
+
+## Common AI Mistakes
+
+- **Treating "valid token" as "correct usage."** A spacing scale only constrains which values are allowed, not which value belongs at which boundary. Picking adjacent scale steps (e.g., 12px and 16px) for within-group and between-group spacing produces a legal but illegible layout.
+- **Applying `border-t` + `pt-*` to the section that follows a divider without adding `margin-top` before it.** The padding lands below the line, not above it, so the divider silently binds to the wrong section.
+- **Reviewing spacing by checking each value against the design system, not by looking at the rendered result.** A lint pass or token audit cannot catch a proximity-grouping error — only visual inspection (ideally the squint test) can.
+- **Increasing a single gap in isolation to "fix" a spacing complaint.** If a boundary reads wrong, the fix is the *ratio* between the two adjacent gaps, not an arbitrary bump to one value.
+- **Assuming a divider element is self-explanatory regardless of surrounding space.** An `<hr>` communicates nothing about which section it belongs to on its own — the spacing around it does that work.
+
+## When to Use
+
+### Apply the ratio rule
+
+Whenever a layout has more than one level of grouping — a list of items inside a card, a card inside a page section, a section inside a page. Check that each level's "between" gap is clearly larger than the level below it's "within" gap.
+
+### Run the squint test
+
+After any layout is built or restyled, before shipping. It is a fast, tool-free way to catch grouping errors that a token/lint audit will not surface, because it checks the *relationship* between values, not the values themselves.
+
+### Watch the `border-t` + `pt-*` pattern specifically
+
+Any time a divider or top border is applied to the element that starts a new section rather than to a dedicated separator element. Confirm which side of the line the visible space actually lands on.

@@ -1,0 +1,385 @@
+---
+title: スペーシングの設計思想：近接によるグルーピング
+description: グループ間のスペースはグループ内のスペースより明らかに大きくなければ、個々の値が「正しく」ても意図と違う階層として読まれてしまう。
+sidebar_position: 1
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+スペーシングは構造を伝えます。読者はページを DOM ツリーとして読むのではなく、目で読みます。そして目は、要素同士の距離の近さでグルーピングを判断します。これはゲシュタルトの「近接の法則」です ―― 近くに置かれた要素は関連していると知覚され、離れて置かれた要素は別のものだと知覚されます。
+
+[Design Token Lint](../architecture/design-token-lint.mdx) や [2層サイズ戦略](../design-systems/two-tier-size-strategy.mdx) のようなトークンシステムや lint ルールは、スペーシングの値が承認済みのスケールから選ばれていることを強制できます。しかし、隣り合う 2 つの値を並べたときに、それが読み取りやすいグルーピングを生むかどうかまでは強制できません。レイアウトが有効なトークンだけで構成されていても、間違った階層として読まれることはあります。失敗の原因は個々の値ではなく、グループ内のギャップとグループ間のギャップの**比率**にあるからです。
+
+8px、12px、16px、24px、32px というステップを持つスペーシングスケールを考えてみましょう。どの値も「正しい」トークンです。しかし、関連するアイテム間のスペースに 12px を、次のセクションまでのスペースに 16px を使うのは、lint 層では決して検出できない間違いです。16px は 12px のわずか 1.33 倍にすぎず、境界として読み取るには弱すぎる信号です。目には 2 つのグループが 1 つに溶け合って見えてしまいます。
+
+## 解決方法
+
+グループ**間**のギャップを、グループ**内**のギャップより明らかに大きくします ―― 目安としては、おおよそ 2 倍以上です。絶対値そのものよりも、値同士の比率のほうが重要です。2 つのスペーシング値がどちらも有効なトークンであっても、それらがどう関係し合うかによって、まったく異なる構造を表すことになります。
+
+<CssPreview client:load
+  title="比率が絶対値に勝る ―― 同じトークンスケールでも異なるグルーピング"
+  html={`
+<div class="ratio-demo">
+  <div class="ratio-demo__col">
+    <p class="ratio-demo__label">Weak ratio — 12px / 16px (1.33×)</p>
+    <div class="ratio-demo__group">
+      <div class="ratio-demo__item">Product A</div>
+      <div class="ratio-demo__item">Product B</div>
+      <div class="ratio-demo__item">Product C</div>
+    </div>
+    <p class="ratio-demo__footer ratio-demo__footer--weak">3 items in stock</p>
+  </div>
+  <div class="ratio-demo__col">
+    <p class="ratio-demo__label">Strong ratio — 12px / 32px (2.67×)</p>
+    <div class="ratio-demo__group">
+      <div class="ratio-demo__item">Product A</div>
+      <div class="ratio-demo__item">Product B</div>
+      <div class="ratio-demo__item">Product C</div>
+    </div>
+    <p class="ratio-demo__footer ratio-demo__footer--strong">3 items in stock</p>
+  </div>
+</div>
+  `}
+  css={`
+  .ratio-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .ratio-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .ratio-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .ratio-demo__group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ratio-demo__item {
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: hsl(24, 70%, 45%);
+    color: hsl(0, 0%, 100%);
+    font-size: 0.85rem;
+  }
+  .ratio-demo__footer {
+    font-size: 0.75rem;
+    color: hsl(220, 10%, 45%);
+  }
+  .ratio-demo__footer--weak {
+    margin-top: 16px;
+  }
+  .ratio-demo__footer--strong {
+    margin-top: 32px;
+  }
+  `}
+  height={260}
+/>
+
+どちらの列も、3 つの商品グループ内のスペーシングには同じ 12px を使っています。左の列はフッターまでのギャップに 16px を組み合わせています ―― これも有効なトークンですが、12px に近すぎて境界として読み取れず、フッターがリストの 4 つ目のアイテムのように見えてしまいます。右の列は同じ 12px に 32px を組み合わせています ―― フッターは商品グループとは明らかに別のものとして読み取れます。ここではどの値も単体では「間違って」いません。読み取り方を決めているのは比率です。
+
+これらのギャップをどう作るか ―― `gap` を使うか `margin` を使うか、どちらをいつ使うか ―― については、[gap と margin の使い分け](../../layout/flexbox-and-grid/gap-vs-margin.mdx) を参照してください。この記事が扱うのは境界のどちら側に**どれだけの**スペースを置くかという判断であり、あちらの記事が扱うのは*どのプロパティ*でそれを作るかです。
+
+## セパレーターは、それが導入するセクションに属する
+
+区切り線（`<hr>`、ボーダー、ラベル）は境界のマーカーです。それは前のセクションの終わりとしてではなく、後に続くセクションの**始まり**として読まれるべきです。つまり、区切り線の前のスペースは大きく（前のセクションから離れていく）、後のスペースは小さく（後に続くセクションに属し、それを導入する）あるべきです。
+
+よくある実装は、これをうっかり逆転させてしまいます。Tailwind の `border-t` + `pt-*` パターンは、上部ボーダーと上部パディングを、区切り線の*後に続く*セクションの同じ要素に適用します。
+
+```css
+/* The line sits at the very top of the box.
+   padding-top lands BELOW the line, not above it. */
+.section-next {
+  border-top: 1px dashed hsl(30, 15%, 55%);
+  padding-top: 2rem;
+}
+```
+
+ボーダーはボックスの上端に描画されます。`padding-top` はボックスの*内側*、つまりその線より下のスペースです。ボックスの前に何もスペースを与えるものがなければ（そのボックス自体に `margin-top` がなく、前の要素にも `margin-bottom` がなければ）、線は前のセクションにぴったりくっついて見え ―― 視覚的にはそちらと結合します ―― 一方でたっぷりとしたパディングが、次のセクションのコンテンツを自分自身の区切り線から遠ざけてしまいます。
+
+<CssPreview client:load
+  title="border-top + padding-top の罠"
+  html={`
+<div class="trap-demo">
+  <div class="trap-demo__col">
+    <p class="trap-demo__label">Broken — space lands below the line</p>
+    <div class="trap-demo__page">
+      <p class="trap-demo__text">Previous section content ends here.</p>
+      <div class="trap-demo__divider trap-demo__divider--broken">
+        <p class="trap-demo__next">Next section starts here.</p>
+      </div>
+    </div>
+  </div>
+  <div class="trap-demo__col">
+    <p class="trap-demo__label">Fixed — space moved above the line</p>
+    <div class="trap-demo__page">
+      <p class="trap-demo__text">Previous section content ends here.</p>
+      <div class="trap-demo__divider trap-demo__divider--fixed">
+        <p class="trap-demo__next">Next section starts here.</p>
+      </div>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .trap-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .trap-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .trap-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .trap-demo__page {
+    background: hsl(30, 30%, 97%);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .trap-demo__text,
+  .trap-demo__next {
+    font-size: 0.85rem;
+    color: hsl(220, 15%, 25%);
+    margin: 0;
+  }
+  .trap-demo__divider--broken {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    padding-top: 32px;
+    margin-top: 0;
+  }
+  .trap-demo__divider--fixed {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    padding-top: 8px;
+    margin-top: 32px;
+  }
+  `}
+  height={260}
+/>
+
+壊れた版では、線の上にはほとんどスペースがなく、前の段落と視覚的に結合してしまいます ―― この 2 つは 1 つのグループとして読まれ、「Next section starts here」は自分自身の区切り線の下で切り離されたように浮いて見えます。修正版では、区切り線に大きな `margin-top` を与えることで前のセクションから線を引き離し、小さな `padding-top` によって次のセクションのテキストを線のすぐ下に留めています。これで線は本来の姿 ―― 次のセクションの始まり ―― として読まれます。
+
+## 目を細めて確認するテスト
+
+速くて信頼できるレビューのコツがあります。レイアウトをぼかして見る（あるいは実際に目を細める）ことで、どの要素同士が集まって見えるかを確認するのです。テキストの内容やアイコンの形、正確な色といった細部はぼかすと消えてしまいます。残るのは純粋な空間的グルーピング ―― これは読者の周辺視野や最初のひと目のスキャンが、1 語も読まないうちに拾い上げるのと同じ信号です。
+
+結果を意図したアウトラインと照らし合わせます。区切り線や見出し、ラベルといった境界要素が間違った隣人と一緒に見えるなら、修正すべきはその要素の**ギャップの比率**であって、要素自体のスタイルではありません。区切り線が間違ったセクションに属しているように見えるのは、スペーシングのバグであって、ボーダーの色や線の太さのバグではありません。
+
+<CssPreview client:load
+  title="目を細めて確認するテスト ―― ぼかしを切り替えてグルーピングを確認"
+  html={`
+<div class="squint-demo">
+  <input type="checkbox" id="squint-toggle" class="squint-demo__toggle" />
+  <label for="squint-toggle" class="squint-demo__toggle-label">Squint (blur the layout)</label>
+  <div class="squint-demo__content">
+    <div class="squint-demo__group">
+      <div class="squint-demo__item">Filters</div>
+      <div class="squint-demo__item">Sort</div>
+      <div class="squint-demo__item">View</div>
+    </div>
+    <div class="squint-demo__group squint-demo__group--secondary">
+      <div class="squint-demo__item squint-demo__item--muted">24 results</div>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .squint-demo {
+    font-family: system-ui, sans-serif;
+    padding: 24px;
+  }
+  .squint-demo__toggle {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .squint-demo__toggle-label {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: hsl(24, 70%, 45%);
+    color: hsl(0, 0%, 100%);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  .squint-demo__toggle:focus-visible + .squint-demo__toggle-label {
+    outline: 2px solid hsl(24, 70%, 45%);
+    outline-offset: 2px;
+  }
+  .squint-demo__content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    transition: filter 0.15s ease;
+  }
+  .squint-demo__toggle:checked ~ .squint-demo__content {
+    filter: blur(5px);
+  }
+  .squint-demo__group {
+    display: flex;
+    gap: 10px;
+  }
+  .squint-demo__item {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: hsl(220, 15%, 90%);
+    color: hsl(220, 20%, 25%);
+    font-size: 0.8rem;
+  }
+  .squint-demo__item--muted {
+    background: transparent;
+    color: hsl(220, 10%, 50%);
+    padding: 8px 0;
+  }
+  `}
+  height={230}
+/>
+
+上のチェックボックスを切り替えてみてください。鮮明な状態では、「24 results」はツールバーの下にある普通のテキストに見えます。ぼかすと、その上の大きなギャップと背景ボックスがないことから、「ツールバーグループの一部ではない」ことがはっきりと読み取れます ―― グルーピングの意図はぼかしても生き残っています。もしそうならなかったら ―― ぼかした形が 1 つの塊に溶け合ってしまったら ―― それはグループ間のギャップを広げるべきだという合図です。
+
+## 実例：ページのアウトロ
+
+ページのアウトロは、この失敗がすり抜けやすい典型的な場所です。関連コンテンツへのリンクのブロック、区切り線、そして小さな脚注が続く構成です。個々のスペーシング値はすべてトークンスケールからそのまま取ってきたものでも、結果は誤って読まれることがあります。
+
+<CssPreview client:load
+  title="ページのアウトロ ―― 壊れたグルーピング vs 修正後のグルーピング"
+  html={`
+<div class="outro-demo">
+  <div class="outro-demo__col">
+    <p class="outro-demo__label">Broken — hr clumps with the nav above</p>
+    <div class="outro-demo__page">
+      <nav class="outro-demo__nav outro-demo__nav--broken">
+        <a class="outro-demo__link" href="#">Related Product A</a>
+        <a class="outro-demo__link" href="#">Related Product B</a>
+        <a class="outro-demo__link" href="#">Related Product C</a>
+      </nav>
+      <hr class="outro-demo__hr outro-demo__hr--broken" />
+      <p class="outro-demo__footnote outro-demo__footnote--broken">Data sourced from the Q3 2026 product catalog.</p>
+    </div>
+  </div>
+  <div class="outro-demo__col">
+    <p class="outro-demo__label">Fixed — hr binds forward to the footnote</p>
+    <div class="outro-demo__page">
+      <nav class="outro-demo__nav outro-demo__nav--fixed">
+        <a class="outro-demo__link" href="#">Related Product A</a>
+        <a class="outro-demo__link" href="#">Related Product B</a>
+        <a class="outro-demo__link" href="#">Related Product C</a>
+      </nav>
+      <hr class="outro-demo__hr outro-demo__hr--fixed" />
+      <p class="outro-demo__footnote outro-demo__footnote--fixed">Data sourced from the Q3 2026 product catalog.</p>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .outro-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .outro-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .outro-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .outro-demo__page {
+    background: hsl(30, 30%, 97%);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .outro-demo__nav {
+    display: flex;
+    flex-direction: column;
+  }
+  .outro-demo__link {
+    font-size: 0.85rem;
+    color: hsl(24, 70%, 40%);
+    text-decoration: none;
+  }
+  .outro-demo__nav--broken .outro-demo__link,
+  .outro-demo__nav--fixed .outro-demo__link {
+    margin-bottom: 8px;
+  }
+  .outro-demo__hr {
+    border: none;
+  }
+  .outro-demo__hr--broken {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    margin: 0 0 32px;
+  }
+  .outro-demo__hr--fixed {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    margin: 32px 0 8px;
+  }
+  .outro-demo__footnote {
+    font-size: 0.75rem;
+    color: hsl(220, 10%, 45%);
+    margin: 0;
+  }
+  `}
+  height={280}
+/>
+
+**壊れた版**：区切り線は関連商品リンクのすぐ下に、上部にはほとんどスペースがない状態（リンクの 8px のスペーシングのみ）で置かれ、その後脚注までに 32px のギャップが開きます。`<hr>` はナビゲーションと視覚的に結合してしまい ―― 「ナビゲーションブロックの下ボーダー」のように読まれ ―― 脚注は切り離された孤立した行のように浮いて見えます。**修正版**：区切り線とその上のナビゲーションの間には 32px のギャップがあり、区切り線とその下の脚注の間にはわずか 8px しかありません。`<hr>` は本来の姿 ―― ナビゲーションの終わりのマーカーではなく、脚注セクションの始まりのマーカー ―― として読まれます。2 つの版は同じコンテンツと同じスペーシング値の組み合わせ（8px、32px）を使っています ―― 変わったのは、区切り線のどちら側にどちらの値を割り当てるかだけです。
+
+## クイックリファレンス
+
+| シナリオ | テクニック |
+| --- | --- |
+| リストやツールバー内の関連アイテム | 小さく均一なギャップ（コンテナに `gap`） |
+| 無関係なセクション同士の境界 | グループ内ギャップのおおよそ 2 倍以上のギャップ |
+| セクションを導入する区切り線（`<hr>`、ボーダー） | 前に大きなスペース、後に小さなスペース |
+| 出来上がったレイアウトのグルーピングを見直す | ページをぼかす／目を細める。意図したアウトラインとの一致を確認する |
+| スペーシング値を階層バグの観点で監査する | 各値を単体で見るのではなく、隣り合うギャップの*比率*を比較する |
+
+## AIがよくやるミス
+
+- **「有効なトークン」を「正しい使い方」だと思い込む。** スペーシングスケールは許可される値を制約するだけで、どの値がどの境界に属するかまでは制約しません。隣接するスケールのステップ（例：12px と 16px）をグループ内・グループ間のスペーシングに使うと、規約上は合法でも読み取れないレイアウトになります。
+- **区切り線に続くセクションに `margin-top` を追加せず `border-t` + `pt-*` を適用する。** パディングは線の上ではなく下に付くため、区切り線が知らないうちに間違ったセクションに結び付いてしまいます。
+- **レンダリング結果を見るのではなく、デザインシステムと照合してスペーシングをレビューする。** lint パスやトークン監査では近接グルーピングのバグは検出できません ―― 視覚的な確認（できれば目を細めるテスト）だけがそれを見つけられます。
+- **単一のギャップだけを変更してスペーシングの不満を「解決」しようとする。** 境界の読み取りが間違っているなら、修正すべきは隣り合う 2 つのギャップの*比率*であり、1 つの値への場当たり的な変更ではありません。
+- **区切り要素は周囲のスペースに関係なく自明だと思い込む。** `<hr>` それ自体は、どのセクションに属するかを何も伝えません ―― それを伝えるのは周囲のスペーシングです。
+
+## 使い分け
+
+### 比率のルールを適用する
+
+レイアウトに複数階層のグルーピングがある場合は常に ―― カード内のアイテムのリスト、ページセクション内のカード、ページ内のセクションなど。各階層の「間」のギャップが、その 1 つ下の階層の「内」のギャップより明らかに大きいことを確認します。
+
+### 目を細めるテストを実行する
+
+レイアウトを構築またはリスタイルした後、公開する前に。トークン／lint 監査では表面化しないグルーピングのバグを、ツールなしで素早く見つける方法です。なぜなら、これは値そのものではなく値同士の*関係*を確認するからです。
+
+### 特に `border-t` + `pt-*` パターンに注意する
+
+区切り線や上部ボーダーが、専用のセパレーター要素ではなく、新しいセクションを開始する要素に適用されている場合は常に。その線のどちら側に実際に目に見えるスペースが付いているかを確認してください。
