@@ -82,5 +82,6 @@
   "methodology/architecture/design-token-lint.mdx": "Build-time multi-pass linter forbidding raw color/z-index literals in component code, with zone-aware rules and a documented escape hatch",
   "methodology/design-systems/multi-namespace-token-strategy.mdx": "Split tokens into per-context namespaces (myweb-, myadmin-) to keep each design context tight as the site grows",
   "methodology/design-systems/z-index-strategy.mdx": "Semantic z-index tokens, TS-source codegen, global vs --z-local-N tiers, lint forbidding raw integers",
-  "typography/text-control/long-url-and-path-wrapping.mdx": "Delimiter-aware wrapping for long URLs/paths via <wbr> injection instead of word-break: break-all or overflow-wrap: anywhere"
+  "typography/text-control/long-url-and-path-wrapping.mdx": "Delimiter-aware wrapping for long URLs/paths via <wbr> injection instead of word-break: break-all or overflow-wrap: anywhere",
+  "methodology/design-principles/spacing-philosophy.mdx": "Space between groups > within; separators bind forward"
 }
