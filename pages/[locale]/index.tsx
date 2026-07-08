@@ -111,6 +111,7 @@ export default function LocaleIndexPage({ params }: PageArgs): JSX.Element {
       noindex={settings.noindex}
       hideSidebar={true}
       hideToc={true}
+      contentWide={true}
       // Empty fragment suppresses DocLayoutWithDefaults' empty-data default
       // Sidebar island — its marker never hydrates for published-package
       // consumers (zfb#999) and zfb >= next.38 warns about it; the sidebar is

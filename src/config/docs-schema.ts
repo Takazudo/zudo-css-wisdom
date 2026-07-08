@@ -62,6 +62,7 @@ export function buildDocsSchema() {
       unlisted: z.boolean().optional(),
       hide_sidebar: z.boolean().optional(),
       hide_toc: z.boolean().optional(),
+      wide: z.boolean().optional(),
       doc_history: z.boolean().optional(),
       standalone: z.boolean().optional(),
       slug: z.string().optional(),

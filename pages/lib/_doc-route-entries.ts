@@ -1,6 +1,6 @@
 // Thin shim — the memoized doc-route-entry builder rides on the unified
 // ChromeContext now (epic Collapse Wiring Shells #2420, FACTORIES #2424).
-// `createRouteContext` (in _chrome-context.ts) assembles `buildDocRouteEntries`
+// `createRouteContext` (in _route-context.ts) assembles `buildDocRouteEntries`
 // as part of the route context; this module just re-exports it so the doc-route
 // page files keep importing it from here unchanged.
 

@@ -1,135 +1,102 @@
-/** A color reference: palette index (number) or direct color value (string) */
-export type ColorRef = number | string;
-
-export interface ColorScheme {
-  background: ColorRef;
-  foreground: ColorRef;
-  cursor: ColorRef;
-  selectionBg: ColorRef;
-  selectionFg: ColorRef;
-  palette: [
-    string, string, string, string, string, string, string, string,
-    string, string, string, string, string, string, string, string,
-  ];
-  /** Optional, vestigial. Carried only in the optional color-scheme config
-   *  envelope consumed by the design token panel tooling (falls back to
-   *  DEFAULT_SHIKI_THEME when omitted), but has no visible effect: that
-   *  tooling's Shiki integration is a no-op stub, and page code highlighting is
-   *  done by syntect (dual-theme, configured via `codeHighlight` in
-   *  zfb.config.ts), not Shiki. */
-  shikiTheme?: string;
-  /** Optional semantic overrides — when omitted, defaults are used:
-   *  surface=p0, muted=p8, accent=p5, accentHover=p14
-   *  codeBg=p10, codeFg=p11, success=p2, danger=p1, warning=p3, info=p4
-   *  Each field accepts a palette index (number) or a direct color value (string). */
-  semantic?: {
-    surface?: ColorRef;
-    muted?: ColorRef;
-    accent?: ColorRef;
-    accentHover?: ColorRef;
-    codeBg?: ColorRef;
-    codeFg?: ColorRef;
-    success?: ColorRef;
-    danger?: ColorRef;
-    warning?: ColorRef;
-    info?: ColorRef;
-    mermaidNodeBg?: ColorRef;
-    mermaidText?: ColorRef;
-    mermaidLine?: ColorRef;
-    mermaidLabelBg?: ColorRef;
-    mermaidNoteBg?: ColorRef;
-    chatUserBg?: ColorRef;
-    chatUserText?: ColorRef;
-    chatAssistantBg?: ColorRef;
-    chatAssistantText?: ColorRef;
-    /** UI chrome over user images — enlarge/close overlay buttons */
-    imageOverlayBg?: ColorRef;
-    imageOverlayFg?: ColorRef;
-    /** <mark> highlight for matched keywords in search results */
-    matchedKeywordBg?: ColorRef;
-    matchedKeywordFg?: ColorRef;
-  };
-}
-
 /**
- * Standard palette index convention (all schemes should follow this):
+ * Ramp-native color schemes for the non-test wisdom sites.
  *
- * | Index | Role              | Description                              |
- * |-------|-------------------|------------------------------------------|
- * | p0    | Dark surface      | Deepest surface (code blocks, mermaid)   |
- * | p1    | Danger            | Red family — errors, destructive actions  |
- * | p2    | Success           | Green family — confirmations, tips        |
- * | p3    | Warning           | Yellow/amber — caution messages           |
- * | p4    | Info              | Blue family — informational highlights    |
- * | p5    | Accent            | Primary interactive color (links, CTA)    |
- * | p6    | Neutral           | Slate/cyan — borders, secondary elements  |
- * | p7    | Secondary neutral | Gray or muted accent                      |
- * | p8    | Muted             | Gray — borders, secondary text, comments  |
- * | p9    | Background        | Page background                           |
- * | p10   | Surface           | Elevated surface (panels, sidebars)       |
- * | p11   | Text primary      | Main body text                            |
- * | p12   | Accent variant    | Brighter or alternate accent              |
- * | p13   | Decorative        | Purple/lavender — non-semantic decoration  |
- * | p14   | Accent hover      | Hover state for interactive elements      |
- * | p15   | Text secondary    | Secondary text or muted foreground         |
+ * These repos shared one legacy 16-slot palette before the zudo-doc 3.1
+ * migration. zudo-test-wisdom already had a separate, newer AA-tuned palette,
+ * so do not copy its warm ramp here: this file preserves the target-family
+ * colors while using the v3 `{ ramps, map }` contract.
  */
+
+import type { ColorScheme, Ramps, ModeMap } from "./color-scheme-utils";
+
+export type { ColorScheme } from "./color-scheme-utils";
+
+const ramps: Ramps = {
+  base: [
+    "#ece9e9", // 0 - light surface / pale foreground
+    "#b8b8b8", // 1 - dark foreground
+    "#888888", // 2 - dark muted text
+    "#383838", // 3 - dark selection / code background
+    "#181818", // 4 - dark background
+  ],
+  accent: [
+    "#a7c0e3", // 0 - dark hover accent
+    "#d69a66", // 1 - dark accent
+    "#7d470b", // 2 - light accent
+  ],
+  state: {
+    danger: "#da6871",
+    success: "#93bb77",
+    warning: "#dfbb77",
+    info: "#5caae9",
+  },
+};
+
+const lightMap: ModeMap = {
+  bg: "#e2ddda",
+  fg: "#303030",
+  selectionBg: "#303030",
+  selectionFg: { base: 0 },
+  semantic: {
+    surface: { base: 0 },
+    muted: "#6b6b6b",
+    accent: { accent: 2 },
+    accentHover: "#8590a0",
+    codeBg: { base: 0 },
+    codeFg: "#303030",
+    success: "#1f5429",
+    danger: "#a01515",
+    warning: "#903030",
+    info: "#174fa0",
+    mermaidNodeBg: { base: 0 },
+    mermaidText: "#303030",
+    mermaidLine: "#6b6b6b",
+    mermaidLabelBg: { base: 0 },
+    mermaidNoteBg: "#e2ddda",
+    chatUserBg: { accent: 2 },
+    chatUserText: { base: 0 },
+    chatAssistantBg: { base: 0 },
+    chatAssistantText: "#303030",
+    imageOverlayBg: "#303030",
+    imageOverlayFg: { base: 0 },
+    matchedKeywordBg: "#fff59d",
+    matchedKeywordFg: "#000000",
+  },
+};
+
+const darkMap: ModeMap = {
+  bg: { base: 4 },
+  fg: { base: 1 },
+  selectionBg: { base: 3 },
+  selectionFg: "#e0e0e0",
+  semantic: {
+    surface: "#1c1c1c",
+    muted: { base: 2 },
+    accent: { accent: 1 },
+    accentHover: { accent: 0 },
+    codeBg: { base: 3 },
+    codeFg: "#e0e0e0",
+    success: { state: "success" },
+    danger: { state: "danger" },
+    warning: { state: "warning" },
+    info: { state: "info" },
+    mermaidNodeBg: { base: 3 },
+    mermaidText: "#e0e0e0",
+    mermaidLine: { base: 2 },
+    mermaidLabelBg: { base: 3 },
+    mermaidNoteBg: { base: 3 },
+    chatUserBg: { accent: 1 },
+    chatUserText: { base: 4 },
+    chatAssistantBg: "#1c1c1c",
+    chatAssistantText: "#e0e0e0",
+    imageOverlayBg: "#1c1c1c",
+    imageOverlayFg: "#e0e0e0",
+    matchedKeywordBg: "#fff59d",
+    matchedKeywordFg: "#000000",
+  },
+};
+
 export const colorSchemes: Record<string, ColorScheme> = {
-  "Default Light": {
-    background: 9,
-    foreground: 11,
-    cursor: 6,
-    selectionBg: 11,
-    selectionFg: 10,
-    palette: [
-      "#303030", "#a01515", "#1f5429", "#903030",  // p0-3: dark surface, danger, success, warning — darkened for WCAG AA (#2298)
-      "#174fa0", "#7d470b", "#90a1b9", "#7a5218",  // p4-7: info, accent, neutral, secondary — darkened for WCAG AA (#2298)
-      "#6b6b6b", "#e2ddda", "#ece9e9", "#303030",  // p8-11: muted, background, surface, text
-      "#5b99dc", "#b89ee7", "#8590a0", "#654516",  // p12-15: accent variant, decorative, hover, muted foreground
-    ],
-    semantic: {
-      surface: 10,
-      muted: 8,
-      accent: 5,
-      accentHover: 14,
-      codeBg: 10,
-      codeFg: 11,
-      success: 2,
-      danger: 1,
-      warning: 3,
-      info: 4,
-      imageOverlayBg: 11,
-      imageOverlayFg: 10,
-      matchedKeywordBg: "#fff59d",
-      matchedKeywordFg: "#000000",
-    },
-  },
-  "Default Dark": {
-    background: 9,
-    foreground: 15,
-    cursor: 6,
-    selectionBg: 10,
-    selectionFg: 11,
-    palette: [
-      "#1c1c1c", "#da6871", "#93bb77", "#dfbb77",  // p0-3: dark surface, danger, success, warning
-      "#5caae9", "#c074d6", "#90a1b9", "#a0a0a0",  // p4-7: info, accent, neutral, secondary
-      "#888888", "#181818", "#383838", "#e0e0e0",   // p8-11: muted, background, surface, text
-      "#d69a66", "#c074d6", "#a7c0e3", "#b8b8b8",  // p12-15: accent variant, decorative, hover, text secondary
-    ],
-    semantic: {
-      surface: 0,
-      muted: 8,
-      accent: 12,
-      accentHover: 14,
-      codeBg: 10,
-      codeFg: 11,
-      success: 2,
-      danger: 1,
-      warning: 3,
-      info: 4,
-      imageOverlayBg: 0,
-      imageOverlayFg: 11,
-      matchedKeywordBg: "#fff59d",
-      matchedKeywordFg: "#000000",
-    },
-  },
+  "Default Light": { ramps, map: lightMap },
+  "Default Dark": { ramps, map: darkMap },
 };

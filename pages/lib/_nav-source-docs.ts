@@ -1,6 +1,6 @@
 // Thin shim — nav-source resolvers ride on the unified ChromeContext now
 // (epic Collapse Wiring Shells #2420, FACTORIES #2424). The reconstructed
-// `createRouteContext` (in _chrome-context.ts) builds the identity-stable
+// `createRouteContext` (in _route-context.ts) builds the identity-stable
 // nav-source API as part of the route context; this module just re-exports the
 // bindings so the existing call sites (route files, nav wrappers, _nav-data-prep,
 // route-enumerators) keep importing them from here unchanged.

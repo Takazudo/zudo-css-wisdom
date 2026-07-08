@@ -3,7 +3,7 @@
 // + route enumerators), built ONCE via the public `createRouteContext`
 // (epic Collapse Wiring Shells #2420, FACTORIES #2424).
 //
-// Kept SEPARATE from `_chrome-context.ts` so the data shells (`_nav-source-docs`
+// Kept SEPARATE from `_chrome.ts` so the data shells (`_nav-source-docs`
 // / `_doc-route-entries` / `route-enumerators`) — and the unit tests that import
 // them — depend ONLY on this lightweight module, NOT on the chrome host bindings
 // (which pull the build-time `#doc-history-meta` alias + island components that

@@ -12,6 +12,7 @@ export type {
   TagPlacement,
   TagGovernanceMode,
   TagVocabularyEntry,
+  ChangelogConfig,
   MetaTagsConfig,
 } from "./settings-types";
 import type {
@@ -26,6 +27,7 @@ import type {
   BodyFootUtilAreaConfig,
   TagPlacement,
   TagGovernanceMode,
+  ChangelogConfig,
   MetaTagsConfig,
 } from "./settings-types";
 import type { SiteHeadConfig } from "@takazudo/zudo-doc/settings";
@@ -85,6 +87,7 @@ export const settings = {
   tagVocabulary: false as boolean,
   frontmatterPreview: false as FrontmatterPreviewConfig | false,
   llmsTxt: true,
+  changelogs: false as ChangelogConfig[] | false,
   math: false,
   cjkFriendly: true as boolean,
   onBrokenMarkdownLinks: "warn" as "warn" | "error" | "ignore",
@@ -105,11 +108,12 @@ export const settings = {
   sidebarResizer: true as boolean,
   sidebarToggle: true as boolean,
   imageEnlarge: true as boolean,
+  dynamicPageTransition: false as boolean,
   htmlPreview: undefined as HtmlPreviewConfig | undefined,
   versions: false as VersionConfig[] | false,
   claudeResources: {
     claudeDir: ".claude",
-  } as { claudeDir: string; projectRoot?: string } | false,
+  } as { claudeDir: string; projectRoot?: string; scanRoot?: string } | false,
   footer: {
     links: [
       {
@@ -162,7 +166,7 @@ export const settings = {
     "/docs/claude-agents/",
   ] as string[],
   // Enable the package-owned route-injection plugin (@takazudo/zudo-doc/plugins/routes):
-  // the 1.x package supplies the docs / 404 / sitemap / robots / tags / versions routes
+  // the 3.x package supplies the docs / 404 / sitemap / robots / tags / versions routes
   // at build time, so the host no longer ships those page stubs. zudoDocPreset() does NO
   // defaulting — omitting this field is treated as off (routes would not be injected).
   packageOwnedRoutes: true,
