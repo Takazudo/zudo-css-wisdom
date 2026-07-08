@@ -22,7 +22,10 @@
     "check:z-index": "node scripts/gen-z-index.mjs --check",
     "generate:css-wisdom": "node scripts/generate-css-wisdom.js",
     "setup:doc-skill": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh",
-    "setup:doc-skill-silent": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh --silent"
+    "setup:doc-skill-silent": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh --silent",
+    "setup:doc-skill:claude": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh --target claude",
+    "setup:doc-skill:codex": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh --target codex",
+    "setup:doc-skill:both": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh --target both"
   },
   "dependencies": {
     "@takazudo/zfb": "0.1.0-next.77",
