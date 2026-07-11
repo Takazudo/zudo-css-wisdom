@@ -1,0 +1,325 @@
+---
+title: シェイプランゲージ：角丸はブランドの意思決定
+description: 角丸はサイト全体のトーンを決める信号であり、プロジェクトごとに一度だけ決めるもの。コンポーネント単位で調整する見た目のつまみではなく、宣言したデフォルトと例外リストで決まる。
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+角丸は、コンポーネントごとのスタイリングの細部のように見えます。だからこそコンポーネントごとに決められてしまいます ―― ここでは「感じのいい」8px、あそこではピル形状（pill）のチップ、前のカードが角丸だったからという理由で 6px のカード、といった具合です。しかし角丸は、サイトが発する最も強いトーンの信号の一つです。角のとがった形は、技術的・エディトリアル・印刷物的で、ハードウェアに近い印象を与えます。強い角丸は、コンシューマー向けで親しみやすく、アプリのような印象を与えます。これらをコンポーネントごとに混在させたサイトには、シェイプランゲージ（shape language）がまったく存在しません。デザインされたものではなく、寄せ集められたものとして読まれてしまいます。
+
+角丸は、ほとんどのトークンシステムにおいて不可視でもあります。`--radius-lg` というトークンが存在していても、カードが実際にそれを使っているかどうかは何も分かりません。トークンの一覧表は、プロジェクトのシェイプに関する最も重要な事実、すなわち**デフォルトが何か**を記録しません。そしてデフォルトが明示されていないと、読者は ―― 人間であれ AI であれ ―― 自分自身のデフォルトで補ってしまいます。生成 AI エージェントの場合、補われるデフォルトは決まって角丸です。学習データには角丸の SaaS ダッシュボードやモバイルアプリが過剰に含まれているため、*デフォルトは角なしだと仕様が明示しない限り*、エージェントは角を丸めてしまいます。
+
+これは計測可能です。スクエアファースト（square-first、角丸をデフォルトで使わない方針）の本番サイト（コンポーネントのおおよそ 10 個中 9 個が角丸を持たず、バッジ・カード・画像・入力欄はすべて角なし）向けに AI が生成したプロトタイプを監査したところ、**11 ページにわたって 114 個の border-radius 宣言 ―― うち 26 個は完全な角丸のピル形状 ―― が見つかり、本番ではすべて角なしのはずのカード・バッジ・ボタン・サムネイル・カウンターに角丸が適用されていました。**パレットは正しかったのに、シェイプランゲージは学習時の事前分布（prior）によって静かに置き換えられていたのです。
+
+## 解決方法
+
+シェイプランゲージは**プロジェクトごとに一度だけ**決め、デフォルトと明示的な例外リストとして記録します。
+
+```text
+Shape language:
+  Default: 0 (square). Cards, images, badges, tags, inputs, pagination — no radius.
+  Exceptions:
+    - dialogs / floating overlays: 6px
+    - small meta badges: 4px
+    - icon buttons and avatars: circles (50%)
+  Never: pill chips (999px), radius > 8px (no token exists).
+```
+
+この仕様を機能させる性質が 3 つあります。まずデフォルトを*最初に*述べていること ―― どこにも指定のない要素は、勝手な角丸を割り当てられるのではなく、ページのシェイプランゲージを引き継ぎます。次に例外をクローズドなリストとして列挙していること ―― リストにないものは定義上すべて角なしです。そして禁止事項を明示的に名指ししていること ―― 「ピルは使わない」というのは、まさにトークンの一覧表からは読者が推測できない類の否定的な事実だからです。
+
+デフォルトは 0 である必要はありません。親しみやすいコンシューマー製品なら「デフォルトは 8px、タグチップはピル」と宣言してもよいのです。重要なのは、その決定を下すこと自体です。**デフォルトは一つ、例外リストは一つ、コンポーネントごとの場当たり的な即興はゼロ。**
+
+<CssPreview client:load
+  title="同じカード、2 つのシェイプランゲージ ―― トーンの違いは角丸だけ"
+  html={`
+<div class="tone-demo">
+  <div class="tone-demo__col">
+    <p class="tone-demo__label">Square — technical / editorial</p>
+    <div class="tone-demo__card tone-demo__card--square">
+      <div class="tone-demo__thumb tone-demo__thumb--square">IMG</div>
+      <h4 class="tone-demo__title">Dual VCA</h4>
+      <p class="tone-demo__desc">Two-channel voltage-controlled amplifier.</p>
+      <span class="tone-demo__badge tone-demo__badge--square">IN STOCK</span>
+    </div>
+  </div>
+  <div class="tone-demo__col">
+    <p class="tone-demo__label">Rounded — consumer / app-like</p>
+    <div class="tone-demo__card tone-demo__card--round">
+      <div class="tone-demo__thumb tone-demo__thumb--round">IMG</div>
+      <h4 class="tone-demo__title">Dual VCA</h4>
+      <p class="tone-demo__desc">Two-channel voltage-controlled amplifier.</p>
+      <span class="tone-demo__badge tone-demo__badge--round">IN STOCK</span>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .tone-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    background: hsl(20, 8%, 10%);
+    font-family: system-ui, sans-serif;
+  }
+  .tone-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .tone-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 60%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .tone-demo__card {
+    background: hsl(20, 5%, 14%);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tone-demo__card--square {
+    border: 1px solid hsl(20, 5%, 30%);
+  }
+  .tone-demo__card--round {
+    border-radius: 14px;
+    box-shadow: 0 8px 22px hsl(0 0% 0% / 0.45);
+  }
+  .tone-demo__thumb {
+    height: 64px;
+    background: hsl(20, 5%, 26%);
+    color: hsl(20, 5%, 55%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+  .tone-demo__thumb--round {
+    border-radius: 8px;
+  }
+  .tone-demo__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: hsl(20, 8%, 88%);
+  }
+  .tone-demo__desc {
+    margin: 0;
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 62%);
+  }
+  .tone-demo__badge {
+    align-self: flex-start;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    background: hsl(20, 8%, 84%);
+    color: hsl(20, 8%, 10%);
+  }
+  .tone-demo__badge--round {
+    border-radius: 999px;
+  }
+  `}
+  height={330}
+/>
+
+同じコンテンツ、同じパレット、同じレイアウトです。左のカードは角なしの角と 1px のヘアライン（hairline）ボーダーを組み合わせ、右は 14px の角とドロップシャドウを組み合わせています。どちらも間違ってはいません ―― 別々のブランドだというだけです。*間違っている*のは、その両方を同じサイトに載せてしまうことです。
+
+## 角丸が伝えるもの
+
+| 角丸 | 与える印象 |
+| --- | --- |
+| 0 | 技術的、エディトリアル、印刷物、ハードウェア、カタログ |
+| 2〜6px | 控えめな柔らかさ ―― ほとんど「角丸」として認識されない |
+| 8〜16px | 親しみやすい、コンシューマー向け、アプリ的 |
+| 16px 以上 | 柔らかいコンシューマー、遊び心、マーケティングページ的 ―― 他の要素を抑制と組み合わせれば高級コンシューマー的に読まれる |
+| 999px（ピル） | タグクラウド、フィルターチップ、強くカジュアルな主張 |
+| 50%（円） | アイコンボタン、アバター、マーカー ―― トーンではなく機能的 |
+
+値そのものよりも、値と値のあいだの飛躍のほうが重要です。0 から 4px への変化はほとんど目に見えませんが、4px からピルへの変化はコンポーネント全体の印象を変えます。この軸で最も大きな飛躍 ―― ピル ―― は、最もよくある違反でもあります。
+
+## ピルと円は主張である
+
+完全な角丸の形は、角丸の軸において最も強い一手であり、塗りつぶしたアクセント背景のシェイプ版に相当します（[アクセントのコストの段階](./color-usage-philosophy.mdx)を参照）。バッジやチップ、カウンターにとって、これが中立的なデフォルトになることは決してありません ―― それにもかかわらず、生成された出力はほとんどすべての小さなラベルに `border-radius: 999px` を使おうとします。学習データのタグ UI ではピルが支配的だからです。
+
+<CssPreview client:load
+  title="1 つのバッジ、3 つの主張 ―― 角丸なし・軽い角丸・ピル"
+  html={`
+<div class="badge-demo">
+  <div class="badge-demo__row">
+    <span class="badge-demo__badge badge-demo__badge--square">NEW</span>
+    <span class="badge-demo__note">square — matches a square-first catalog</span>
+  </div>
+  <div class="badge-demo__row">
+    <span class="badge-demo__badge badge-demo__badge--soft">NEW</span>
+    <span class="badge-demo__note">4px — quiet softening, still disciplined</span>
+  </div>
+  <div class="badge-demo__row">
+    <span class="badge-demo__badge badge-demo__badge--pill">NEW</span>
+    <span class="badge-demo__note">pill — a casual statement; only if the shape language asks for it</span>
+  </div>
+</div>
+  `}
+  css={`
+  .badge-demo {
+    background: hsl(20, 8%, 10%);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: system-ui, sans-serif;
+  }
+  .badge-demo__row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .badge-demo__badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    background: hsl(43, 90%, 55%);
+    color: hsl(20, 8%, 10%);
+  }
+  .badge-demo__badge--soft {
+    border-radius: 4px;
+  }
+  .badge-demo__badge--pill {
+    border-radius: 999px;
+  }
+  .badge-demo__note {
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 60%);
+  }
+  `}
+  height={190}
+/>
+
+円には、狭い機能的な例外が認められます ―― アイコンボタン、アバター、ステップマーカーなど ―― アイコンを囲む円は、トーンではなく「操作要素」として読まれるからです。この例外は、テキストを含む要素には及びません。
+
+## 一つのコンポジションには、一つの角丸
+
+一つのコンポジション（composition、視覚的なまとまり）の中では、兄弟要素は一つの角丸の値を共有します。6px のカードが 4px のボタンを抱え、その隣にピルのチップがある状態は、3 つのデザインシステムがぶつかり合っているように読まれます。入れ子を一貫させるルールが 2 つあります。
+
+- 兄弟は揃える：グリッド内のすべてのカード、行内のすべてのボタン、フィルターバー内のすべてのチップは、同じ角丸を持ちます。
+- 入れ子の角は引き算する：角丸のコンテナが、その端の近くに角丸の子要素を抱えるとき、子要素の角丸はコンテナの角丸から両者のあいだのギャップを引いた値になります ―― `inner = outer − gap` です。両方に同じ角丸を使うと、コンテナの曲線に対して子要素の角が丸すぎて見えてしまいます。
+
+```css
+.dialog {
+  border-radius: 12px;
+  padding: 8px;
+}
+.dialog__media {
+  /* 12px outer − 8px gap = 4px */
+  border-radius: 4px;
+}
+```
+
+<CssPreview client:load
+  title="入れ子の角丸 ―― 同じ値は不自然、引き算した値は曲線になじむ"
+  html={`
+<div class="nest-demo">
+  <div class="nest-demo__col">
+    <p class="nest-demo__label">inner = outer (12px / 12px)</p>
+    <div class="nest-demo__outer">
+      <div class="nest-demo__inner nest-demo__inner--same"></div>
+    </div>
+  </div>
+  <div class="nest-demo__col">
+    <p class="nest-demo__label">inner = outer − gap (12px / 4px)</p>
+    <div class="nest-demo__outer">
+      <div class="nest-demo__inner nest-demo__inner--subtracted"></div>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .nest-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    background: hsl(20, 8%, 10%);
+    font-family: system-ui, sans-serif;
+  }
+  .nest-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .nest-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 60%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .nest-demo__outer {
+    border-radius: 12px;
+    background: hsl(20, 5%, 26%);
+    padding: 8px;
+  }
+  .nest-demo__inner {
+    height: 72px;
+    background: hsl(30, 90%, 44%);
+  }
+  .nest-demo__inner--same {
+    border-radius: 12px;
+  }
+  .nest-demo__inner--subtracted {
+    border-radius: 4px;
+  }
+  `}
+  height={200}
+/>
+
+## シェイプはシステムの他の要素と組み合わさる
+
+シェイプランゲージは、孤立した軸ではありません。角のとがった形は、ヘアラインのボーダー、フラットな面、余白によって生み出す奥行きと相性がよく、強い角丸は、シャドウ、塗りつぶし、エレベーション（elevation、浮き上がり）と相性がよいものです。これらの組み合わせは一緒に動きます。同じトーンを表現しているからです。
+
+| シェイプランゲージが…なら | 奥行きを生むもの | 区切りを生むもの |
+| --- | --- | --- |
+| スクエアファースト | 面の明度の段階 | 1px のヘアライン、余白 |
+| 角丸 | シャドウ、エレベーション | カードの境界、塗りつぶし |
+
+これらの組み合わせがたいてい一緒に動くのは、同じトーンを表現しているからです。意図的な逆の組み合わせも存在します ―― ネオブルータリズム（neo-brutalism）は、角なしの角に強くずらしたシャドウを効かせます ―― そしてそれは、シェイプランゲージそのものとしてサイト全体で宣言されているなら機能します。印象を壊すのは、うっかりコンポーネントごとに混在させてしまうことです。
+
+## クイックリファレンス
+
+| シナリオ | テクニック |
+| --- | --- |
+| 新しいプロジェクトやデザインシステムのドキュメントを始めるとき | まず角丸のデフォルトを宣言し、次にクローズドな例外リストを定める |
+| 要素に角丸の指定がない | デフォルトを引き継ぐ ―― コンポーネントごとの値を勝手に作らない |
+| プロジェクトにシェイプランゲージの宣言がない | プロダクトを計測する。本番のコンポーネントで `border-radius` / `rounded-` を grep して、それに合わせる。コードベースにまだない角丸を持ち込まない |
+| バッジ、チップ、カウンター | デフォルトに従う。ピルはシェイプランゲージが宣言している場合のみ |
+| アイコンボタン、アバター | 円は、どのシェイプランゲージでも機能的な例外 |
+| 角丸のコンテナの端の近くにある角丸の子要素 | `inner = outer − gap` |
+| 生成された出力をレビューする | 仕様が求めていない角丸をすべて探す |
+
+## AIがよくやるミス
+
+- **デフォルトで角を丸める。** 学習データには角丸の UI が過剰に含まれているため、指定のない角は角丸になって返ってきます。角丸に一切触れない仕様は、実質的に 8px のカードとピルのチップを要求したことになります。
+- **角丸のトークンスケールを「使ってよい」という誘いだと読む。** `--radius-lg` が存在することは、どのコンポーネントもそれを使うべきだという意味ではありません ―― トークンは語彙であり、宣言されたデフォルトは文法です（[アクセントの予算](./color-usage-philosophy.mdx)と同じ罠です）。
+- **小さいものすべてをピルのチップにする。** カウンター、バッジ、メタラベルに反射的に `border-radius: 999px` を付けてしまいます。ピルは印象を決める主張であって、小さな要素のデフォルトではありません。
+- **一つのコンポジションの中で角丸を混在させる。** 6px のカード、4px のボタン、ピルのチップが一つのビューに同居する ―― 個々には問題なくても、まとまりとしては一貫性がありません。
+- **入れ子の角丸を同じ値にする。** コンテナの角丸を、その端の近くに座る子要素にそのまま適用してしまう。子要素はギャップを引き算しなければなりません。
+- **角なしにシャドウ、角丸にヘアラインを組み合わせる。** シェイプ、奥行き、区切りは一体となって一つのトーンを表現します。片方を入れ替えると印象が壊れます。
+
+## 使い分け
+
+### シェイプランゲージを宣言する
+
+すべてのプロジェクトで、デザインシステムやトーン仕様を最初に書く時点で行います。宣言にかかるのは 3 行（デフォルト、例外、禁止リスト）で、生成された UI コードで最も頻度の高いずれを防げます。
+
+### 引き算のルールを適用する
+
+角丸の要素が目に見えるギャップを伴って入れ子になるときは常に ―― メディアを含むダイアログ、サムネイルを含むカード、角丸のバー内のボタンなど。
+
+### 要求していない角丸を監査する
+
+角なし、またはほぼ角なしをデフォルトとするプロジェクトで、AI が生成した、あるいは外部から提供された UI コードすべてに対して行います。`border-radius` と `rounded-` を grep し、ヒットした一つひとつを例外リストと照らし合わせます ―― 仕様側の対になる記事は [AI エージェントが従うデザイントーン仕様の書き方](./design-tone-spec-for-ai.mdx) を参照してください。

@@ -91,11 +91,101 @@ Both columns use the same 12px value for spacing within the group of three produ
 
 For the mechanics of producing these gaps — `gap` versus `margin`, and when each applies — see [gap vs margin](../../layout/flexbox-and-grid/gap-vs-margin.mdx). This article is about deciding *how much* space to put on each side of a boundary; that one is about *which property* creates it.
 
-## Separators Bind to the Section They Introduce
+## A Separator Has No Side of Its Own
 
-A divider — an `<hr>`, a border, a label — is a boundary marker. It should read as the **opening** of the section that follows it, not the closing of the section before it. That means the space before the separator should be large (it is leaving the previous section) and the space after it should be small (it belongs to, and introduces, the next section).
+HTML defines `<hr>` as a thematic break — nothing more. The spec does not say which section the line belongs to, how much space it deserves, or whether it opens what follows or closes what precedes. The element supplies a line; **the spacing around it supplies the meaning.** This makes separators the easiest place for proximity grouping to go wrong, because the markup feels self-explanatory while the rendering says something else.
 
-A common implementation inverts this by accident. Tailwind's `border-t` + `pt-*` pattern applies the top border and the top padding to the same element — the section that comes *after* the divider:
+The failure that motivated this article was exactly this simple:
+
+<CssPreview client:load
+  title="The Disappearing Divider — hr Gaps Tighter Than the Paragraph Rhythm"
+  html={`
+<div class="hr-demo">
+  <div class="hr-demo__col">
+    <p class="hr-demo__label">Broken — hr margins 8px vs 24px paragraph rhythm</p>
+    <div class="hr-demo__page">
+      <p class="hr-demo__p">The first topic continues through this paragraph.</p>
+      <p class="hr-demo__p">It wraps up with a short closing thought here.</p>
+      <hr class="hr-demo__hr hr-demo__hr--tight" />
+      <p class="hr-demo__p">A second, unrelated topic begins at this point.</p>
+      <p class="hr-demo__p">It carries on with its own line of argument.</p>
+    </div>
+  </div>
+  <div class="hr-demo__col">
+    <p class="hr-demo__label">Fixed — hr margins 48px, double the 24px rhythm</p>
+    <div class="hr-demo__page">
+      <p class="hr-demo__p">The first topic continues through this paragraph.</p>
+      <p class="hr-demo__p">It wraps up with a short closing thought here.</p>
+      <hr class="hr-demo__hr hr-demo__hr--boundary" />
+      <p class="hr-demo__p">A second, unrelated topic begins at this point.</p>
+      <p class="hr-demo__p">It carries on with its own line of argument.</p>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .hr-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .hr-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .hr-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .hr-demo__page {
+    background: hsl(30, 30%, 97%);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .hr-demo__p {
+    font-size: 0.8rem;
+    color: hsl(220, 15%, 25%);
+    margin: 0 0 24px;
+  }
+  .hr-demo__p:last-child {
+    margin-bottom: 0;
+  }
+  .hr-demo__hr {
+    border: none;
+    border-top: 1px solid hsl(30, 15%, 60%);
+  }
+  .hr-demo__hr--tight {
+    margin: 8px 0;
+  }
+  .hr-demo__hr--boundary {
+    margin: 48px 0;
+  }
+  `}
+  height={380}
+/>
+
+In the broken version the paragraphs sit 24px apart, but the `<hr>` carries only 8px above and below. The total gap across the "separator" is *smaller* than the gap between related paragraphs — so the two paragraphs it was supposed to divide read as **more** connected than any other pair on the page, and the line itself reads as text decoration. In the fixed version the paragraph rhythm is untouched; only the `<hr>` margins grew to 48px — double the within-group gap — and the page falls into two clean groups. Same ratio rule as above, applied across a divider.
+
+### Decide the separator's role, then space it
+
+Because the element carries no meaning of its own, the first step is a decision, not a value: what do you want this separator to be?
+
+| Intended role | Spacing shape | Typical use |
+| --- | --- | --- |
+| Symmetric boundary | Equal, large space on both sides (≥2× the within-group gap) | Thematic break between prose blocks |
+| Opener — binds forward | Large space before, small space after | A rule that introduces the next section, like a heading rule |
+| Closer — binds backward | Small space before, large space after | A rule that closes a block — a totals line, a signature rule |
+
+All three are legitimate. What is not legitimate is not choosing: a separator whose two gaps are accidental — near-equal-and-small, or produced by whatever margins happened to collapse — reads as a random line. Whichever role you pick, the ratio rule governs it: the separating side(s) must clearly exceed the within-group gap, and a binding side (if any) must be clearly smaller.
+
+### The `border-t` + `padding-top` trap
+
+The opener role has a common accidental inversion. Tailwind's `border-t` + `pt-*` pattern applies the top border and the top padding to the same element — the section that comes *after* the divider:
 
 ```css
 /* The line sits at the very top of the box.
@@ -176,7 +266,7 @@ The border is drawn at the top edge of the box; `padding-top` is space *inside* 
   height={260}
 />
 
-In the broken version the line has almost no space above it, so it visually clumps with the previous paragraph — the two read as one group, and "Next section starts here" floats disconnected below its own separator. In the fixed version the large `margin-top` on the divider pushes the line away from the previous section, and the small `padding-top` keeps the next section's text close beneath the line. The line now reads as what it is: the start of the next section.
+In the broken version the line has almost no space above it, so it visually clumps with the previous paragraph — the two read as one group, and "Next section starts here" floats disconnected below its own separator. In the fixed version the large `margin-top` on the divider pushes the line away from the previous section, and the small `padding-top` keeps the next section's text close beneath the line. The line now reads as intended: the opener of the next section. The trap generalizes — whenever a separator misreads, check which side of the line the visible space physically landed on before touching any values.
 
 ## The Squint Test
 
@@ -259,116 +349,25 @@ Compare the result against the intended outline. If a boundary element — a div
 
 Toggle the checkbox above. At full clarity, "24 results" reads as ordinary text below a toolbar. Blurred, the large gap above it and its lack of a background box read clearly as "not part of the toolbar group" — the grouping intent survives the blur. If it did not — if the blurred shapes fused into a single blob — that would be the signal to widen the gap between groups.
 
-## Worked Example: Page Outro
-
-A page outro is a common place for this failure to slip through: a block of related-content links, followed by a divider, followed by a small footnote. Every individual spacing value can be lifted straight from the token scale and the result can still misread.
-
-<CssPreview client:load
-  title="Page Outro — Broken vs Fixed Grouping"
-  html={`
-<div class="outro-demo">
-  <div class="outro-demo__col">
-    <p class="outro-demo__label">Broken — hr clumps with the nav above</p>
-    <div class="outro-demo__page">
-      <nav class="outro-demo__nav outro-demo__nav--broken">
-        <a class="outro-demo__link" href="#">Related Product A</a>
-        <a class="outro-demo__link" href="#">Related Product B</a>
-        <a class="outro-demo__link" href="#">Related Product C</a>
-      </nav>
-      <hr class="outro-demo__hr outro-demo__hr--broken" />
-      <p class="outro-demo__footnote outro-demo__footnote--broken">Data sourced from the Q3 2026 product catalog.</p>
-    </div>
-  </div>
-  <div class="outro-demo__col">
-    <p class="outro-demo__label">Fixed — hr binds forward to the footnote</p>
-    <div class="outro-demo__page">
-      <nav class="outro-demo__nav outro-demo__nav--fixed">
-        <a class="outro-demo__link" href="#">Related Product A</a>
-        <a class="outro-demo__link" href="#">Related Product B</a>
-        <a class="outro-demo__link" href="#">Related Product C</a>
-      </nav>
-      <hr class="outro-demo__hr outro-demo__hr--fixed" />
-      <p class="outro-demo__footnote outro-demo__footnote--fixed">Data sourced from the Q3 2026 product catalog.</p>
-    </div>
-  </div>
-</div>
-  `}
-  css={`
-  .outro-demo {
-    display: flex;
-    gap: 32px;
-    padding: 24px;
-    font-family: system-ui, sans-serif;
-  }
-  .outro-demo__col {
-    flex: 1;
-    min-width: 0;
-  }
-  .outro-demo__label {
-    font-size: 0.75rem;
-    color: hsl(20, 40%, 45%);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: 0 0 12px;
-    font-weight: 600;
-  }
-  .outro-demo__page {
-    background: hsl(30, 30%, 97%);
-    border-radius: 8px;
-    padding: 16px;
-  }
-  .outro-demo__nav {
-    display: flex;
-    flex-direction: column;
-  }
-  .outro-demo__link {
-    font-size: 0.85rem;
-    color: hsl(24, 70%, 40%);
-    text-decoration: none;
-  }
-  .outro-demo__nav--broken .outro-demo__link,
-  .outro-demo__nav--fixed .outro-demo__link {
-    margin-bottom: 8px;
-  }
-  .outro-demo__hr {
-    border: none;
-  }
-  .outro-demo__hr--broken {
-    border-top: 1px dashed hsl(30, 15%, 55%);
-    margin: 0 0 32px;
-  }
-  .outro-demo__hr--fixed {
-    border-top: 1px dashed hsl(30, 15%, 55%);
-    margin: 32px 0 8px;
-  }
-  .outro-demo__footnote {
-    font-size: 0.75rem;
-    color: hsl(220, 10%, 45%);
-    margin: 0;
-  }
-  `}
-  height={280}
-/>
-
-**Broken**: the divider sits directly under the related-product links with almost no space above it (only the 8px link spacing), then a 32px gap opens up before the footnote. The `<hr>` visually joins the navigation — it reads as "the bottom border of the nav block" — and the footnote floats as an orphaned, disconnected line. **Fixed**: a 32px gap separates the divider from the nav above, and only 8px sits between the divider and the footnote below. The `<hr>` now reads as what it is: the opening marker of the footnote section, not the closing marker of the navigation. The two versions use the same content and the same set of spacing values (8px, 32px) — only which side of the divider gets which value changed.
-
 ## Quick Reference
 
 | Scenario | Technique |
 | --- | --- |
 | Related items in a list or toolbar | Small, uniform gap (`gap` on the container) |
 | Boundary between unrelated sections | Gap roughly 2× or more the within-group gap |
-| Divider (`<hr>`, border) introducing a section | Large space before it, small space after it |
+| Any separator (`<hr>`, border, label) | Decide its role first — symmetric boundary, opener, or closer — then set the spacing to express it |
+| Separator that must read as a boundary | Space on the separating side(s) clearly larger than the within-group gap — never smaller |
 | Reviewing a shipped layout for grouping errors | Squint/blur the page; check clumping against the intended outline |
 | Auditing spacing values for hierarchy bugs | Compare the *ratio* between adjacent gaps, not each value in isolation |
 
 ## Common AI Mistakes
 
 - **Treating "valid token" as "correct usage."** A spacing scale only constrains which values are allowed, not which value belongs at which boundary. Picking adjacent scale steps (e.g., 12px and 16px) for within-group and between-group spacing produces a legal but illegible layout.
-- **Applying `border-t` + `pt-*` to the section that follows a divider without adding `margin-top` before it.** The padding lands below the line, not above it, so the divider silently binds to the wrong section.
+- **Giving a separator less space than the content rhythm around it.** If the gaps across an `<hr>` are smaller than the paragraph-to-paragraph gaps, the "separator" makes its two sides read as *more* related than ordinary paragraphs — the original failure that motivated this article.
+- **Applying `border-t` + `pt-*` to the section that follows a divider without adding `margin-top` before it.** The padding lands below the line, not above it, so an intended opener silently becomes a closer for the previous section.
 - **Reviewing spacing by checking each value against the design system, not by looking at the rendered result.** A lint pass or token audit cannot catch a proximity-grouping error — only visual inspection (ideally the squint test) can.
 - **Increasing a single gap in isolation to "fix" a spacing complaint.** If a boundary reads wrong, the fix is the *ratio* between the two adjacent gaps, not an arbitrary bump to one value.
-- **Assuming a divider element is self-explanatory regardless of surrounding space.** An `<hr>` communicates nothing about which section it belongs to on its own — the spacing around it does that work.
+- **Assuming a divider element is self-explanatory regardless of surrounding space.** HTML defines `<hr>` only as a thematic break — it communicates nothing about which section it belongs to on its own. The spacing around it does that work, and which role it plays (boundary, opener, closer) is the author's decision, not the element's.
 
 ## When to Use
 

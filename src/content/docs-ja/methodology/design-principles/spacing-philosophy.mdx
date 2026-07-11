@@ -91,11 +91,101 @@ import CssPreview from '@/components/CssPreview';
 
 これらのギャップをどう作るか ―― `gap` を使うか `margin` を使うか、どちらをいつ使うか ―― については、[gap と margin の使い分け](../../layout/flexbox-and-grid/gap-vs-margin.mdx) を参照してください。この記事が扱うのは境界のどちら側に**どれだけの**スペースを置くかという判断であり、あちらの記事が扱うのは*どのプロパティ*でそれを作るかです。
 
-## セパレーターは、それが導入するセクションに属する
+## セパレーターは、それ自身の側を持たない
 
-区切り線（`<hr>`、ボーダー、ラベル）は境界のマーカーです。それは前のセクションの終わりとしてではなく、後に続くセクションの**始まり**として読まれるべきです。つまり、区切り線の前のスペースは大きく（前のセクションから離れていく）、後のスペースは小さく（後に続くセクションに属し、それを導入する）あるべきです。
+HTML は `<hr>` を「テーマ上の区切り（thematic break）」としてのみ定義しています ―― それ以上のものではありません。線がどのセクションに属するのか、どれだけのスペースを与えるべきか、後に続くものを開くのか前にあるものを閉じるのか、仕様は何も述べていません。要素が提供するのは線であり、**意味を与えるのはその周囲のスペーシングです。**このため、セパレーターは近接によるグルーピングが最も狂いやすい場所になります。マークアップは自明に見えるのに、レンダリング結果は別のことを語っているからです。
 
-よくある実装は、これをうっかり逆転させてしまいます。Tailwind の `border-t` + `pt-*` パターンは、上部ボーダーと上部パディングを、区切り線の*後に続く*セクションの同じ要素に適用します。
+この記事を書くきっかけになった失敗は、まさにこれほど単純なものでした。
+
+<CssPreview client:load
+  title="消えてしまう区切り線 ―― hr のギャップが段落のリズムより狭い"
+  html={`
+<div class="hr-demo">
+  <div class="hr-demo__col">
+    <p class="hr-demo__label">Broken — hr margins 8px vs 24px paragraph rhythm</p>
+    <div class="hr-demo__page">
+      <p class="hr-demo__p">The first topic continues through this paragraph.</p>
+      <p class="hr-demo__p">It wraps up with a short closing thought here.</p>
+      <hr class="hr-demo__hr hr-demo__hr--tight" />
+      <p class="hr-demo__p">A second, unrelated topic begins at this point.</p>
+      <p class="hr-demo__p">It carries on with its own line of argument.</p>
+    </div>
+  </div>
+  <div class="hr-demo__col">
+    <p class="hr-demo__label">Fixed — hr margins 48px, double the 24px rhythm</p>
+    <div class="hr-demo__page">
+      <p class="hr-demo__p">The first topic continues through this paragraph.</p>
+      <p class="hr-demo__p">It wraps up with a short closing thought here.</p>
+      <hr class="hr-demo__hr hr-demo__hr--boundary" />
+      <p class="hr-demo__p">A second, unrelated topic begins at this point.</p>
+      <p class="hr-demo__p">It carries on with its own line of argument.</p>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .hr-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .hr-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .hr-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .hr-demo__page {
+    background: hsl(30, 30%, 97%);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .hr-demo__p {
+    font-size: 0.8rem;
+    color: hsl(220, 15%, 25%);
+    margin: 0 0 24px;
+  }
+  .hr-demo__p:last-child {
+    margin-bottom: 0;
+  }
+  .hr-demo__hr {
+    border: none;
+    border-top: 1px solid hsl(30, 15%, 60%);
+  }
+  .hr-demo__hr--tight {
+    margin: 8px 0;
+  }
+  .hr-demo__hr--boundary {
+    margin: 48px 0;
+  }
+  `}
+  height={380}
+/>
+
+壊れた版では、段落は 24px 離れて配置されていますが、`<hr>` は上下に 8px しか持っていません。「セパレーター」をまたぐ合計のギャップは、関連する段落同士のギャップより*小さく*なっています ―― そのため、本来分割するはずだった 2 つの段落が、ページ上の他のどのペアよりも**強く**つながっているように読まれ、線そのものはテキストの装飾のように読まれてしまいます。修正版では段落のリズムはそのままで、`<hr>` のマージンだけが 48px ―― グループ内ギャップの 2 倍 ―― に広がり、ページはきれいな 2 つのグループに分かれます。上と同じ比率のルールを、区切り線をまたいで適用したものです。
+
+### セパレーターの役割を決めてから、スペースを取る
+
+要素それ自体は何の意味も持たないため、最初のステップは値ではなく決定です。このセパレーターを何にしたいのか、ということです。
+
+| 意図する役割 | スペースの形 | 典型的な用途 |
+| --- | --- | --- |
+| 対称な境界 | 両側に等しく大きなスペース（グループ内ギャップの 2 倍以上） | 文章ブロック間のテーマ上の区切り |
+| オープナー ―― 後ろに結び付く | 前に大きなスペース、後に小さなスペース | 次のセクションを導入する線（見出しの罫線など） |
+| クローザー ―― 前に結び付く | 前に小さなスペース、後に大きなスペース | ブロックを閉じる線（合計行や署名の罫線など） |
+
+3 つとも正当です。正当でないのは、選ばないことです。2 つのギャップが偶然任せのセパレーター ―― ほぼ等しく小さいか、たまたまマージンの相殺（margin collapsing）によって生じたもの ―― は、脈絡のない線として読まれます。どの役割を選んだとしても、それを支配するのは比率のルールです。分離する側のスペースはグループ内ギャップより明らかに大きく、（もしあれば）結び付ける側は明らかに小さくなければなりません。
+
+### `border-t` + `padding-top` の罠
+
+オープナーの役割には、よくある不注意な逆転があります。Tailwind の `border-t` + `pt-*` パターンは、上部ボーダーと上部パディングを同じ要素 ―― 区切り線の*後に*来るセクション ―― に適用します。
 
 ```css
 /* The line sits at the very top of the box.
@@ -176,7 +266,7 @@ import CssPreview from '@/components/CssPreview';
   height={260}
 />
 
-壊れた版では、線の上にはほとんどスペースがなく、前の段落と視覚的に結合してしまいます ―― この 2 つは 1 つのグループとして読まれ、「Next section starts here」は自分自身の区切り線の下で切り離されたように浮いて見えます。修正版では、区切り線に大きな `margin-top` を与えることで前のセクションから線を引き離し、小さな `padding-top` によって次のセクションのテキストを線のすぐ下に留めています。これで線は本来の姿 ―― 次のセクションの始まり ―― として読まれます。
+壊れた版では、線の上にはほとんどスペースがなく、前の段落と視覚的に結合してしまいます ―― この 2 つは 1 つのグループとして読まれ、「Next section starts here」は自分自身の区切り線の下で切り離されたように浮いて見えます。修正版では、区切り線に大きな `margin-top` を与えることで前のセクションから線を引き離し、小さな `padding-top` によって次のセクションのテキストを線のすぐ下に留めています。これで線は本来の姿 ―― 次のセクションの始まり ―― として読まれます。この罠は一般化できます ―― セパレーターの読み取りが狂ったときは、値をいじる前に、目に見えるスペースが物理的に線のどちら側に付いたのかを確認してください。
 
 ## 目を細めて確認するテスト
 
@@ -259,116 +349,25 @@ import CssPreview from '@/components/CssPreview';
 
 上のチェックボックスを切り替えてみてください。鮮明な状態では、「24 results」はツールバーの下にある普通のテキストに見えます。ぼかすと、その上の大きなギャップと背景ボックスがないことから、「ツールバーグループの一部ではない」ことがはっきりと読み取れます ―― グルーピングの意図はぼかしても生き残っています。もしそうならなかったら ―― ぼかした形が 1 つの塊に溶け合ってしまったら ―― それはグループ間のギャップを広げるべきだという合図です。
 
-## 実例：ページのアウトロ
-
-ページのアウトロは、この失敗がすり抜けやすい典型的な場所です。関連コンテンツへのリンクのブロック、区切り線、そして小さな脚注が続く構成です。個々のスペーシング値はすべてトークンスケールからそのまま取ってきたものでも、結果は誤って読まれることがあります。
-
-<CssPreview client:load
-  title="ページのアウトロ ―― 壊れたグルーピング vs 修正後のグルーピング"
-  html={`
-<div class="outro-demo">
-  <div class="outro-demo__col">
-    <p class="outro-demo__label">Broken — hr clumps with the nav above</p>
-    <div class="outro-demo__page">
-      <nav class="outro-demo__nav outro-demo__nav--broken">
-        <a class="outro-demo__link" href="#">Related Product A</a>
-        <a class="outro-demo__link" href="#">Related Product B</a>
-        <a class="outro-demo__link" href="#">Related Product C</a>
-      </nav>
-      <hr class="outro-demo__hr outro-demo__hr--broken" />
-      <p class="outro-demo__footnote outro-demo__footnote--broken">Data sourced from the Q3 2026 product catalog.</p>
-    </div>
-  </div>
-  <div class="outro-demo__col">
-    <p class="outro-demo__label">Fixed — hr binds forward to the footnote</p>
-    <div class="outro-demo__page">
-      <nav class="outro-demo__nav outro-demo__nav--fixed">
-        <a class="outro-demo__link" href="#">Related Product A</a>
-        <a class="outro-demo__link" href="#">Related Product B</a>
-        <a class="outro-demo__link" href="#">Related Product C</a>
-      </nav>
-      <hr class="outro-demo__hr outro-demo__hr--fixed" />
-      <p class="outro-demo__footnote outro-demo__footnote--fixed">Data sourced from the Q3 2026 product catalog.</p>
-    </div>
-  </div>
-</div>
-  `}
-  css={`
-  .outro-demo {
-    display: flex;
-    gap: 32px;
-    padding: 24px;
-    font-family: system-ui, sans-serif;
-  }
-  .outro-demo__col {
-    flex: 1;
-    min-width: 0;
-  }
-  .outro-demo__label {
-    font-size: 0.75rem;
-    color: hsl(20, 40%, 45%);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: 0 0 12px;
-    font-weight: 600;
-  }
-  .outro-demo__page {
-    background: hsl(30, 30%, 97%);
-    border-radius: 8px;
-    padding: 16px;
-  }
-  .outro-demo__nav {
-    display: flex;
-    flex-direction: column;
-  }
-  .outro-demo__link {
-    font-size: 0.85rem;
-    color: hsl(24, 70%, 40%);
-    text-decoration: none;
-  }
-  .outro-demo__nav--broken .outro-demo__link,
-  .outro-demo__nav--fixed .outro-demo__link {
-    margin-bottom: 8px;
-  }
-  .outro-demo__hr {
-    border: none;
-  }
-  .outro-demo__hr--broken {
-    border-top: 1px dashed hsl(30, 15%, 55%);
-    margin: 0 0 32px;
-  }
-  .outro-demo__hr--fixed {
-    border-top: 1px dashed hsl(30, 15%, 55%);
-    margin: 32px 0 8px;
-  }
-  .outro-demo__footnote {
-    font-size: 0.75rem;
-    color: hsl(220, 10%, 45%);
-    margin: 0;
-  }
-  `}
-  height={280}
-/>
-
-**壊れた版**：区切り線は関連商品リンクのすぐ下に、上部にはほとんどスペースがない状態（リンクの 8px のスペーシングのみ）で置かれ、その後脚注までに 32px のギャップが開きます。`<hr>` はナビゲーションと視覚的に結合してしまい ―― 「ナビゲーションブロックの下ボーダー」のように読まれ ―― 脚注は切り離された孤立した行のように浮いて見えます。**修正版**：区切り線とその上のナビゲーションの間には 32px のギャップがあり、区切り線とその下の脚注の間にはわずか 8px しかありません。`<hr>` は本来の姿 ―― ナビゲーションの終わりのマーカーではなく、脚注セクションの始まりのマーカー ―― として読まれます。2 つの版は同じコンテンツと同じスペーシング値の組み合わせ（8px、32px）を使っています ―― 変わったのは、区切り線のどちら側にどちらの値を割り当てるかだけです。
-
 ## クイックリファレンス
 
 | シナリオ | テクニック |
 | --- | --- |
 | リストやツールバー内の関連アイテム | 小さく均一なギャップ（コンテナに `gap`） |
 | 無関係なセクション同士の境界 | グループ内ギャップのおおよそ 2 倍以上のギャップ |
-| セクションを導入する区切り線（`<hr>`、ボーダー） | 前に大きなスペース、後に小さなスペース |
+| どんなセパレーターも（`<hr>`、ボーダー、ラベル） | まず役割を決める ―― 対称な境界、オープナー、クローザーのいずれか ―― そのうえで、それを表現するスペーシングを設定する |
+| 境界として読ませたいセパレーター | 分離する側のスペースをグループ内ギャップより明らかに大きく ―― 決して小さくしない |
 | 出来上がったレイアウトのグルーピングを見直す | ページをぼかす／目を細める。意図したアウトラインとの一致を確認する |
 | スペーシング値を階層バグの観点で監査する | 各値を単体で見るのではなく、隣り合うギャップの*比率*を比較する |
 
 ## AIがよくやるミス
 
 - **「有効なトークン」を「正しい使い方」だと思い込む。** スペーシングスケールは許可される値を制約するだけで、どの値がどの境界に属するかまでは制約しません。隣接するスケールのステップ（例：12px と 16px）をグループ内・グループ間のスペーシングに使うと、規約上は合法でも読み取れないレイアウトになります。
-- **区切り線に続くセクションに `margin-top` を追加せず `border-t` + `pt-*` を適用する。** パディングは線の上ではなく下に付くため、区切り線が知らないうちに間違ったセクションに結び付いてしまいます。
+- **セパレーターに、周囲のコンテンツのリズムより小さいスペースしか与えない。** `<hr>` をまたぐギャップが段落同士のギャップより小さいと、「セパレーター」はその両側を、普通の段落よりも*強く*関連しているように読ませてしまいます ―― この記事を書くきっかけになった、まさにその失敗です。
+- **区切り線に続くセクションに `margin-top` を追加せず `border-t` + `pt-*` を適用する。** パディングは線の上ではなく下に付くため、オープナーのつもりが、知らないうちに前のセクションのクローザーになってしまいます。
 - **レンダリング結果を見るのではなく、デザインシステムと照合してスペーシングをレビューする。** lint パスやトークン監査では近接グルーピングのバグは検出できません ―― 視覚的な確認（できれば目を細めるテスト）だけがそれを見つけられます。
 - **単一のギャップだけを変更してスペーシングの不満を「解決」しようとする。** 境界の読み取りが間違っているなら、修正すべきは隣り合う 2 つのギャップの*比率*であり、1 つの値への場当たり的な変更ではありません。
-- **区切り要素は周囲のスペースに関係なく自明だと思い込む。** `<hr>` それ自体は、どのセクションに属するかを何も伝えません ―― それを伝えるのは周囲のスペーシングです。
+- **区切り要素は周囲のスペースに関係なく自明だと思い込む。** HTML は `<hr>` をテーマ上の区切りとしてのみ定義しており、それ自体では、どのセクションに属するかを何も伝えません。その働きをするのは周囲のスペーシングであり、どの役割を担うか（境界、オープナー、クローザー）は要素ではなく書き手の決定です。
 
 ## 使い分け
 
