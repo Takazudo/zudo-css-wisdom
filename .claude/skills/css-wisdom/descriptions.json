@@ -83,5 +83,8 @@
   "methodology/design-systems/multi-namespace-token-strategy.mdx": "Split tokens into per-context namespaces (myweb-, myadmin-) to keep each design context tight as the site grows",
   "methodology/design-systems/z-index-strategy.mdx": "Semantic z-index tokens, TS-source codegen, global vs --z-local-N tiers, lint forbidding raw integers",
   "typography/text-control/long-url-and-path-wrapping.mdx": "Delimiter-aware wrapping for long URLs/paths via <wbr> injection instead of word-break: break-all or overflow-wrap: anywhere",
-  "methodology/design-principles/spacing-philosophy.mdx": "Space between groups > within; separators bind forward"
+  "methodology/design-principles/spacing-philosophy.mdx": "Space between groups > within; separators bind forward",
+  "methodology/design-principles/color-usage-philosophy.mdx": "Accent budget: neutral-dominant ratios, role whitelist, cost ladder (text, border, icon, fill), per-viewport count",
+  "methodology/design-principles/shape-language.mdx": "Corner radius as a brand decision: declared default + exception list, pills are statements, nested radius math",
+  "methodology/design-principles/design-tone-spec-for-ai.mdx": "Encoding design tone for AI agents: numbers over adjectives, whitelists, defaults-first, contrastive examples"
 }

@@ -1,0 +1,399 @@
+---
+title: Writing a Design Tone Spec an AI Agent Will Follow
+description: A token table without adjacent usage rules reads to a generative agent as an all-you-can-eat menu. Encode tone as budgets, whitelists, defaults, and contrastive examples.
+sidebar_position: 4
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+Design systems document what exists — tokens, scales, components — and leave how much and when to taste. Human designers absorb the "how much" by looking at the product. A generative agent writing UI code does not look at the product; it reads the spec, and every dimension the spec leaves open is filled by the agent's training prior. The prior is not neutral: it over-represents accent-saturated, rounded, shadow-elevated dashboard UIs. So an underspecified tone drifts, always in the same direction.
+
+Two documented failures from one production project show the pattern:
+
+- **Spacing.** Pages built from a complete, enforced spacing token scale came out cramped. Every value was a legal token; the ratios between them were wrong. The fix was a usage section — ratio rules, per-layer defaults, a squint test — placed next to the token tables ([Spacing Philosophy](./spacing-philosophy.mdx) covers the underlying rule).
+- **Color and shape.** Prototypes built with the correct palette supplied *and a prose instruction to "use accent sparingly"* came out with ~29 accent usages per page against ~1 on the real site, plus 114 radius declarations for a square-first brand. The adjective did nothing. "Sparingly" is unfalsifiable — the agent's idea of sparing was ~29× the brand's.
+
+The shared root cause: **a token table without adjacent usage rules reads to an LLM as an all-you-can-eat menu of co-equal options.** Listing `accent` next to `bg` and `surface` presents them as peers. Listing four radius tokens presents rounding as expected. The spec's silences are read as permission.
+
+## The Solution
+
+Encode tone the way you would encode any machine-readable constraint: with numbers, closed lists, declared defaults, and examples. Eight rules, ordered by leverage.
+
+### 1. Numbers, not adjectives
+
+Adjectives cannot be checked; counts can. Every tone adjective in a spec should be translated into a measurable statement.
+
+```text
+NG: "Use the accent color sparingly. Keep the design minimal and clean."
+
+OK: "Accent budget: ≤ 2–3 accent elements visible per viewport; most
+     viewports have zero. Max one filled-accent element per viewport.
+     Radius default: 0. Box shadows: none on cards/panels."
+```
+
+An agent can comply with the second version and can be audited against it. The first version was tried on a real project and produced the ~29× overshoot quoted above.
+
+### 2. Whitelists, not vibes
+
+Enumerate the exact roles allowed to use each expensive treatment — accent, radius, shadow, uppercase, display type. Close the list explicitly.
+
+```text
+Accent is allowed on, and only on:
+  - the primary CTA (max 1 per viewport)
+  - active/selected/pressed states on small controls
+  - focus indicators
+  - one emphasized word or value per section
+Everything not on this list is neutral by default.
+```
+
+The closing sentence carries most of the weight. Without "everything else is neutral by default," the list reads as examples rather than as a boundary.
+
+### 3. State the default first, then exceptions
+
+For any axis with a strong training prior (radius, shadows, hover color), the default must be stated before the tokens are listed — otherwise the token list itself becomes the de-facto default.
+
+```text
+NG: "Radius tokens: xs (2px), sm (4px), md (6px), lg (8px)."
+
+OK: "Default: square (no radius). Cards, badges, images, inputs,
+     pagination carry no radius. Exceptions: dialogs md, mini-badges
+     sm, icon-button circles. The tokens exist for the exceptions."
+```
+
+See [Shape Language](./shape-language.mdx) for the full version of this declaration.
+
+### 4. Pair every rule with a contrastive example
+
+Agents imitate examples more faithfully than they follow principles. A wrong/right pair anchors the rule to concrete code and — critically — shows what the *violation* looks like, which prose rarely does.
+
+```html
+<!-- NG: accent as decoration — orange kicker, orange arrow, amber pill -->
+<span class="text-accent uppercase">PICKUP</span>
+<a class="hover:text-accent">View all →</a>
+<span class="text-amber border-amber rounded-full">12 items</span>
+
+<!-- OK: neutral chrome; accent stays in budget -->
+<span class="text-muted uppercase">PICKUP</span>
+<a class="link-invert">View all →</a>
+<span class="text-muted">12 items</span>
+```
+
+One failure mode is self-inflicted: **make sure your examples model the restraint your rules demand.** A spec whose demos use filled accent CTAs and 12px cards teaches the demos, not the rules.
+
+The highest-leverage contrastive pair is the hover rule, because hover multiplies by the number of links on the page:
+
+<CssPreview client:load
+  title="Hover Is a Multiplier — Accent Hover vs Neutral Inversion (hover the links)"
+  html={`
+<div class="hover-demo">
+  <div class="hover-demo__col">
+    <p class="hover-demo__label">NG — every link hovers accent</p>
+    <ul class="hover-demo__list">
+      <li><a class="hover-demo__accent" href="#">Sequencers</a></li>
+      <li><a class="hover-demo__accent" href="#">Oscillators</a></li>
+      <li><a class="hover-demo__accent" href="#">Filters</a></li>
+      <li><a class="hover-demo__accent" href="#">Effects</a></li>
+    </ul>
+  </div>
+  <div class="hover-demo__col">
+    <p class="hover-demo__label">OK — hover inverts, budget untouched</p>
+    <ul class="hover-demo__list">
+      <li><a class="hover-demo__invert" href="#">Sequencers</a></li>
+      <li><a class="hover-demo__invert" href="#">Oscillators</a></li>
+      <li><a class="hover-demo__invert" href="#">Filters</a></li>
+      <li><a class="hover-demo__invert" href="#">Effects</a></li>
+    </ul>
+  </div>
+</div>
+  `}
+  css={`
+  .hover-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    background: hsl(20, 8%, 10%);
+    font-family: system-ui, sans-serif;
+  }
+  .hover-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .hover-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 60%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .hover-demo__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hover-demo__accent,
+  .hover-demo__invert {
+    color: hsl(20, 8%, 84%);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .hover-demo__accent:hover {
+    color: hsl(30, 90%, 52%);
+    text-decoration-color: hsl(30, 90%, 52%);
+  }
+  .hover-demo__invert:hover {
+    background: hsl(20, 8%, 84%);
+    color: hsl(20, 8%, 10%);
+    text-decoration: none;
+  }
+  `}
+  height={230}
+/>
+
+Both columns rest identically. The left column spends accent every time a cursor moves; the right gives the same feedback without touching the budget.
+
+### 5. Co-locate usage rules with the token tables they govern
+
+Rules placed in an introduction, far from the tables, lose to the tables — an agent skimming for class names reads the table and never scrolls back. Put the budget sentence in or immediately beside the table it constrains, and repeat the qualifier on any row that is an exception token.
+
+```text
+| Token    | Use                                                       |
+| -------- | --------------------------------------------------------- |
+| accent   | Scarce — pressed/selected/focus + rare emphasis.           |
+|          | NOT the resting color of links or CTAs (links are white).  |
+```
+
+Co-location has a project-level version: put the spec where the agent's context is guaranteed to include it — the project instructions file or an auto-loaded design-system skill, not a wiki page the agent must decide to fetch. A perfect spec the agent never loads constrains nothing.
+
+### 6. Name the failure mode in the spec
+
+If a drift is known, say so — priming against a specific error works better than stating the positive rule alone.
+
+```text
+Known failure mode: generated output for this brand comes back
+orange-heavy and rounded. This brand is neutral-dominant and
+square-first. When in doubt: gray, square, flat.
+```
+
+### 7. Anchor to canonical pages and measured ratios
+
+Point at one or two live pages that embody the tone, and state the measured facts that make them what they are. Facts survive paraphrase; impressions do not.
+
+```text
+Canonical pages: / (home), /products/.
+Measured ground truth: neutral:accent utility ratio ~10:1 in source;
+0–3 accent chrome elements per rendered page; ~9 in 10 components
+carry no radius; ~6 box-shadow usages site-wide.
+```
+
+### 8. Front-load the five rules that most change output
+
+Long specs fail by skimming, not by absence. Put a "non-negotiables" block — the handful of rules that most change generated output — at the very top, before any table, and keep it under ten lines.
+
+```text
+# Example from one square-first dark-catalog brand — illustrative, not universal
+Non-negotiables:
+1. Accent ≤ 2–3 elements per viewport; most viewports zero.
+2. Hover = neutral inversion, never accent.
+3. CTAs use the brand's declared CTA treatment, never raw accent fill.
+4. Radius default 0. No pills.
+5. No box shadows on cards/panels.
+```
+
+## Same Palette, Two Specs
+
+The demo below renders one component twice from the same palette. The left column is what a vague spec ("modern, clean, use orange sparingly") produced; the right column is what the budgeted spec above produces. The spec, not the palette, is the design.
+
+<CssPreview client:load
+  title="The Spec Is the Design — Vague Prose vs Budgeted Rules"
+  html={`
+<div class="spec-demo">
+  <div class="spec-demo__col">
+    <p class="spec-demo__label">"Use orange sparingly"</p>
+    <div class="spec-demo__panel">
+      <p class="vague__kicker">Guides</p>
+      <h4 class="vague__title">Patching Basics</h4>
+      <p class="vague__meta"><span class="vague__count">8 articles</span><span class="vague__badge">NEW</span></p>
+      <a class="vague__link" href="#">Start reading →</a>
+    </div>
+  </div>
+  <div class="spec-demo__col">
+    <p class="spec-demo__label">"≤2–3 accent/view · radius 0 · hover inverts"</p>
+    <div class="spec-demo__panel">
+      <p class="budgeted__kicker">Guides</p>
+      <h4 class="budgeted__title">Patching Basics</h4>
+      <p class="budgeted__meta"><span class="budgeted__count">8 articles</span><span class="budgeted__badge">NEW</span></p>
+      <a class="budgeted__link" href="#">Start reading →</a>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .spec-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .spec-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .spec-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .spec-demo__panel {
+    background: hsl(20, 8%, 10%);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .spec-demo__panel h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .spec-demo__panel p {
+    margin: 0;
+  }
+  /* Vague spec output — accent everywhere, rounded */
+  .vague__kicker {
+    color: hsl(30, 90%, 52%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+  .vague__title {
+    color: hsl(20, 8%, 88%);
+  }
+  .vague__meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .vague__count {
+    color: hsl(43, 90%, 55%);
+    border: 1px solid hsl(43, 60%, 45%);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+  }
+  .vague__badge {
+    background: hsl(30, 90%, 44%);
+    color: hsl(0, 0%, 100%);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+  }
+  .vague__link {
+    color: hsl(30, 90%, 52%);
+    font-size: 0.8rem;
+    text-decoration: none;
+  }
+  .vague__link:hover {
+    color: hsl(24, 90%, 55%);
+  }
+  /* Budgeted spec output — neutral chrome, square, one amber badge */
+  .budgeted__kicker {
+    color: hsl(20, 5%, 55%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+  .budgeted__title {
+    color: hsl(20, 8%, 88%);
+  }
+  .budgeted__meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .budgeted__count {
+    color: hsl(20, 5%, 62%);
+    font-size: 0.75rem;
+  }
+  .budgeted__badge {
+    background: hsl(43, 90%, 55%);
+    color: hsl(20, 8%, 10%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+  }
+  .budgeted__link {
+    color: hsl(20, 8%, 88%);
+    font-size: 0.8rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .budgeted__link:hover {
+    background: hsl(20, 8%, 88%);
+    color: hsl(20, 8%, 10%);
+    text-decoration: none;
+  }
+  `}
+  height={280}
+/>
+
+## Auditing the Output
+
+A tone spec pairs with a pre-ship audit — mechanical checks, not taste:
+
+| Gate | Check |
+| --- | --- |
+| Accent budget | Count accent elements per viewport (≤ the declared budget); run the color squint test — [Color Usage Philosophy](./color-usage-philosophy.mdx) |
+| Shape | Grep for `border-radius` / `rounded-`; every hit must match the exception list — [Shape Language](./shape-language.mdx) |
+| Depth | Any `shadow-*` outside the declared overlay exceptions is a violation |
+| Type | Grep `text-transform: uppercase` and letter-spacing utilities; every hit must match the declared typographic-emphasis whitelist |
+| Spacing | Between-group gaps clearly exceed within-group gaps — [Spacing Philosophy](./spacing-philosophy.mdx) |
+| Silent classes | In tight-token setups, unknown utilities are often silently dropped, not build errors — verify the compiled CSS contains what the markup claims |
+
+## Quick Reference
+
+| Scenario | Technique |
+| --- | --- |
+| Tone adjectives ("minimal", "clean", "sparingly") | Replace with counts, ratios, and per-viewport budgets |
+| Token table with no adjacent usage rules | Co-locate the budget sentence with the table; qualify exception rows inline |
+| No stated default for radius / shadow / hover | Declare the default first; tokens exist for the exceptions |
+| Rules only in prose | Add a wrong/right contrastive code pair per rule |
+| Known drift not mentioned | Name the failure mode and the corrective bias ("when in doubt: gray, square, flat") |
+| Long spec, rules buried mid-document | Front-load a ≤10-line non-negotiables block |
+
+## Common AI Mistakes
+
+This section is for spec *authors* — the mistakes below are made when writing the spec, and they reliably produce the drifts the other articles describe.
+
+- **Trusting adjectives to constrain.** "Sparingly" produced a ~29× accent overshoot in the measured case. If a rule cannot be counted, it will not be followed.
+- **Documenting only what exists.** A pure token inventory answers "what can I type?" and stays silent on "what should this page look like?" — the silence is filled by the training prior.
+- **Contradicting the budget elsewhere in the doc.** One stale table row ("accent — links, CTAs, interactive elements") outweighs a paragraph of restraint prose, because agents skim tables first.
+- **Demos that violate the rules.** Example code with filled-accent buttons and rounded cards teaches the aesthetic the rules forbid. Examples win.
+- **Assuming the build catches misuse.** Token lint catches vocabulary errors, not dosage errors — and in some setups unknown utilities silently emit nothing. Budgets need audits, not compilers.
+- **Writing the spec once and never measuring.** The ground-truth ratios (accent per viewport, % components with radius) come from auditing the real product; re-measure when the product evolves.
+
+## When to Use
+
+### Writing or overhauling a design system doc
+
+Apply all eight rules whenever the doc will be consumed by generative agents — which today means every design system doc. The highest-leverage single change is the front-loaded non-negotiables block.
+
+### Diagnosing repeated tone drift
+
+When generated output keeps missing the brand the same way (too colorful, too rounded, too cramped), the spec has an unstated default or an unbudgeted axis. Find the dimension the spec is silent on; that silence is the bug.
+
+### Before delegating page-scale work
+
+Prototyping sessions and bulk page generation amplify spec gaps across many surfaces at once. Tighten the spec first; auditing twelve drifted pages costs more than writing five numeric rules.

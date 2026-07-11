@@ -1,0 +1,399 @@
+---
+title: AI エージェントが実際に従うデザイントーン仕様の書き方
+description: 使い方のルールを隣に添えないトークン表は、生成エージェントには食べ放題メニューのように読まれる。トーンは予算・ホワイトリスト・デフォルト・対比的な例として書き下す。
+sidebar_position: 4
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+デザインシステムは存在するもの ―― トークン、スケール、コンポーネント ―― を文書化しますが、「どれだけ」と「いつ」使うかは感覚に委ねてしまいます。人間のデザイナーはプロダクトを見ることで、その「どれだけ」を吸収します。しかし UI コードを書く生成エージェントはプロダクトを見ません。仕様を読むだけで、仕様が空けたままにしているすべての次元は、エージェントの学習時の事前分布（training prior）によって埋められます。この事前分布は中立ではありません。アクセントを多用し、角を丸め、影で浮き上がらせたダッシュボード UI を過剰に多く含んでいます。そのため、仕様が不十分なトーンは必ず同じ方向へとドリフト（drift）していきます。
+
+ある実プロジェクトで記録された 2 つの失敗が、このパターンを示しています。
+
+- **スペーシング。** 完全で強制力のあるスペーシングトークンスケールから組み立てたページが、窮屈な仕上がりになりました。どの値も規約に沿った正当なトークンでしたが、値同士の比率が間違っていたのです。修正策は、使い方のセクション ―― 比率のルール、レイヤーごとのデフォルト、目を細めて確認するテスト ―― をトークン表の隣に置くことでした（根底にあるルールは [スペーシングの設計思想](./spacing-philosophy.mdx) が扱っています）。
+- **カラーとシェイプ。** 正しいパレットを渡し、*さらに「アクセントは控えめに使う」という文章での指示を添えて*作らせたプロトタイプは、実サイトでの 1 ページあたり約 1 回のアクセント使用に対して、約 29 回のアクセント使用で仕上がってきました。しかも、スクエア（角丸なし）を基本とするブランドに対して 114 個もの radius 宣言が入っていました。形容詞は何の役にも立ちませんでした。「控えめに」は反証不可能です ―― エージェントが考える「控えめ」は、ブランドが意図するものの約 29 倍だったのです。
+
+共通する根本原因はこうです。**使い方のルールが隣に添えられていないトークン表は、LLM には対等な選択肢が並んだ食べ放題メニューのように読まれます。** `accent` を `bg` や `surface` の隣に並べれば、それらは対等なものとして提示されます。radius トークンを 4 つ並べれば、角を丸めることが当たり前のように提示されます。仕様の沈黙は、許可として読まれるのです。
+
+## 解決方法
+
+機械可読な制約を書くのと同じやり方でトーンを書き下します。すなわち、数値、閉じたリスト、明示されたデフォルト、そして例です。効果の大きい順に並べた 8 つのルールを示します。
+
+### 1. 形容詞ではなく数値で
+
+形容詞は検証できませんが、数はできます。仕様に含まれるトーンの形容詞は、すべて測定可能な記述に置き換えるべきです。
+
+```text
+NG: "Use the accent color sparingly. Keep the design minimal and clean."
+
+OK: "Accent budget: ≤ 2–3 accent elements visible per viewport; most
+     viewports have zero. Max one filled-accent element per viewport.
+     Radius default: 0. Box shadows: none on cards/panels."
+```
+
+2 つ目のバージョンなら、エージェントは従うことができ、それに照らして監査することもできます。1 つ目のバージョンは実プロジェクトで試され、先に挙げた約 29 倍のオーバーシュート（超過）を生みました。
+
+### 2. 雰囲気ではなくホワイトリストで
+
+コストの高い装飾表現 ―― アクセント、radius、シャドウ、大文字化、ディスプレイ書体（display type） ―― のそれぞれについて、使用を許可する役割を正確に列挙します。そしてリストを明示的に閉じます。
+
+```text
+Accent is allowed on, and only on:
+  - the primary CTA (max 1 per viewport)
+  - active/selected/pressed states on small controls
+  - focus indicators
+  - one emphasized word or value per section
+Everything not on this list is neutral by default.
+```
+
+最後の一文が、その重みのほとんどを担っています。「それ以外はすべてデフォルトでニュートラル」という一文がなければ、このリストは境界としてではなく、単なる例として読まれてしまいます。
+
+### 3. デフォルトを先に、例外を後に述べる
+
+強い事前分布を持つ軸 ―― radius、シャドウ、ホバー時の色 ―― については、トークンを列挙する前にデフォルトを述べなければなりません。さもなければ、トークンのリストそれ自体が事実上のデフォルトになってしまいます。
+
+```text
+NG: "Radius tokens: xs (2px), sm (4px), md (6px), lg (8px)."
+
+OK: "Default: square (no radius). Cards, badges, images, inputs,
+     pagination carry no radius. Exceptions: dialogs md, mini-badges
+     sm, icon-button circles. The tokens exist for the exceptions."
+```
+
+この宣言の完全版については [シェイプ言語（shape language）](./shape-language.mdx) を参照してください。
+
+### 4. すべてのルールに対比例を添える
+
+エージェントは、原則に従うよりも例を忠実に真似します。NG/OK のペアは、ルールを具体的なコードに結びつけ ―― そして決定的に重要なことに ―― *違反*がどのようなものかを見せてくれます。これは文章ではめったにできないことです。
+
+```html
+<!-- NG: accent as decoration — orange kicker, orange arrow, amber pill -->
+<span class="text-accent uppercase">PICKUP</span>
+<a class="hover:text-accent">View all →</a>
+<span class="text-amber border-amber rounded-full">12 items</span>
+
+<!-- OK: neutral chrome; accent stays in budget -->
+<span class="text-muted uppercase">PICKUP</span>
+<a class="link-invert">View all →</a>
+<span class="text-muted">12 items</span>
+```
+
+ある失敗パターンは自ら招くものです。**あなたの例が、ルールの求める抑制をきちんと体現しているか確認してください。** デモが塗りつぶしのアクセント CTA や 12px の角丸カードを使っている仕様は、ルールではなくデモを教えてしまいます。
+
+最も効果の大きい対比ペアはホバーのルールです。ホバーはページ上のリンクの数だけ倍増するからです。
+
+<CssPreview client:load
+  title="ホバーは倍率になる ―― アクセントホバー vs ニュートラル反転（リンクにホバーしてみてください）"
+  html={`
+<div class="hover-demo">
+  <div class="hover-demo__col">
+    <p class="hover-demo__label">NG — every link hovers accent</p>
+    <ul class="hover-demo__list">
+      <li><a class="hover-demo__accent" href="#">Sequencers</a></li>
+      <li><a class="hover-demo__accent" href="#">Oscillators</a></li>
+      <li><a class="hover-demo__accent" href="#">Filters</a></li>
+      <li><a class="hover-demo__accent" href="#">Effects</a></li>
+    </ul>
+  </div>
+  <div class="hover-demo__col">
+    <p class="hover-demo__label">OK — hover inverts, budget untouched</p>
+    <ul class="hover-demo__list">
+      <li><a class="hover-demo__invert" href="#">Sequencers</a></li>
+      <li><a class="hover-demo__invert" href="#">Oscillators</a></li>
+      <li><a class="hover-demo__invert" href="#">Filters</a></li>
+      <li><a class="hover-demo__invert" href="#">Effects</a></li>
+    </ul>
+  </div>
+</div>
+  `}
+  css={`
+  .hover-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    background: hsl(20, 8%, 10%);
+    font-family: system-ui, sans-serif;
+  }
+  .hover-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .hover-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 60%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .hover-demo__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hover-demo__accent,
+  .hover-demo__invert {
+    color: hsl(20, 8%, 84%);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .hover-demo__accent:hover {
+    color: hsl(30, 90%, 52%);
+    text-decoration-color: hsl(30, 90%, 52%);
+  }
+  .hover-demo__invert:hover {
+    background: hsl(20, 8%, 84%);
+    color: hsl(20, 8%, 10%);
+    text-decoration: none;
+  }
+  `}
+  height={230}
+/>
+
+どちらの列も、静止状態ではまったく同じに見えます。左の列はカーソルが動くたびにアクセントを消費します。右の列は、予算に手をつけることなく同じフィードバックを返します。
+
+### 5. 使い方のルールを、それが支配するトークン表と併置する
+
+導入部に置かれ、表から離れているルールは、表に負けます ―― クラス名を拾い読みしているエージェントは表を読み、そこから上へ戻ることはありません。予算を示す一文は、それが制約する表の中か、すぐ隣に置きます。そして、例外トークンにあたる行には必ずその但し書きを繰り返します。
+
+```text
+| Token    | Use                                                       |
+| -------- | --------------------------------------------------------- |
+| accent   | Scarce — pressed/selected/focus + rare emphasis.           |
+|          | NOT the resting color of links or CTAs (links are white).  |
+```
+
+併置には、プロジェクト単位のバージョンもあります。仕様を、エージェントのコンテキストに必ず含まれる場所 ―― プロジェクトの指示ファイルや、自動で読み込まれるデザインシステムのスキル ―― に置くのです。エージェントが自分で取りに行くかどうかを判断しなければならない wiki ページではいけません。エージェントが一度も読み込まない完璧な仕様は、何も制約しません。
+
+### 6. 仕様の中で失敗パターンを名指しする
+
+ドリフトがわかっているなら、それを明記します ―― 特定の誤りに対して事前に警告しておくほうが、正しいルールを述べるだけよりもうまく機能します。
+
+```text
+Known failure mode: generated output for this brand comes back
+orange-heavy and rounded. This brand is neutral-dominant and
+square-first. When in doubt: gray, square, flat.
+```
+
+### 7. 規範となるページと実測した比率に紐づける
+
+そのトーンを体現している実際のページを 1 つか 2 つ指し示し、それらをそのものたらしめている測定済みの事実を述べます。事実は言い換えても生き残りますが、印象は生き残りません。
+
+```text
+Canonical pages: / (home), /products/.
+Measured ground truth: neutral:accent utility ratio ~10:1 in source;
+0–3 accent chrome elements per rendered page; ~9 in 10 components
+carry no radius; ~6 box-shadow usages site-wide.
+```
+
+### 8. 出力を最も変える 5 つのルールを冒頭に置く
+
+長い仕様は、内容の欠如ではなく拾い読みによって破綻します。「絶対に譲れない項目（non-negotiables）」のブロック ―― 生成される出力を最も大きく変えるひと握りのルール ―― を、どの表よりも前、いちばん先頭に置き、10 行以内に収めます。
+
+```text
+# Example from one square-first dark-catalog brand — illustrative, not universal
+Non-negotiables:
+1. Accent ≤ 2–3 elements per viewport; most viewports zero.
+2. Hover = neutral inversion, never accent.
+3. CTAs use the brand's declared CTA treatment, never raw accent fill.
+4. Radius default 0. No pills.
+5. No box shadows on cards/panels.
+```
+
+## 同じパレット、2 つの仕様
+
+下のデモは、同じパレットから 1 つのコンポーネントを 2 回レンダリングしています。左の列は、曖昧な仕様（「モダンで、クリーンに、オレンジは控えめに」）が生み出したものです。右の列は、上で示した予算付きの仕様が生み出すものです。デザインを決めているのは、パレットではなく仕様です。
+
+<CssPreview client:load
+  title="仕様こそがデザイン ―― 曖昧な文章 vs 予算付きのルール"
+  html={`
+<div class="spec-demo">
+  <div class="spec-demo__col">
+    <p class="spec-demo__label">"Use orange sparingly"</p>
+    <div class="spec-demo__panel">
+      <p class="vague__kicker">Guides</p>
+      <h4 class="vague__title">Patching Basics</h4>
+      <p class="vague__meta"><span class="vague__count">8 articles</span><span class="vague__badge">NEW</span></p>
+      <a class="vague__link" href="#">Start reading →</a>
+    </div>
+  </div>
+  <div class="spec-demo__col">
+    <p class="spec-demo__label">"≤2–3 accent/view · radius 0 · hover inverts"</p>
+    <div class="spec-demo__panel">
+      <p class="budgeted__kicker">Guides</p>
+      <h4 class="budgeted__title">Patching Basics</h4>
+      <p class="budgeted__meta"><span class="budgeted__count">8 articles</span><span class="budgeted__badge">NEW</span></p>
+      <a class="budgeted__link" href="#">Start reading →</a>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .spec-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .spec-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .spec-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .spec-demo__panel {
+    background: hsl(20, 8%, 10%);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .spec-demo__panel h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .spec-demo__panel p {
+    margin: 0;
+  }
+  /* Vague spec output — accent everywhere, rounded */
+  .vague__kicker {
+    color: hsl(30, 90%, 52%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+  .vague__title {
+    color: hsl(20, 8%, 88%);
+  }
+  .vague__meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .vague__count {
+    color: hsl(43, 90%, 55%);
+    border: 1px solid hsl(43, 60%, 45%);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+  }
+  .vague__badge {
+    background: hsl(30, 90%, 44%);
+    color: hsl(0, 0%, 100%);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+  }
+  .vague__link {
+    color: hsl(30, 90%, 52%);
+    font-size: 0.8rem;
+    text-decoration: none;
+  }
+  .vague__link:hover {
+    color: hsl(24, 90%, 55%);
+  }
+  /* Budgeted spec output — neutral chrome, square, one amber badge */
+  .budgeted__kicker {
+    color: hsl(20, 5%, 55%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+  .budgeted__title {
+    color: hsl(20, 8%, 88%);
+  }
+  .budgeted__meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .budgeted__count {
+    color: hsl(20, 5%, 62%);
+    font-size: 0.75rem;
+  }
+  .budgeted__badge {
+    background: hsl(43, 90%, 55%);
+    color: hsl(20, 8%, 10%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+  }
+  .budgeted__link {
+    color: hsl(20, 8%, 88%);
+    font-size: 0.8rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .budgeted__link:hover {
+    background: hsl(20, 8%, 88%);
+    color: hsl(20, 8%, 10%);
+    text-decoration: none;
+  }
+  `}
+  height={280}
+/>
+
+## 出力を監査する
+
+トーン仕様は、リリース前の監査 ―― 好みではなく、機械的なチェック ―― とセットになります。
+
+| ゲート | チェック内容 |
+| --- | --- |
+| アクセント予算 | ビューポートごとにアクセント要素を数える（宣言した予算以下か）。色の目を細めるテストを実行する ―― [色使いの設計思想](./color-usage-philosophy.mdx) |
+| シェイプ | `border-radius` / `rounded-` を grep する。ヒットはすべて例外リストに一致しなければならない ―― [シェイプ言語](./shape-language.mdx) |
+| 奥行き | 宣言したオーバーレイの例外以外の `shadow-*` はすべて違反 |
+| タイポグラフィ | `text-transform: uppercase` と letter-spacing 系ユーティリティを grep する。ヒットはすべて、宣言したタイポグラフィ強調のホワイトリストに一致しなければならない |
+| スペーシング | グループ間のギャップが、グループ内のギャップを明らかに上回っている ―― [スペーシングの設計思想](./spacing-philosophy.mdx) |
+| サイレントに消えるクラス | トークンを絞り込んだ構成では、未知のユーティリティはビルドエラーにならず、黙って捨てられることがよくある ―― コンパイル後の CSS に、マークアップが主張するものが含まれているか確認する |
+
+## クイックリファレンス
+
+| シナリオ | テクニック |
+| --- | --- |
+| トーンの形容詞（「ミニマル」「クリーン」「控えめに」） | 数、比率、ビューポートごとの予算に置き換える |
+| 使い方のルールが隣にないトークン表 | 予算の一文を表と同じ場所に置く。例外の行にはその場で但し書きを付ける |
+| radius / シャドウ / ホバーのデフォルトが明記されていない | デフォルトを先に宣言する。トークンは例外のために存在する |
+| ルールが文章だけにある | ルールごとに NG/OK の対比コードペアを追加する |
+| 既知のドリフトが言及されていない | 失敗パターンと、それを正すための偏り（「迷ったら、グレー、スクエア、フラット」）を名指しする |
+| 長い仕様で、ルールが文書の途中に埋もれている | 10 行以内の non-negotiables ブロックを冒頭に置く |
+
+## AIがよくやるミス
+
+このセクションは仕様の*書き手*に向けたものです ―― 以下のミスは仕様を書くときに犯されるもので、他の記事で説明されているドリフトを確実に引き起こします。
+
+- **形容詞に制約させようとする。** 「控えめに」は、実測されたケースで約 29 倍のアクセントのオーバーシュートを生みました。数えられないルールは、守られません。
+- **存在するものだけを文書化する。** 純粋なトークンの一覧は「何をタイプできるか？」には答えますが、「このページはどう見えるべきか？」については沈黙します ―― その沈黙は事前分布によって埋められます。
+- **予算を、ドキュメントの別の場所で矛盾させる。** 古くなった 1 つの表の行（「accent ―― リンク、CTA、インタラクティブ要素」）は、抑制を説く 1 段落の文章に勝ってしまいます。エージェントはまず表を拾い読みするからです。
+- **ルールに違反するデモ。** 塗りつぶしのアクセントボタンや角丸カードを使ったサンプルコードは、ルールが禁じている美意識を教えてしまいます。例が勝ちます。
+- **ビルドが誤用を捕まえてくれると思い込む。** トークンの lint は語彙の誤りは捕まえますが、分量の誤りは捕まえません ―― しかも構成によっては、未知のユーティリティは何も出力せずに黙って消えます。予算に必要なのは監査であって、コンパイラではありません。
+- **仕様を一度書いたきり、二度と測定しない。** 真の基準となる比率（ビューポートあたりのアクセント数、radius を持つコンポーネントの割合）は、実際のプロダクトを監査することで得られます。プロダクトが進化したら、測定し直します。
+
+## 使い分け
+
+### デザインシステムのドキュメントを書く、または刷新するとき
+
+ドキュメントが生成エージェントに読まれるときは、常に 8 つのルールをすべて適用します ―― それは今日では、あらゆるデザインシステムのドキュメントを意味します。単一の変更で最も効果が大きいのは、冒頭に置く non-negotiables ブロックです。
+
+### 繰り返されるトーンのドリフトを診断するとき
+
+生成された出力が、いつも同じかたちでブランドを外し続けるなら（色が多すぎる、角が丸すぎる、窮屈すぎる）、仕様には明記されていないデフォルトか、予算が設定されていない軸があります。仕様が沈黙している次元を見つけてください。その沈黙こそがバグです。
+
+### ページ規模の作業を委譲する前に
+
+プロトタイピングのセッションやページの一括生成は、仕様の穴を一度に多くの面へと増幅させます。まず仕様を締めましょう。ドリフトした 12 ページを監査するほうが、5 つの数値ルールを書くよりもコストがかかります。

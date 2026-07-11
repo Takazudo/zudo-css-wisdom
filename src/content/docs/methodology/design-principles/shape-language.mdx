@@ -1,0 +1,325 @@
+---
+title: "Shape Language: Corner Radius Is a Brand Decision"
+description: Radius is a site-wide tone signal decided once per project — a declared default plus an exception list, not a per-component aesthetic knob.
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+Corner radius reads as a per-component styling detail, so it gets decided per component — a "pleasant" 8px here, a pill chip there, a 6px card because the last card had one. But radius is one of the strongest tone signals a site emits. Sharp corners read as technical, editorial, print-like, hardware-adjacent. Heavy rounding reads as consumer, friendly, app-like. A site that mixes them per-component has no shape language at all; it reads as assembled rather than designed.
+
+Radius is also invisible in most token systems. A `--radius-lg` token existing says nothing about whether cards actually use it. Nothing in a token table records the most important shape fact about a project: **what the default is**. And when the default is unstated, every reader — human or AI — substitutes their own. For generative agents the substituted default is decisively rounded: training data over-represents rounded SaaS dashboards and mobile apps, so agents round corners *unless the spec explicitly says the default is square*.
+
+This is measurable. An audit of AI-generated prototypes for a square-first production site (roughly 9 in 10 of its components carry no radius; badges, cards, images, and inputs are all square) found **114 border-radius declarations across 11 pages — including 26 fully-rounded pill shapes — with rounding applied to cards, badges, buttons, thumbnails, and counters that are all square in production.** The palette was correct; the shape language was silently replaced by the training prior.
+
+## The Solution
+
+Decide the shape language **once per project**, and record it as a default plus an explicit exception list:
+
+```text
+Shape language:
+  Default: 0 (square). Cards, images, badges, tags, inputs, pagination — no radius.
+  Exceptions:
+    - dialogs / floating overlays: 6px
+    - small meta badges: 4px
+    - icon buttons and avatars: circles (50%)
+  Never: pill chips (999px), radius > 8px (no token exists).
+```
+
+Three properties make this spec work. It states the default *first* — an unstated element inherits the page's shape language instead of receiving an invented radius. It enumerates exceptions as a closed list — anything not listed is square by definition. And it names the forbidden moves explicitly, because "we don't use pills" is exactly the kind of negative fact a reader cannot infer from a token table.
+
+The default does not have to be 0. A friendly consumer product may declare "default 8px, pills for tag chips." The decision itself is the point: **one default, one exception list, zero per-component improvisation.**
+
+<CssPreview client:load
+  title="Same Card, Two Shape Languages — the Tone Shift Is the Radius"
+  html={`
+<div class="tone-demo">
+  <div class="tone-demo__col">
+    <p class="tone-demo__label">Square — technical / editorial</p>
+    <div class="tone-demo__card tone-demo__card--square">
+      <div class="tone-demo__thumb tone-demo__thumb--square">IMG</div>
+      <h4 class="tone-demo__title">Dual VCA</h4>
+      <p class="tone-demo__desc">Two-channel voltage-controlled amplifier.</p>
+      <span class="tone-demo__badge tone-demo__badge--square">IN STOCK</span>
+    </div>
+  </div>
+  <div class="tone-demo__col">
+    <p class="tone-demo__label">Rounded — consumer / app-like</p>
+    <div class="tone-demo__card tone-demo__card--round">
+      <div class="tone-demo__thumb tone-demo__thumb--round">IMG</div>
+      <h4 class="tone-demo__title">Dual VCA</h4>
+      <p class="tone-demo__desc">Two-channel voltage-controlled amplifier.</p>
+      <span class="tone-demo__badge tone-demo__badge--round">IN STOCK</span>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .tone-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    background: hsl(20, 8%, 10%);
+    font-family: system-ui, sans-serif;
+  }
+  .tone-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .tone-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 60%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .tone-demo__card {
+    background: hsl(20, 5%, 14%);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tone-demo__card--square {
+    border: 1px solid hsl(20, 5%, 30%);
+  }
+  .tone-demo__card--round {
+    border-radius: 14px;
+    box-shadow: 0 8px 22px hsl(0 0% 0% / 0.45);
+  }
+  .tone-demo__thumb {
+    height: 64px;
+    background: hsl(20, 5%, 26%);
+    color: hsl(20, 5%, 55%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+  .tone-demo__thumb--round {
+    border-radius: 8px;
+  }
+  .tone-demo__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: hsl(20, 8%, 88%);
+  }
+  .tone-demo__desc {
+    margin: 0;
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 62%);
+  }
+  .tone-demo__badge {
+    align-self: flex-start;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    background: hsl(20, 8%, 84%);
+    color: hsl(20, 8%, 10%);
+  }
+  .tone-demo__badge--round {
+    border-radius: 999px;
+  }
+  `}
+  height={330}
+/>
+
+Same content, same palette, same layout. The left card pairs square corners with a 1px hairline border; the right pairs 14px corners with a drop shadow. Neither is wrong — they are different brands. What *is* wrong is shipping both on the same site.
+
+## What Radius Communicates
+
+| Radius | Register |
+| --- | --- |
+| 0 | Technical, editorial, print, hardware, catalog |
+| 2–6px | Quiet softening — barely registers as "rounded" |
+| 8–16px | Friendly, consumer, app-like |
+| 16px+ | Soft consumer, playful, marketing-page — paired with restraint elsewhere it reads premium-consumer |
+| 999px (pill) | Tag-cloud, filter-chip, strong casual statement |
+| 50% (circle) | Icon buttons, avatars, markers — functional, not tonal |
+
+The jumps matter more than the values. Moving from 0 to 4px is nearly invisible; moving from 4px to a pill changes the register of the whole component. The largest jump on the axis — the pill — is also the most common violation.
+
+## Pills and Circles Are Statements
+
+Fully-rounded shapes are the strongest move on the radius axis, the shape equivalent of a filled accent background (see [the accent cost ladder](./color-usage-philosophy.mdx)). They are never a neutral default for badges, chips, or counters — yet generated output reaches for `border-radius: 999px` on nearly every small label, because pills dominate the training data's tag UIs.
+
+<CssPreview client:load
+  title="One Badge, Three Statements — Square, Softened, Pill"
+  html={`
+<div class="badge-demo">
+  <div class="badge-demo__row">
+    <span class="badge-demo__badge badge-demo__badge--square">NEW</span>
+    <span class="badge-demo__note">square — matches a square-first catalog</span>
+  </div>
+  <div class="badge-demo__row">
+    <span class="badge-demo__badge badge-demo__badge--soft">NEW</span>
+    <span class="badge-demo__note">4px — quiet softening, still disciplined</span>
+  </div>
+  <div class="badge-demo__row">
+    <span class="badge-demo__badge badge-demo__badge--pill">NEW</span>
+    <span class="badge-demo__note">pill — a casual statement; only if the shape language asks for it</span>
+  </div>
+</div>
+  `}
+  css={`
+  .badge-demo {
+    background: hsl(20, 8%, 10%);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: system-ui, sans-serif;
+  }
+  .badge-demo__row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .badge-demo__badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    background: hsl(43, 90%, 55%);
+    color: hsl(20, 8%, 10%);
+  }
+  .badge-demo__badge--soft {
+    border-radius: 4px;
+  }
+  .badge-demo__badge--pill {
+    border-radius: 999px;
+  }
+  .badge-demo__note {
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 60%);
+  }
+  `}
+  height={190}
+/>
+
+Circles get a narrow functional carve-out — icon buttons, avatars, step markers — because a circle around an icon reads as "control," not as tone. That carve-out does not extend to text-bearing elements.
+
+## One Composition, One Radius
+
+Within a single composition, sibling elements share one radius value. A 6px card holding 4px buttons next to a pill chip reads as three design systems fighting. Two rules keep nesting coherent:
+
+- Siblings match: all cards in a grid, all buttons in a row, all chips in a filter bar carry the same radius.
+- Nested corners subtract: when a rounded container holds a rounded child near its edge, the child's radius is the container's radius minus the gap between them — `inner = outer − gap`. Using the same radius on both makes the child's corner look over-rounded against the container's curve.
+
+```css
+.dialog {
+  border-radius: 12px;
+  padding: 8px;
+}
+.dialog__media {
+  /* 12px outer − 8px gap = 4px */
+  border-radius: 4px;
+}
+```
+
+<CssPreview client:load
+  title="Nested Radius — Same Value Looks Wrong, Subtracted Value Tracks the Curve"
+  html={`
+<div class="nest-demo">
+  <div class="nest-demo__col">
+    <p class="nest-demo__label">inner = outer (12px / 12px)</p>
+    <div class="nest-demo__outer">
+      <div class="nest-demo__inner nest-demo__inner--same"></div>
+    </div>
+  </div>
+  <div class="nest-demo__col">
+    <p class="nest-demo__label">inner = outer − gap (12px / 4px)</p>
+    <div class="nest-demo__outer">
+      <div class="nest-demo__inner nest-demo__inner--subtracted"></div>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .nest-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    background: hsl(20, 8%, 10%);
+    font-family: system-ui, sans-serif;
+  }
+  .nest-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .nest-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 5%, 60%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .nest-demo__outer {
+    border-radius: 12px;
+    background: hsl(20, 5%, 26%);
+    padding: 8px;
+  }
+  .nest-demo__inner {
+    height: 72px;
+    background: hsl(30, 90%, 44%);
+  }
+  .nest-demo__inner--same {
+    border-radius: 12px;
+  }
+  .nest-demo__inner--subtracted {
+    border-radius: 4px;
+  }
+  `}
+  height={200}
+/>
+
+## Shape Pairs With the Rest of the System
+
+Shape language is not an isolated axis. Sharp corners belong with hairline borders, flat surfaces, and whitespace-driven depth; heavy rounding belongs with shadows, fills, and elevation. The pairings travel together because they encode the same tone:
+
+| If the shape language is… | Depth comes from… | Separation comes from… |
+| --- | --- | --- |
+| Square-first | Surface-lightness steps | 1px hairlines, whitespace |
+| Rounded | Shadows, elevation | Card boundaries, fills |
+
+These pairings usually travel together because they encode the same tone. Deliberate counter-pairings exist — neo-brutalism runs hard offset shadows on square corners — and they work when declared site-wide as the shape language itself. What breaks the register is mixing per component, by accident.
+
+## Quick Reference
+
+| Scenario | Technique |
+| --- | --- |
+| Starting a new project or design system doc | Declare the radius default first, then a closed exception list |
+| An element has no specified radius | It inherits the default — never invent a per-component value |
+| Project has no declared shape language | Measure the product: grep `border-radius` / `rounded-` in production components and match; never introduce a radius the codebase does not already use |
+| Badges, chips, counters | Follow the default; pills only if the shape language declares them |
+| Icon buttons, avatars | Circles are a functional exception in any shape language |
+| Rounded child near a rounded container edge | `inner = outer − gap` |
+| Reviewing generated output | Search for any radius the spec did not ask for |
+
+## Common AI Mistakes
+
+- **Rounding by default.** Training data over-represents rounded UIs, so unspecified corners come back rounded. A spec that never mentions radius has effectively requested 8px cards and pill chips.
+- **Reading the radius token scale as an invitation.** `--radius-lg` existing does not mean any component should use it — tokens are vocabulary, the declared default is grammar (the same trap as the [accent budget](./color-usage-philosophy.mdx)).
+- **Pill chips on everything small.** Counters, badges, and meta labels get `border-radius: 999px` reflexively. Pills are a register statement, not a small-element default.
+- **Mixing radii within one composition.** A 6px card, 4px buttons, and pill chips in one view — each locally fine, jointly incoherent.
+- **Equal nested radii.** Applying the container's radius to a child sitting near its edge; the child must subtract the gap.
+- **Pairing square with shadow, round with hairline.** Shape, depth, and separation encode one tone together; swapping halves breaks the register.
+
+## When to Use
+
+### Declare a shape language
+
+On every project, at the moment the design system or tone spec is first written. The declaration costs three lines (default, exceptions, never-list) and prevents the highest-frequency drift in generated UI code.
+
+### Apply the subtraction rule
+
+Whenever rounded elements nest with a visible gap — dialogs with media, cards with thumbnails, buttons inside rounded bars.
+
+### Audit for unrequested radius
+
+On any AI-generated or externally-contributed UI code for a project with a square or near-square default. Grep for `border-radius` and `rounded-` and compare every hit against the exception list — see [Writing a Design Tone Spec an AI Agent Will Follow](./design-tone-spec-for-ai.mdx) for the spec-side counterpart.
