@@ -18,6 +18,8 @@ Consider a spacing scale with steps at 8px, 12px, 16px, 24px, and 32px. Every on
 
 Make the gap **between** groups clearly larger than the gap **within** a group — as a rule of thumb, at least roughly double. The absolute values matter less than the ratio between them. Two spacing values are both valid tokens and still describe two different structures depending on how they relate to each other.
 
+On a dense scale, make the rule mechanical rather than a judgment call. Find the ×2 ladders inside your scale — a scale with steps 4/6/8/12/16/24/32/48 contains two, `4→8→16→32` and `6→12→24→48` — and pick both gaps of any boundary **from the same ladder, one rung apart**. Same ladder, one rung up is exactly 2×, by construction. Adjacent scale steps (12 and 16, 16 and 20) are for different jobs in different places, not the two sides of one grouping boundary. In one measured migration of roughly 3,000 spacing usages, every boundary whose gaps were *authored* was fixed by re-pairing alone — no scale step renamed or deleted. Boundaries whose within-group rhythm was intrinsic needed a different mechanism; see the next section, and [Spacing Architecture for Dense Desktop-Class Web Apps](../design-systems/app-spacing-architecture.mdx).
+
 <CssPreview client:load
   title="Ratio Over Absolute Value — Same Token Scale, Different Grouping"
   html={`
@@ -90,6 +92,14 @@ Make the gap **between** groups clearly larger than the gap **within** a group �
 Both columns use the same 12px value for spacing within the group of three products. The left column pairs it with a 16px gap before the footer — a valid token, but too close to 12px to read as a boundary, so the footer looks like a fourth member of the list. The right column pairs the same 12px with 32px — the footer now clearly reads as separate from the product group. No value here is "wrong" in isolation. The ratio is what decides the reading.
 
 For the mechanics of producing these gaps — `gap` versus `margin`, and when each applies — see [gap vs margin](../../layout/flexbox-and-grid/gap-vs-margin.mdx). This article is about deciding *how much* space to put on each side of a boundary; that one is about *which property* creates it.
+
+### When the within-group gap is not yours to set
+
+The ratio rule assumes you control both gaps. Sometimes the within-group rhythm is **intrinsic** — the line-height of stacked text inside a card, the natural rhythm of an icon+label row. You cannot shrink it without harming readability, and out-ratioing it (2× a 24px line rhythm = 48px between every card) wastes the space the layout exists to conserve.
+
+When that happens, stop fighting with proximity and switch Gestalt principles: use **common region**. Give each group a bounded box — border, radius, fill — and a modest gap between boxes. A bounded region groups its contents regardless of internal rhythm, so a 16px inter-card gap reads cleanly against a 24px internal line rhythm that would have required 48px by ratio alone.
+
+The diagnostic: if "fix the ratio" implies either shrinking text line-height or doubling a gap that is already generous, the layout is asking for a bounded region (common region), not more spacing. One measured case — a timeline whose between-card gap (~25px) matched its within-card line rhythm (~24px), fusing eight cards into one list — was resolved with the internal rhythm left byte-identical, adding only border, radius, and a 16px gap.
 
 ## A Separator Has No Side of Its Own
 
@@ -273,6 +283,8 @@ In the broken version the line has almost no space above it, so it visually clum
 A fast, reliable review heuristic: blur your vision (or literally squint) at the layout and ask which elements clump together. Fine details — text content, icon shapes, exact colors — disappear under blur. What remains is pure spatial grouping: the same signal a reader's peripheral vision and first-glance scan pick up before they read a single word.
 
 Compare the result against the intended outline. If a boundary element — a divider, a heading, a label — clumps with the wrong neighbor, the fix is to adjust the **gap ratio** around it, not to restyle the element itself. A divider that reads as attached to the wrong section is a spacing bug, not a border-color or line-weight bug.
+
+In an app with a user-controlled display scale (see [Display Scale Strategy](../design-systems/display-scale-strategy.mdx)), run the squint pass at the scale extremes too — 0.75× and 1.5×/2.0×. Fractional scales surface rounding and hairline bugs that are invisible at 1.0×: sub-2px smears, half-pixel bars, and components never wired to the multiplier drifting out of alignment with everything around them.
 
 <CssPreview client:load
   title="Squint Test — Toggle Blur to Check Grouping"

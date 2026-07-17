@@ -82,6 +82,7 @@
   "methodology/architecture/design-token-lint.mdx": "Build-time multi-pass linter forbidding raw color/z-index literals in component code, with zone-aware rules and a documented escape hatch",
   "methodology/design-systems/multi-namespace-token-strategy.mdx": "Split tokens into per-context namespaces (myweb-, myadmin-) to keep each design context tight as the site grows",
   "methodology/design-systems/z-index-strategy.mdx": "Semantic z-index tokens, TS-source codegen, global vs --z-local-N tiers, lint forbidding raw integers",
+  "methodology/design-systems/app-spacing-architecture.mdx": "Dense app-chrome spacing: rendered-pixel diagnosis, two-ladder pairing rule, role tokens, figure/ground for intrinsic rhythm, display-scale golden rule, ratchet lint",
   "typography/text-control/long-url-and-path-wrapping.mdx": "Delimiter-aware wrapping for long URLs/paths via <wbr> injection instead of word-break: break-all or overflow-wrap: anywhere",
   "methodology/design-principles/spacing-philosophy.mdx": "Space between groups clearly exceeds within; separators have no side of their own — pick boundary/opener/closer, then space it",
   "methodology/design-principles/color-usage-philosophy.mdx": "Accent budget: neutral-dominant ratios, role whitelist, cost ladder (text, border, icon, fill), per-viewport count",

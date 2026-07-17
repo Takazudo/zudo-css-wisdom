@@ -72,6 +72,8 @@ This generates utilities like `w-icon-md h-icon-md`, `w-avatar-sm h-avatar-sm`, 
 
 Whether to create a token is an **architectural and design judgment**, not a usage-count threshold. You define `--spacing-content-width: 800px` because your design says "the main column is 800px" — even if only one component uses it today. It's the same kind of decision as choosing a brand color or a type scale: it comes from the design, not from counting how many files reference a value.
 
+The converse is worth stating, because it looks like the same mistake and is not: when one arbitrary value has been copy-pasted across dozens of components, that recurrence does not *make* it a design decision — but it is strong evidence one already exists and went unnamed. A `w-[28px] h-[28px]` repeated at 41 sites was never 41 independent one-offs; it was a single decision ("the dialog close button is a 28px square") written 41 times.
+
 This is similar to the "should we extract this to a utility function?" debate in application architecture. The answer isn't "when 3 files import it" — it's about whether the concept deserves a name in the system.
 
 ### Tier 2: Arbitrary Values
@@ -90,6 +92,12 @@ For everything else — one-off component dimensions, calculated layouts, struct
 ```
 
 When a value is purely a structural detail of one component (a button's exact padding, a grid's column template), arbitrary values are the right choice. When a value represents a design decision that defines the system, it belongs in Tier 1 — regardless of how many components currently use it.
+
+#### Display-scaled apps change the Tier 2 contract
+
+In an app where every token multiplies by `--display-scale` (see [Display Scale Strategy](./display-scale-strategy.mdx)), a plain px arbitrary opts that dimension *out of zoom*: `w-[28px]` stays 28px at 200% while everything around it doubles. The correct Tier 2 form is the wrapped calc — `w-[calc(28px*var(--display-scale))]` — and a bare px arbitrary is only correct when the value genuinely must not scale (hairlines, touch-target floors, platform-imposed px).
+
+This failure is invisible at 100% zoom, invisible to sizing lint (sizing arbitraries are allowed by design), and surfaces only when a user zooms. Audit for it explicitly. In one measured app, the exact example above shipped as a scale-integrity defect: 41 copy-pasted close/icon-button literals computed 28px flat at 0.75/1.0/1.5/2.0× while the tokenized equivalent (`--spacing-close-btn`) scaled 21/28/42/56. See [Spacing Architecture for Dense Desktop-Class Web Apps](./app-spacing-architecture.mdx) for the full golden rule and its exception list.
 
 ## Demos
 

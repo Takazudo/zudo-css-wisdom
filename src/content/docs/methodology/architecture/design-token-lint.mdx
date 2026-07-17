@@ -303,6 +303,19 @@ Two anti-patterns to watch for:
 
 The lint config also supports `allowed`, `ignore`, and `prohibited` fields for project-wide rules — use those for stable exceptions and let the line-level comment carry the per-occurrence reason.
 
+## The ratchet-allowlist migration pattern
+
+Everything above assumes a codebase that is already clean, or close to it. Turning a strict rule on in a **mature** codebase — where most adoptions actually start — fails in both naive forms: "fix everything first" never lands, and "warn-only" is ignored forever. The pattern that works is a **per-area ratchet**:
+
+1. **Land the rule plus a full current-violation baseline, green on day one.** Every existing violation goes into an allowlist keyed by file → exact class string, **plus an occurrence count**. Keying on file+string alone leaves a hole: a second identical violation added to the same file later matches the existing entry and passes silently. Count or fingerprint the occurrences so the ratchet only loosens deliberately. CI enforces "no *new* violations" from the first commit, while the backlog is paid down incrementally.
+2. **One allowlist file per rollout area, not one central file.** Each area's migration shrinks only its own file, so parallel branches never write the same line. A central allowlist is a merge-conflict magnet that serializes an otherwise parallel migration.
+3. **Auto-accept the golden path by pattern, not by entry.** When an escape form is *always* sanctioned, encode it in the rule itself: bracket values built on `var(--display-scale)` or `var(--spacing-*)`, `env()`/vh/vw/% viewport math, 1px structural hairlines, and `min()`/`max()` wrappers of those pass without an allowlist line. Match the **whole expression**, not the presence of a substring — a "contains `var()`" test admits `calc(999px + var(--spacing-sm))`, a raw literal wearing a token as a disguise. If every correct escape needed an entry, the allowlist would grow at exactly the rate the codebase improves.
+4. **Consolidate and lock.** When the rollouts finish, move the handful of survivors into a single documented permanent-exception file and flip the rule to a hard error.
+
+This introduces a third escape-hatch shape alongside the line-level comment and the config glob: **pattern-based acceptance**. Line comments are for exceptions; patterns are for contracts. A sanctioned form that must be annotated at every site is not a contract — it is friction that teaches people to reach for the ignore comment.
+
+Measured in one migration of roughly 3,000 spacing usages: 31 baseline entries across five area files → **2** permanent survivors (both `mx-[0.25em]`, em-based inline nudges that are exempt by principle), lint clean across 1,042 files, and zero allowlist merge conflicts across six parallel worktrees. See [Spacing Architecture for Dense Desktop-Class Web Apps](../design-systems/app-spacing-architecture.mdx) for the surrounding architecture.
+
 ## Reference implementation
 
 [`@takazudo/zudo-design-token-lint`](https://github.com/Takazudo/zudo-design-token-lint) is the working reference implementation. It currently ships **Pass 1 for Tailwind class names**:
@@ -320,6 +333,20 @@ The lint config also supports `allowed`, `ignore`, and `prohibited` fields for p
 Tailwind opacity modifiers (`bg-black/50`) apply only to **color** utilities. They do not exist for sizing utilities — a trailing `/N` on `w`, `h`, `size`, `min-w`, `max-w`, `min-h`, `max-h`, or `basis` is always a fraction, never an opacity value. In Tailwind v4, every one of those prefixes accepts fraction syntax — `size-1/2`, `min-w-1/3`, `max-h-2/3` are all real, valid utilities, not just `w-1/2` / `h-1/3` / `basis-2/3`. A bare `{prefix}-{n}` ban rule risks the same false positive on all of them, not only on `w` / `h` / `basis`. The fix direction is for the linter to strip a trailing `/N` as an opacity modifier only when the base utility is a color utility; for sizing utilities, `1/2` would then never match a bare-number pattern and every fraction would correctly pass.
 
 Until that lands upstream, the numeric sizing scale cannot be safely banned by a bare `{prefix}-{n}` rule for any of these prefixes — banning any of `w-{n}`, `h-{n}`, `size-{n}`, `min-w-{n}`, `max-w-{n}`, `min-h-{n}`, `max-h-{n}`, or `basis-{n}` with the current v1.0.0 matcher would false-positive a real fraction built on that prefix. The core numeric spacing scale (`p-{n}`, `m-{n}`, `gap-{n}`, `space-x-{n}`, …) has no fraction syntax in Tailwind and remains safely bannable today — with one exception: `inset-{n}` sits on the spacing scale but does accept fractions (`inset-1/2` is a valid positioning utility), so it carries the same false-positive risk and must stay off a bare `{prefix}-{n}` ban list alongside the sizing prefixes.
+
+</Warning>
+
+<Warning title="Digit-prefixed token names break naive numeric bans">
+
+A scale whose token names start with a digit — `2xs`, `2xl`, `3xl`, `4xl`, `5xl` — collides with a `{prefix}-{value}` numeric ban unless the value pattern is anchored to **pure numbers only**:
+
+```text
+^-?\d+(\.\d+)?$
+```
+
+With that anchor, `p-2` is flagged (a freedom-scale utility) while `p-2xs` and `gap-3xl` pass (trailing letters mean a named token). Without it, a rule that merely looks for a leading digit flags every `2xl` in the codebase.
+
+This is a required regex condition, not a heuristic — it is hit on the first day the rule runs against any scale using digit-prefixed names, which is the common Tailwind naming convention for steps beyond `xs`/`xl`.
 
 </Warning>
 
@@ -395,6 +422,16 @@ CI runs the same script. If lint fails, the push fails; if a developer pushes fr
 - **Escape hatches without comments.** Block by default; allow with a documented reason. A bare `/* design-token-lint-ignore */` becomes load-bearing tech debt within months.
 - **Treating Pass 1 as the whole pattern.** Pass 1 catches obvious raw values. Pass 2 catches the subtle "token name with literal value inside `:root`" rotation. Without Pass 2, the design system slowly migrates raw literals into the token-definition zone.
 - **Lint-failing examples inside `<CssPreview>` demos.** Raw `#ff0000` in a `css={...}` payload would violate the project's own demo conventions (every CSS value should be a valid `hsl()`/`oklch()` already, not a literal that "demonstrates the bug"). Keep lint-failing examples in fenced code blocks; reserve `<CssPreview>` for shipped, lint-clean code.
+
+### What this rule set does not check
+
+A green design-token lint proves values, not layouts. Two defect classes ship straight through it, for different reasons.
+
+**Proximity and ratio failures** are structurally out of reach — every value is legal and the *relationship* is what broke. A rule that checks values in isolation cannot see that a card list's between-card gap equals its within-card rhythm, so the list passes every rule while reading as one fused blob (see [Spacing Philosophy](../design-principles/spacing-philosophy.mdx)).
+
+**Fixed-px sizing arbitraries that opt out of zoom** are a policy gap, not a blind spot. In a display-scaled app, `w-[28px]` freezes that dimension at every zoom level — but it is statically detectable, and a project that wants to ban it can. The shipped rule allows it *by design*, because the [Two-Tier](../design-systems/two-tier-size-strategy.mdx) contract treats sizing arbitraries as legitimate. One audited project's lint was green across 1,042 files while 41 non-scaling close-button literals shipped: the tool was doing exactly what it was configured to do.
+
+Pair the lint gate with computed-style verification predicates and a squint pass at multiple display scales. The lint is a floor, not a ceiling — it proves nobody wrote a value the config forbids, which is a much weaker claim than "the UI is correct."
 
 ## When to Use
 

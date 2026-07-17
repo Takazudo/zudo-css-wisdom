@@ -59,6 +59,7 @@ Whether to create a token is an **architectural and design judgment**, not a usa
 - A designer references the value as a named step (a spacing level, an icon size, a layout width)
 - The value represents a design decision — a deliberate choice about how the UI is structured
 - Changing this value should update the entire system, not one component
+- The same arbitrary value keeps getting copy-pasted between components — recurrence does not *make* it a design decision, but it is strong evidence one already exists unnamed
 
 ### Signs You Should NOT Add a Token
 
@@ -684,4 +685,4 @@ This component-centric approach applies whenever you work with the tight token s
 
 The goal is a token set that stays small and meaningful. Every token should earn its place by representing a genuine design decision. Everything else stays at the component level as an arbitrary value.
 
-For a detailed look at how this applies specifically to width/height sizing — where the abstract scale layer is intentionally skipped — see [Two-Tier Size Strategy](../../two-tier-size-strategy/).
+For a detailed look at how this applies specifically to width/height sizing — where the abstract scale layer is intentionally skipped — see [Two-Tier Size Strategy](../../two-tier-size-strategy/). For how the same token-vs-arbitrary judgment plays out at the scale of a whole app's chrome — where one arbitrary value copy-pasted dozens of times is the signal an unnamed role token is missing — see [Spacing Architecture for Dense Desktop-Class Web Apps](../../app-spacing-architecture.mdx).
