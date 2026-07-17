@@ -79,6 +79,7 @@ import CssPreview from '@/components/CssPreview';
 | フォントサイズの基準が異なる | 記事は読みやすさ重視 / ダッシュボードは密度重視 |
 | 同じ目的のトークンに異なる値が必要 | 「ボディテキスト」が記事では 18px、管理画面では 14px |
 | `-dense`/`-compact` 接尾辞が増え始めた | 1つのネームスペースに収まらないサイン |
+| 出力先に紙・PDF が含まれる | スライド・請求書・証明書 — `light-dark()` を使わない print 前提ネームスペース |
 
 逆に、以下の場合は分割不要です：
 
@@ -87,6 +88,29 @@ import CssPreview from '@/components/CssPreview';
 | レスポンシブで値が変わるだけ | メディアクエリやコンテナクエリで対応 |
 | テーマ（ライト/ダーク）の切り替え | カラースキームで対応 |
 | 微妙なバリエーション | 既存トークンのスケール（sm/md/lg）で対応 |
+
+### print 前提のネームスペースは `light-dark()` を使わない
+
+カラースキーム対応もネームスペース単位の判断です。アプリの chrome 用ネームスペースは画面でのみ表示されるため、パレットは `light-dark()` をデフォルトにします — 1つのトークンが両方のスキームに対応します。一方、print 前提のネームスペース — スライド、請求書、証明書 — は画面と紙で同一の表示が求められます。印刷パイプラインは `color-scheme` をライトに強制するため、`light-dark()` トークンは紙ではライト値に解決され、画面プレビュー（ダーク表示の場合）と印刷結果が乖離します。print 前提のパレットは `light-dark()` もスキーム切り替えも使わず、プレーンな値で定義します。
+
+```css
+/* ── App-chrome namespace: screen-only, scheme-aware ── */
+:root {
+  color-scheme: light dark; /* required — without it light-dark() always picks the first value */
+}
+
+@theme {
+  --color-mychrome-surface: light-dark(hsl(0 0% 100%), hsl(222 20% 12%));
+  --color-mychrome-text: light-dark(hsl(222 47% 11%), hsl(210 20% 88%));
+}
+
+/* ── Print-first namespace: identical on screen and paper ── */
+@theme {
+  --color-myslides-surface: hsl(0 0% 100%);
+  --color-myslides-text: hsl(222 47% 11%);
+  --color-myslides-accent: hsl(30 80% 45%);
+}
+```
 
 ## コード例
 
@@ -529,6 +553,50 @@ Tailwind クラスのネームスペースプレフィックスが、各コン�
 
 各ネームスペースが独立したデザイン原則を持っています。`myweb-` は読みやすさ、`myadmin-` は情報密度、`mymarketing-` はインパクトに最適化されています。同じプロパティ名（`body`、`section-gap`）がネームスペースごとに異なる値を持つことで、コンテキストに応じた最適なデザインが実現されます。
 
+## 階層間で逆転する命名順序の罠
+
+ネームスペースは多くの場合、2層のトークン構造を使います。実際の値を保持する生パレット層と、それに意味を与えるセマンティック層です（強制の仕組みは [Design Token Lint](../architecture/design-token-lint.mdx) を参照）。この2つの層はネームスペースを**逆の順序**でつづるため、この逆転は見落としやすいポイントです。
+
+生層はプレフィックス先頭です。`@theme` の外に置くプレーンなカスタムプロパティで、ユーティリティを生成しないため、衝突を避ける目的でネームスペースを先頭に置きます：
+
+```css
+/* Raw tier — prefix-first: --myns-palette-* */
+:root {
+  --myns-palette-accent-4: hsl(30 80% 50%);
+  --myns-palette-neutral-2: hsl(215 15% 88%);
+}
+```
+
+フレームワークに面するセマンティック層はカテゴリ先頭です。Tailwind はカテゴリプレフィックスをキーにユーティリティを生成するためです — `--color-*` からは `bg-*` と `text-*` ユーティリティが生成されます：
+
+```css
+/* Semantic tier — category-first: --color-myns-* */
+@theme {
+  --color-myns-accent: var(--myns-palette-accent-4);
+  --color-myns-border: var(--myns-palette-neutral-2);
+}
+```
+
+生層では `myns` が先頭に来て、セマンティック層ではカテゴリの後に来ます。記憶を頼りに書いたコードは、どちらの層とも一致しない第3のつづりを発明しがちです：
+
+```css
+/* NG — a third spelling: connects to neither tier */
+.myns-chrome__panel {
+  border-color: var(--myns-color-accent); /* nothing ever defines this */
+}
+```
+
+第3のつづりは、切断されたネームスペースを意味します。実際のレビューでは、セマンティック層が `--color-myns-accent` を定義しているのに、chrome の CSS が `--myns-color-accent` を参照している例が見つかりました — chrome は誰も書き込まない変数を読んでいたため、パネル経由のトークン調整はすべて静かに無効になっていました。CSS は未定義のカスタムプロパティを許容するため、エラーは発生しません。スタイルがトークンレイヤーに反応しなくなるだけです。
+
+ドリフトチェックとして、逆順のつづりを grep します：
+
+```bash
+# Drift check — the reversed spelling must return zero hits
+grep -rn -- "--myns-color-" src/    # 0 hits expected
+grep -rn -- "--color-myns-" src/    # semantic tier (legitimate)
+grep -rn -- "--myns-palette-" src/  # raw tier (legitimate)
+```
+
 ## クイックリファレンス
 
 | シナリオ | アプローチ |
@@ -539,6 +607,9 @@ Tailwind クラスのネームスペースプレフィックスが、各コン�
 | レスポンシブで値が変わるだけ | メディアクエリで対応（分割不要） |
 | ライト/ダークテーマの切り替え | カラースキームで対応（分割不要） |
 | 3つ以上の明確に異なるデザインコンテキスト | 3つ以上のネームスペースも可 |
+| 出力先が紙・PDF のコンテキスト（スライド・請求書・証明書） | `light-dark()` を使わないプレーンな値の専用ネームスペース |
+| 2層トークン（生パレット + セマンティック） | 生層はプレフィックス先頭（`--myns-palette-*`）、セマンティック層はカテゴリ先頭（`--color-myns-*`） |
+| ネームスペース立ち上げ時の検証 | ビルド後の CSS を grep — ユーティリティが出力され、トークンが消費されているか |
 
 ## AI がよくやるミス
 
@@ -547,6 +618,8 @@ Tailwind クラスのネームスペースプレフィックスが、各コン�
 - **共有トークンを各ネームスペースに複製する** — ブランドカラーやボーダー半径など、すべてのコンテキストで共通のトークンはプレフィックスなしの共有トークンとして定義する
 - **レスポンシブバリエーションをネームスペースで分ける** — モバイル用/デスクトップ用でネームスペースを分けるのは誤り。レスポンシブはメディアクエリやコンテナクエリで対応する
 - **ネームスペースプレフィックスを省略する** — `content-gap` と `cell-gap` では、どのコンテキスト用か分からない。必ず `myweb-content-gap`、`myadmin-cell-gap` のようにプレフィックスを付ける
+- **第3のネームスペースつづりを発明する** — 生層はプレフィックス先頭（`--myns-palette-accent-4`）、セマンティック層はカテゴリ先頭（`--color-myns-accent`）。記憶で書いた `--myns-color-accent` はどちらの層にも接続せず、その参照はすべて静かに無効になる
+- **ソースだけでトークン配線を検証する** — テーマが定義していないトークンを参照するユーティリティは、エラーなしで CSS を出力しない。ビルドされたスタイルシートを grep して、ユーティリティとトークンが実際に存在することを確認する
 
 ## いつ使うか
 
@@ -575,6 +648,26 @@ Tailwind クラスのネームスペースプレフィックスが、各コン�
 ## ビルド時の強制
 
 マルチネームスペーストークンシステムには、単一ネームスペースと同じ ―― いや、新しいネームスペースが増えるたびに生値が隠れられる面が広がるという意味で、それ以上に ―― 強制境界が必要です。コンポーネントコード内の生リテラルを捕まえ、セマンティックトークンが `var()` 経由でパレットトークンを参照していることを検証するマルチパス linter パターンについては [Design Token Lint](../architecture/design-token-lint.mdx) を参照してください。
+
+### ソースではなくビルド後の CSS を監査する
+
+ソースレビューでは見えず、出力されたスタイルシートにのみ現れる失敗モードが2つあります。1つ目は、ユーティリティクラスの静かな no-op です。タイトなテーマでは、テーマが `--tracking-widest` を定義していなければ、マークアップ内の `tracking-widest` は CSS を一切出力しません。クラスはマークアップ内に意図的なものとして存在し続け、Tailwind は何も生成せず、エラーも発生しません。2つ目は、定義されているのに一度も消費されないセマンティックトークンです — 前述の切断されたネームスペースのケースで、コンポーネントが第3のつづりを参照し、本物のトークンはどこにも届いていません。
+
+ネームスペースの立ち上げ時には、ビルド後の grep を組み込みます：
+
+```bash
+# 1. Every utility used in markup must appear in the built CSS
+grep -o "tracking-widest" dist/assets/*.css | wc -l
+# 0 = the class no-ops: the theme lacks --tracking-widest,
+#     so Tailwind generated no rule for it
+
+# 2. Every semantic token must be defined AND consumed
+grep -o -- "--color-myns-accent" dist/assets/*.css | wc -l
+# 1 = defined once, referenced nowhere — dead or disconnected
+# (grep -o counts occurrences — minified CSS puts everything on one line)
+```
+
+トークン lint はコンポーネントコード内の生リテラルを捕まえますが、テーマが定義していないトークンを参照するユーティリティは捕まえられません。そのマークアップには「生の値」が存在せず、ユーティリティが未定義なだけです — これはビルド出力にしか現れません。2つのチェックは異なる失敗クラスをカバーしており、互いを置き換えるものではありません。
 
 ## 参考リンク
 
