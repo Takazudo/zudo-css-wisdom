@@ -788,6 +788,7 @@ Not all token categories need namespace separation. The rule: split tokens that 
 | Font families | Shared | Typography choice is a brand decision |
 | Border radii | Shared | Visual style is consistent across contexts |
 | Breakpoints | Shared | Responsive behavior follows the same viewport rules |
+| `light-dark()` scheme switching | Per-namespace decision | Screen-only chrome defaults to it; print-first namespaces skip it |
 
 ```css
 /* tokens-shared.css — applies everywhere */
@@ -807,6 +808,69 @@ Not all token categories need namespace separation. The rule: split tokens that 
 }
 ```
 
+### Print-First Namespaces Skip `light-dark()`
+
+One color decision stays per-namespace even when the palette itself is shared: whether tokens go through `light-dark()`. An app-chrome namespace renders on screens only, so its palette defaults to `light-dark()` — one token serves both schemes. A print-first namespace — slides, invoices, certificates — must render identically on screen and on paper. Print pipelines force a light `color-scheme`, so a `light-dark()` token resolves to its light value on paper while the on-screen preview may show the dark value — the preview and the printed page diverge. Define a print-first palette as plain values with no `light-dark()` and no scheme switching.
+
+```css
+/* ── App-chrome namespace: screen-only, scheme-aware ── */
+@theme {
+  --color-mychrome-surface: light-dark(hsl(0 0% 100%), hsl(222 20% 12%));
+  --color-mychrome-text: light-dark(hsl(222 47% 11%), hsl(210 20% 88%));
+}
+
+/* ── Print-first namespace: identical on screen and paper ── */
+@theme {
+  --color-myslides-surface: hsl(0 0% 100%);
+  --color-myslides-text: hsl(222 47% 11%);
+  --color-myslides-accent: hsl(30 80% 45%);
+}
+```
+
+## The Tier-Order Naming Trap
+
+A namespace often uses a two-tier token structure: a raw palette tier that holds the actual values, and a semantic tier that maps them to meaning (see [Design Token Lint](../architecture/design-token-lint.mdx) for the enforcement side). The two tiers spell the namespace in **opposite orders**, and the reversal is easy to miss.
+
+The raw tier is prefix-first. It consists of plain custom properties outside `@theme` — they generate no utilities, so the namespace leads to prevent collisions:
+
+```css
+/* Raw tier — prefix-first: --myns-palette-* */
+:root {
+  --myns-palette-accent-4: hsl(30 80% 50%);
+  --myns-palette-neutral-2: hsl(215 15% 88%);
+}
+```
+
+The framework-facing semantic tier is category-first, because Tailwind keys utility generation on the category prefix — `--color-*` produces `bg-*` and `text-*` utilities:
+
+```css
+/* Semantic tier — category-first: --color-myns-* */
+@theme {
+  --color-myns-accent: var(--myns-palette-accent-4);
+  --color-myns-border: var(--myns-palette-neutral-2);
+}
+```
+
+`myns` leads in the raw tier and follows the category in the semantic tier. Code written from memory tends to invent a third spelling that matches neither:
+
+```css
+/* NG — a third spelling: connects to neither tier */
+.myns-chrome__panel {
+  border-color: var(--myns-color-accent); /* nothing ever defines this */
+}
+```
+
+A third spelling means a disconnected namespace. A real review found chrome CSS consuming `--myns-color-accent` while the semantic tier defined `--color-myns-accent` — every panel-driven token tweak was silently dead because the chrome read variables nothing ever wrote. CSS tolerates undefined custom properties, so nothing errors; the styles just stop responding to the token layer.
+
+Grep for the wrong-order spelling as a drift check:
+
+```bash
+# Drift check — the reversed spelling must return zero hits
+grep -rn -- "--myns-color-" src/    # 0 hits expected
+grep -rn -- "--color-myns-" src/    # semantic tier (legitimate)
+grep -rn -- "--myns-palette-" src/  # raw tier (legitimate)
+```
+
 ## Quick Reference
 
 | Scenario | Approach |
@@ -817,6 +881,9 @@ Not all token categories need namespace separation. The rule: split tokens that 
 | Colors, font families, border radii | Keep in shared namespace — these define identity, not density |
 | Spacing and font sizes | Split per context — these define density and scale |
 | Team ownership boundaries (frontend team vs admin team) | Align namespaces with team boundaries for clear ownership |
+| Print-destined context (slides, invoices, certificates) | Own namespace with plain color values — no `light-dark()` |
+| Two-tier tokens (raw palette + semantic) | Raw tier is prefix-first (`--myns-palette-*`), semantic tier is category-first (`--color-myns-*`) |
+| Namespace bring-up verification | Grep the built CSS — utilities emitted, tokens consumed |
 
 ## Common AI Mistakes
 
@@ -825,6 +892,8 @@ Not all token categories need namespace separation. The rule: split tokens that 
 - **Splitting colors into namespaces** — colors define brand identity and should remain shared; only density-related tokens (spacing, font sizes) need namespace separation
 - **Using generic token names without a namespace prefix** — in a multi-namespace project, `hsp-sm` is ambiguous; always use the full prefix (`myweb-hsp-sm` or `myadmin-hsp-sm`)
 - **Creating namespaces preemptively** — start with one namespace; split only when a genuinely different design context arrives with different density requirements
+- **Inventing a third namespace spelling** — the raw tier is prefix-first (`--myns-palette-accent-4`) and the semantic tier is category-first (`--color-myns-accent`); a from-memory `--myns-color-accent` connects to neither tier and every reference to it is silently dead
+- **Verifying token wiring from source alone** — a utility whose token the theme never defined emits zero CSS with no error; grep the built stylesheet to confirm the utility and its token actually appear
 
 ## When to Use
 
@@ -853,6 +922,25 @@ This strategy builds on top of the tight token strategy. It does not replace it 
 ## Build-time enforcement
 
 A multi-namespace token system needs the same enforcement boundary as a single-namespace one — arguably more, because each new namespace expands the surface where raw values can hide. See [Design Token Lint](../architecture/design-token-lint.mdx) for the multi-pass linter pattern that catches raw literals in component code and validates that semantic tokens reference palette tokens via `var()`.
+
+### Audit the Built CSS, Not the Source
+
+Two failure modes are invisible in source review and only appear in the emitted stylesheet. First, a utility class can silently no-op: with a tight theme, `tracking-widest` in markup emits zero CSS when the theme does not define `--tracking-widest`. The class sits in the markup looking intentional, Tailwind generates nothing, and no error is raised. Second, semantic tokens can be defined but never consumed — the disconnected-namespace case above, where components reference a third spelling and the real tokens feed nothing.
+
+Make a post-build grep part of namespace bring-up:
+
+```bash
+# 1. Every utility used in markup must appear in the built CSS
+grep -c "tracking-widest" dist/assets/*.css
+# 0 = the class no-ops: the theme lacks --tracking-widest,
+#     so Tailwind generated no rule for it
+
+# 2. Every semantic token must be defined AND consumed
+grep -c -- "--color-myns-accent" dist/assets/*.css
+# 1 = defined once, referenced nowhere — dead or disconnected
+```
+
+Token lint catches raw literals in component code — it does not catch a utility whose token the theme never defined. Nothing in that markup is "raw"; the utility is simply undefined, and only the built output shows it. The two checks cover different failure classes and do not replace each other.
 
 ## References
 
