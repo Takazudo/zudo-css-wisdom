@@ -424,6 +424,342 @@ Tailwind CSS v4 はコンテナクエリをネイティブでサポートして�
     }
     `} />
 
+## トークンスケールとしてのコンテナクエリ単位
+
+単発の`clamp()`は1つの要素にしか対応できません。ステージ、埋め込みウィジェット、カードシステムなど、コンポーネントのサブツリー全体を1つの単位としてスケールさせる必要がある場合は、`clamp()`の値をカスタムプロパティとして一度だけ定義し、サブツリー全体で使い回します。その結果、ビューポートではなくコンポーネント自身の幅に比例するタイポグラフィとスペーシングのスケールが得られます。
+
+```css
+.stage {
+  container-type: inline-size;
+  container-name: stage;
+
+  /* Type scale — proportional to the stage, not the viewport */
+  --font-size-stage-sm: clamp(0.8rem, 0.7rem + 0.9cqi, 1rem);
+  --font-size-stage-md: clamp(0.95rem, 0.8rem + 1.4cqi, 1.3rem);
+  --font-size-stage-lg: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem);
+
+  /* Spacing scale */
+  --space-stage-sm: clamp(0.25rem, 0.2rem + 0.5cqi, 0.5rem);
+  --space-stage-md: clamp(0.5rem, 0.4rem + 1cqi, 1rem);
+  --space-stage-lg: clamp(1rem, 0.8rem + 2cqi, 2rem);
+}
+
+.stage__title {
+  font-size: var(--font-size-stage-lg);
+  margin-block-end: var(--space-stage-sm);
+}
+```
+
+このパターンの典型的なホストは固定アスペクト比のステージです。コンテナの設定自体については[レターボックスステージ](../layout/sizing/letterbox-stage.mdx)を参照してください。各`clamp()`のslopeは、ビューポートベースの流体タイポグラフィと同じ計算式で導出します。[clamp()を使った流体フォントサイズ](../typography/font-sizing/fluid-font-sizing.mdx)を参照してください。スケールのステップ数は少数に抑えましょう。[タイトトークン戦略](../methodology/design-systems/tight-token-strategy/index.mdx)で述べられている規律の議論は、コンポーネントスコープのトークンにもそのまま当てはまります。
+
+このようなスケールを破綻させないためのルールは3つあります。
+
+### rem項を優位に保つ
+
+ブラウザのテキスト拡大（テキストのみのズームや、デフォルトフォントサイズの拡大）は`rem`値をスケールしますが、`cqi`値はスケールしません。テキストを拡大してもコンテナは広くならないため、`cqi`項は同じ長さに解決され、`rem`項だけが大きくなります。`cqi`項が優位なトークンでは、ユーザーがテキストを拡大しても表示サイズがほとんど変わりません。これは、テキストを200%まで拡大しても機能し続けることを求めるWCAG 1.4.4（テキストのサイズ変更）に違反します。
+
+目安：コンポーネントの設計幅において、`rem`項が解決後のpreferred値の約60%以上を占めるようにします。設計幅でpreferred式を解決して検証します。
+
+```css
+/* Design width: stage = 480px */
+
+/* OK: rem-dominant */
+--font-size-stage-lg: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem);
+/* rem term:  0.9rem        = 14.4px  */
+/* cqi term:  1.8% of 480px =  8.64px */
+/* rem share: 14.4 / 23.04  = 62.5%   */
+
+/* NG: cqi-dominant */
+--font-size-stage-lg: clamp(1.1rem, 0.25rem + 4cqi, 2rem);
+/* rem term:  0.25rem       =  4px    */
+/* cqi term:  4% of 480px   = 19.2px  */
+/* rem share: 4 / 23.2      = ~17%    */
+```
+
+このデモは、ルートフォントサイズを2倍にすることで200%のテキストズームをシミュレートしています。これはブラウザのテキスト拡大と同じ仕組みです。ステージの幅は280pxに固定されているため、`cqi`項はトグルの前後で同じ値に解決されます。2つの見出しはほぼ同じサイズから始まりますが、ズームに反応するのはrem優位のトークンだけです。
+
+<CssPreview client:load
+  title="200%テキストズーム（シミュレーション）でのrem優位トークンとcqi優位トークン"
+  html={`
+    <div class="zoom-sim">
+      <label class="zoom-sim__control">
+        <input type="checkbox" class="zoom-sim__toggle">
+        Simulate 200% text zoom
+      </label>
+      <div class="zoom-sim__stage">
+        <p class="zoom-sim__label">rem-dominant: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem)</p>
+        <p class="zoom-sim__heading zoom-sim__heading--rem">Responds to zoom</p>
+        <p class="zoom-sim__label">cqi-dominant: clamp(0.5rem, 7cqi, 3rem)</p>
+        <p class="zoom-sim__heading zoom-sim__heading--cqi">Ignores zoom</p>
+      </div>
+    </div>
+    `}
+  css={`
+    /* Text zoom simulation: browser text scaling grows the root
+       font size, which is exactly what rem tracks and cqi ignores.
+       Demo chrome (labels, control) uses px so it stays put. */
+    :root:has(.zoom-sim__toggle:checked) {
+      font-size: 200%;
+    }
+
+    .zoom-sim {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .zoom-sim__control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: hsl(215, 15%, 35%);
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
+    .zoom-sim__stage {
+      container-type: inline-size;
+      width: 280px;
+      max-width: 100%;
+      padding: 16px;
+      background: hsl(210, 45%, 96%);
+      border-radius: 8px;
+    }
+
+    .zoom-sim__label {
+      font-size: 12px;
+      font-weight: 600;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 2px;
+    }
+
+    .zoom-sim__heading {
+      font-weight: 700;
+      color: hsl(220, 20%, 20%);
+      line-height: 1.2;
+      margin: 0 0 14px;
+    }
+
+    .zoom-sim__heading--rem {
+      font-size: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem);
+    }
+
+    .zoom-sim__heading--cqi {
+      font-size: clamp(0.5rem, 7cqi, 3rem);
+      margin-bottom: 0;
+    }
+    `}
+  height={280} />
+
+### cqトークンはコンテナのサブツリー内でのみ使う
+
+カスタムプロパティが保持するのは`cqi`の式であり、解決済みの長さではありません。単位はトークンが**使用される**場所で、その要素の最も近い祖先コンテナに対して解決されます。祖先コンテナが存在しない場合は、small viewportサイズに対して解決されます。ステージ用のスペーシングトークンをステージ外側のクローム（ツールバー、オーバーレイ、ステータスバーなど）で使うと、ステージ以外の何かに対して解決されることになります。ページを開発した幅では2つの解決結果がたまたま一致することもありますが、極端な幅では外側の使用箇所が異常な余白へと乖離していきます。
+
+ルール：cq単位のトークンは、それが設計されたコンテナのサブツリーにスコープされます。そのサブツリーの外側のクロームには、固定または`rem`のトークンを使います。疑うべきパターン：
+
+- ステージスコープの変数（`--space-stage-*`、`--font-size-stage-*`）が、ツールバー、オーバーレイ、ツールチップなど、ステージのサブツリー外でレンダリングされる要素から参照されている
+- cq単位のトークンがコンテナ要素自体で使われている — コンテナは自分自身のサイズをクエリできないため、単位は1つ上のコンテナに対して解決されます
+- あるページでは正しいスペーシングが、より広いページでは大きく異なる — トークンがビューポートフォールバックに対して解決されている典型的な症状
+
+デモでは、1つの`--space-md: 4cqi`トークンをステージ外のツールバーとステージ内の行の両方で使っています。ステージは280px固定なので、内側のgapはどのビューポートでも約11pxで安定しています。ツールバーには祖先コンテナがないため、そのgapはiframeのビューポートに対して解決されます。Mobileビューポートでは2つがたまたま一致しますが、Fullビューポートではツールバーのgapが爆発的に広がります。
+
+<CssPreview client:load
+  title="同じcqiトークンをコンテナの内側と外側で使用 — ビューポートを切り替えて確認"
+  html={`
+    <div class="ctx-demo">
+      <h4 class="ctx-demo__label">Toolbar outside the stage — same token</h4>
+      <div class="ctx-demo__toolbar">
+        <button class="ctx-demo__btn">Save</button>
+        <button class="ctx-demo__btn">Undo</button>
+        <button class="ctx-demo__btn">Share</button>
+      </div>
+      <h4 class="ctx-demo__label">Row inside the stage (280px) — stable</h4>
+      <div class="ctx-demo__stage">
+        <div class="ctx-demo__row">
+          <span class="ctx-demo__chip">One</span>
+          <span class="ctx-demo__chip">Two</span>
+          <span class="ctx-demo__chip">Three</span>
+        </div>
+      </div>
+    </div>
+    `}
+  css={`
+    .ctx-demo {
+      /* One spacing token, inherited by everything below */
+      --space-md: 4cqi;
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .ctx-demo__label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 8px;
+    }
+
+    .ctx-demo__toolbar {
+      display: flex;
+      /* No ancestor container: 4cqi falls back to 4% of the
+         (iframe) viewport width — try the Full viewport */
+      gap: var(--space-md);
+      margin-bottom: 20px;
+    }
+
+    .ctx-demo__btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border: 1px solid hsl(215, 30%, 70%);
+      border-radius: 6px;
+      background: hsl(210, 45%, 97%);
+      color: hsl(215, 25%, 30%);
+    }
+
+    .ctx-demo__stage {
+      container-type: inline-size;
+      width: 280px;
+      max-width: 100%;
+      padding: 12px;
+      background: hsl(210, 45%, 96%);
+      border-radius: 8px;
+    }
+
+    .ctx-demo__row {
+      display: flex;
+      /* Inside the stage: 4cqi = 4% of 280px, at every viewport */
+      gap: var(--space-md);
+    }
+
+    .ctx-demo__chip {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 10px;
+      background: hsl(150, 40%, 88%);
+      color: hsl(150, 40%, 25%);
+      border-radius: 999px;
+    }
+    `}
+  height={220} />
+
+### ヘアラインは固定pxを維持する
+
+1pxのヘアラインは、画面がレンダリングできる下限にすでに達しています。これに`cqi`の幅を与えると、コンテナが狭くなるにつれてサブピクセルになります。ブラウザは丸め処理とディスプレイ密度に応じて、1px未満の線をアンチエイリアスのかかった薄いにじみとして描画するか、完全に消してしまいます。それ以外が完全に流体のスケールであっても、1〜2pxのヘアライン（ボーダー、罫線、コネクタ）はpxのリテラル値のまま維持します。
+
+```css
+/* NG: goes sub-pixel below a 400px stage and fades out */
+.stage__divider {
+  border-block-start: 0.25cqi solid hsl(215, 30%, 75%);
+}
+
+/* OK: fluid space, fixed hairline */
+.stage__card {
+  padding: var(--space-stage-md);
+  border: 1px solid hsl(215, 30%, 75%);
+}
+```
+
+ステージの右下隅にあるリサイズハンドルをドラッグして狭めながら比較してください。`0.25cqi`のボーダーと罫線は見えなくなる方向にフェードしていきますが、`1px`のものはどの幅でもくっきりと表示されたままです。
+
+<CssPreview client:load
+  title="cqi流体ヘアラインと固定1pxヘアライン — ステージを狭くドラッグ"
+  html={`
+    <div class="hairline-demo">
+      <p class="hairline-demo__hint">Drag the handle in the stage's bottom-right corner to narrow it.</p>
+      <div class="hairline-demo__stage">
+        <div class="hairline-demo__card hairline-demo__card--fluid">
+          <p class="hairline-demo__name">0.25cqi hairline</p>
+          <hr class="hairline-demo__rule hairline-demo__rule--fluid">
+          <p class="hairline-demo__text">Border and rule fade as the stage narrows.</p>
+        </div>
+        <div class="hairline-demo__card hairline-demo__card--fixed">
+          <p class="hairline-demo__name">1px hairline</p>
+          <hr class="hairline-demo__rule hairline-demo__rule--fixed">
+          <p class="hairline-demo__text">Border and rule stay crisp at every width.</p>
+        </div>
+      </div>
+    </div>
+    `}
+  css={`
+    .hairline-demo {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .hairline-demo__hint {
+      font-size: 12px;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 8px;
+    }
+
+    .hairline-demo__stage {
+      container-type: inline-size;
+      resize: horizontal;
+      overflow: auto;
+      width: min(440px, 100%);
+      min-width: 150px;
+      max-width: 100%;
+      padding: 12px;
+      border: 2px dashed hsl(215, 20%, 70%);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hairline-demo__card {
+      background: hsl(210, 45%, 97%);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+
+    .hairline-demo__card--fluid {
+      border: 0.25cqi solid hsl(215, 60%, 40%);
+    }
+
+    .hairline-demo__card--fixed {
+      border: 1px solid hsl(215, 60%, 40%);
+    }
+
+    .hairline-demo__name {
+      font-size: 12px;
+      font-weight: 700;
+      color: hsl(215, 25%, 30%);
+      margin: 0;
+    }
+
+    .hairline-demo__rule {
+      border: none;
+      margin: 8px 0;
+    }
+
+    .hairline-demo__rule--fluid {
+      border-top: 0.25cqi solid hsl(215, 60%, 40%);
+    }
+
+    .hairline-demo__rule--fixed {
+      border-top: 1px solid hsl(215, 60%, 40%);
+    }
+
+    .hairline-demo__text {
+      font-size: 12px;
+      color: hsl(215, 15%, 45%);
+      margin: 0;
+    }
+    `}
+  height={260} />
+
+### 3つのルールまとめ
+
+| ルール | 防げる失敗 |
+| --- | --- |
+| 設計幅で`rem`項が解決値の約60%以上を占める | ブラウザのテキスト拡大を無視するテキスト（WCAG 1.4.4） |
+| cqトークンはコンテナのサブツリー内でのみ使う | 極端な幅でクロームの余白が異常になる |
+| ヘアラインはpxのリテラル値のまま | 狭いコンテナでボーダーや罫線がフェードアウトする |
+
 ## コンテナ幅に適応するカードコンポーネント
 
 よくある実用的なユースケースとして、狭いサイドバー、中幅のグリッドカラム、全幅のメインエリアなど、どのレイアウトコンテキストでも機能するカードコンポーネントがあります。
@@ -811,6 +1147,9 @@ Tailwind CSS v4 はコンテナクエリをネイティブでサポートして�
 - **`container-type: size` を不必要に使う**: 高さベースのコンテインメント（`size`）はレイアウトの問題を引き起こす可能性があります。ほとんどの場合は `inline-size` を使いましょう。
 - **ネストされたコンテナに名前を付けない**: コンテナがネストされているとき、`container-name` を省略すると曖昧さが生じます。`@container` クエリは最も近い祖先コンテナにマッチします。ネスト時は特定の祖先をターゲットにするためにコンテナに名前を付けましょう。
 - **要素自体にクエリしてしまう**: `@container` クエリは `container-type` が設定された最も近い祖先をターゲットにするのであって、スタイルを適用する要素自体ではありません。コンテナとスタイル対象の要素は別の要素である必要があります。
+- **流体トークンで`cqi`項を優位にしてしまう**: ブラウザのテキスト拡大は`rem`をスケールしますが`cqi`はスケールしないため、cqi優位の`clamp()`はユーザーがテキストを拡大してもほとんど反応しません。設計幅で`rem`項が解決値の約60%以上を占めるようにしましょう。
+- **cq単位のトークンをコンテナのサブツリー外で使ってしまう**: 単位は使用する要素の側で、その要素自身の最も近い祖先コンテナ（なければsmall viewportフォールバック）に対して解決されます。トークンが設計されたコンテナに対してではありません。
+- **`cqi`による流体ボーダー幅**: ヘアラインは狭いコンテナでサブピクセルになりフェードアウトします。1〜2pxのヘアラインはpxのリテラル値のままにしましょう。
 
 ## 使い分け
 
