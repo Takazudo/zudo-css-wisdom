@@ -250,20 +250,28 @@ tr:has(td:empty) {
     width: 100%;
   }
 
-  /* Gated: only the delta the code panel introduces */
-  .shell:has(#code-panel) .code-panel {
+  /* The panel's own delta needs no gate — this selector
+     already matches only when the panel exists */
+  .code-panel {
     max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  /* Gate only deltas on OTHER elements that genuinely
+     depend on the panel's presence */
+  .shell:has(#code-panel) .sidebar {
+    max-height: 120px;
     overflow-y: auto;
   }
 }
 ```
 
-スタッキングはすべてのページに適用されるようになりました。`:has()`のゲートが残るのは、条件が本物である場所 — コードパネルの存在によって生じる調整 — だけです。
+スタッキングはすべてのページに適用されるようになりました。パネル自身への差分にはゲートは不要です — `.code-panel`はパネルが存在するときにしかマッチしません。`:has()`のゲートが残るのは、パネルの存在に本当に依存する、他の要素への差分だけです。
 
 <CssPreview client:load
-  title="修正版：無条件のスタッキング、パネル固有の差分のみゲート"
+  title="修正版：無条件のスタッキング、ゲートは真の差分のみ"
   html={`
-    <p class="demo-hint">Switch to the Mobile viewport (320px) — both pages stack; only the code panel gets a gated delta</p>
+    <p class="demo-hint">Switch to the Mobile viewport (320px) — both pages stack; the sidebar compacts only on the page with the panel</p>
     <p class="demo-label">Page A — has the code panel</p>
     <div class="shell">
       <aside class="shell__sidebar">Sidebar</aside>
@@ -316,7 +324,7 @@ tr:has(td:empty) {
       border-radius: 6px;
     }
 
-    /* FIXED: every shell stacks; only the panel's own delta is gated */
+    /* FIXED: every shell stacks; deltas that depend on the panel stay gated */
     @media (max-width: 700px) {
       .shell {
         flex-direction: column;
@@ -325,9 +333,17 @@ tr:has(td:empty) {
       .shell__code-panel {
         width: 100%;
       }
-      .shell:has(.shell__code-panel) .shell__code-panel {
+
+      /* the panel's own delta needs no gate */
+      .shell__code-panel {
         max-height: 60px;
         overflow-y: auto;
+      }
+
+      /* gated: the sidebar compacts only when a panel is present */
+      .shell:has(.shell__code-panel) .shell__sidebar {
+        padding: 6px 12px;
+        font-size: 0.75rem;
       }
     }
 
@@ -349,7 +365,7 @@ tr:has(td:empty) {
 
 ### 危険信号
 
-`:has(#feature)`のゲートが、その機能自身ではなく他の要素 — サイドバーやメインカラム — をスタイリングしている状態です。ルールをゲートする前に、「その機能が存在しないとき、このルールは正しくなくなるか」を自問してください。レスポンシブなスタッキング、最小サイズのリセット、オーバーフロー対策はすべてのページで成立しなければならないため、答えは常にノーです。
+他の要素 — サイドバーやメインカラム — をスタイリングする`:has(#feature)`のゲートは精査に値します。ただし、セレクターの形そのものが問題なのではありません。上記の例にある`.card:has(img) .card-body`は他の要素をスタイリングしていますが正しい使い方です — その差分は画像が存在するときにだけ意味を持つからです。判断基準は、その機能が存在しなくてもその宣言が必要かどうかです。レスポンシブなスタッキング、最小サイズのリセット、オーバーフロー対策はすべてのページで成立しなければなりません — ゲートされた宣言がこのテストに該当するなら、ゲートを外してください。
 
 ### レビューをすり抜ける理由
 

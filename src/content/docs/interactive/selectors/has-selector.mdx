@@ -250,20 +250,28 @@ Keep unconditional layout unconditional. Gate only the delta the feature introdu
     width: 100%;
   }
 
-  /* Gated: only the delta the code panel introduces */
-  .shell:has(#code-panel) .code-panel {
+  /* The panel's own delta needs no gate — this selector
+     already matches only when the panel exists */
+  .code-panel {
     max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  /* Gate only deltas on OTHER elements that genuinely
+     depend on the panel's presence */
+  .shell:has(#code-panel) .sidebar {
+    max-height: 120px;
     overflow-y: auto;
   }
 }
 ```
 
-The stacking now applies to every page. The `:has()` gate remains only where the condition is real: adjustments that exist because of the code panel.
+The stacking now applies to every page. A delta on the panel itself needs no gate — `.code-panel` can only match when the panel exists. The `:has()` gate remains only for deltas on other elements that genuinely depend on the panel's presence.
 
 <CssPreview client:load
-  title="Fixed: Unconditional Stacking, Gated Panel Delta"
+  title="Fixed: Unconditional Stacking, Gated Deltas Only"
   html={`
-    <p class="demo-hint">Switch to the Mobile viewport (320px) — both pages stack; only the code panel gets a gated delta</p>
+    <p class="demo-hint">Switch to the Mobile viewport (320px) — both pages stack; the sidebar compacts only on the page with the panel</p>
     <p class="demo-label">Page A — has the code panel</p>
     <div class="shell">
       <aside class="shell__sidebar">Sidebar</aside>
@@ -316,7 +324,7 @@ The stacking now applies to every page. The `:has()` gate remains only where the
       border-radius: 6px;
     }
 
-    /* FIXED: every shell stacks; only the panel's own delta is gated */
+    /* FIXED: every shell stacks; deltas that depend on the panel stay gated */
     @media (max-width: 700px) {
       .shell {
         flex-direction: column;
@@ -325,9 +333,17 @@ The stacking now applies to every page. The `:has()` gate remains only where the
       .shell__code-panel {
         width: 100%;
       }
-      .shell:has(.shell__code-panel) .shell__code-panel {
+
+      /* the panel's own delta needs no gate */
+      .shell__code-panel {
         max-height: 60px;
         overflow-y: auto;
+      }
+
+      /* gated: the sidebar compacts only when a panel is present */
+      .shell:has(.shell__code-panel) .shell__sidebar {
+        padding: 6px 12px;
+        font-size: 0.75rem;
       }
     }
 
@@ -349,7 +365,7 @@ The stacking now applies to every page. The `:has()` gate remains only where the
 
 ### The Smell
 
-A `:has(#feature)` gate whose declarations style other elements — the sidebar, the main column — instead of the feature itself. Before gating a rule, ask whether it stops being correct when the feature is missing. Responsive stacking, min-size resets, and overflow guards must hold on every page, so the answer for them is always no.
+A `:has(#feature)` gate whose declarations style other elements — the sidebar, the main column — deserves scrutiny. The selector shape alone is not the problem: `.card:has(img) .card-body` from the examples above styles another element correctly, because its delta only makes sense while the image exists. The deciding test is whether the declaration remains necessary when the feature is absent. Responsive stacking, min-size resets, and overflow guards must hold on every page — when a gated declaration passes that test, remove the gate.
 
 ### Why It Slips Through Review
 
