@@ -133,6 +133,244 @@ Use the direct child combinator `>` for better performance. It limits the browse
 }
 ```
 
+## Pitfall: Layout Gated on Unrelated Structure
+
+`:has()` makes it easy to condition any rule on the presence of any element. Applied to layout rules that must hold unconditionally — responsive stacking, minimum-size resets, overflow guards — this produces pages that break only when the gating element is absent.
+
+### The Failing Pattern
+
+```css
+/* BROKEN: base layout gated on an unrelated element's presence */
+@media (max-width: 1023px) {
+  .shell:has(#code-panel) {
+    flex-direction: column;
+  }
+  .shell:has(#code-panel) .sidebar {
+    width: 100%;
+  }
+}
+```
+
+The intent was "stack the shell on narrow viewports." The `:has(#code-panel)` gate ties that intent to an unrelated condition: whether the page happens to contain a code panel. Pages without one — an index page, a settings page — keep row direction on narrow viewports, and the non-shrinking sidebar pushes the main content off-screen. Every page that has the panel renders correctly, so the bug ships silently.
+
+<CssPreview client:load
+  title="Broken: Stacking Gated on the Code Panel's Presence"
+  html={`
+    <p class="demo-hint">Switch to the Mobile viewport (320px) — Page B never stacks and its content is cut off</p>
+    <p class="demo-label">Page A — has the code panel</p>
+    <div class="shell">
+      <aside class="shell__sidebar">Sidebar</aside>
+      <main class="shell__main">Main content. Must stay readable on every page.</main>
+      <section class="shell__code-panel">Code panel<br />const a = 1;<br />const b = 2;<br />const c = 3;</section>
+    </div>
+    <p class="demo-label">Page B — no code panel</p>
+    <div class="shell">
+      <aside class="shell__sidebar">Sidebar</aside>
+      <main class="shell__main">Main content. Must stay readable on every page.</main>
+    </div>
+    `}
+  css={`
+    .shell {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      margin-bottom: 12px;
+      background: hsl(220, 30%, 94%);
+      border-radius: 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: hsl(220, 25%, 25%);
+      overflow: hidden;
+    }
+
+    .shell__sidebar {
+      width: 150px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      background: hsl(255, 45%, 86%);
+      border-radius: 6px;
+    }
+
+    .shell__main {
+      flex: 1;
+      min-width: 220px;
+      padding: 12px;
+      background: hsl(0, 0%, 100%);
+      border-radius: 6px;
+    }
+
+    .shell__code-panel {
+      width: 130px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      background: hsl(150, 40%, 86%);
+      border-radius: 6px;
+    }
+
+    /* BROKEN: stacking is gated on the code panel's presence */
+    @media (max-width: 700px) {
+      .shell:has(.shell__code-panel) {
+        flex-direction: column;
+      }
+      .shell:has(.shell__code-panel) .shell__sidebar,
+      .shell:has(.shell__code-panel) .shell__code-panel {
+        width: 100%;
+      }
+    }
+
+    .demo-label {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: hsl(220, 15%, 40%);
+      margin: 0 0 4px;
+    }
+
+    .demo-hint {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      color: hsl(220, 10%, 55%);
+      margin: 0 0 12px;
+    }
+    `} />
+
+### The Fix
+
+Keep unconditional layout unconditional. Gate only the delta the feature introduces:
+
+```css
+@media (max-width: 1023px) {
+  /* Unconditional: every page stacks */
+  .shell {
+    flex-direction: column;
+  }
+  .shell .sidebar {
+    width: 100%;
+  }
+
+  /* The panel's own delta needs no gate — this selector
+     already matches only when the panel exists */
+  .code-panel {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  /* Gate only deltas on OTHER elements that genuinely
+     depend on the panel's presence */
+  .shell:has(#code-panel) .sidebar {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+}
+```
+
+The stacking now applies to every page. A delta on the panel itself needs no gate — `.code-panel` can only match when the panel exists. The `:has()` gate remains only for deltas on other elements that genuinely depend on the panel's presence.
+
+<CssPreview client:load
+  title="Fixed: Unconditional Stacking, Gated Deltas Only"
+  html={`
+    <p class="demo-hint">Switch to the Mobile viewport (320px) — both pages stack; the sidebar compacts only on the page with the panel</p>
+    <p class="demo-label">Page A — has the code panel</p>
+    <div class="shell">
+      <aside class="shell__sidebar">Sidebar</aside>
+      <main class="shell__main">Main content. Must stay readable on every page.</main>
+      <section class="shell__code-panel">Code panel<br />const a = 1;<br />const b = 2;<br />const c = 3;</section>
+    </div>
+    <p class="demo-label">Page B — no code panel</p>
+    <div class="shell">
+      <aside class="shell__sidebar">Sidebar</aside>
+      <main class="shell__main">Main content. Must stay readable on every page.</main>
+    </div>
+    `}
+  css={`
+    .shell {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      margin-bottom: 12px;
+      background: hsl(220, 30%, 94%);
+      border-radius: 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: hsl(220, 25%, 25%);
+      overflow: hidden;
+    }
+
+    .shell__sidebar {
+      width: 150px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      background: hsl(255, 45%, 86%);
+      border-radius: 6px;
+    }
+
+    .shell__main {
+      flex: 1;
+      min-width: 220px;
+      padding: 12px;
+      background: hsl(0, 0%, 100%);
+      border-radius: 6px;
+    }
+
+    .shell__code-panel {
+      width: 130px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      background: hsl(150, 40%, 86%);
+      border-radius: 6px;
+    }
+
+    /* FIXED: every shell stacks; deltas that depend on the panel stay gated */
+    @media (max-width: 700px) {
+      .shell {
+        flex-direction: column;
+      }
+      .shell__sidebar,
+      .shell__code-panel {
+        width: 100%;
+      }
+
+      /* the panel's own delta needs no gate */
+      .shell__code-panel {
+        max-height: 60px;
+        overflow-y: auto;
+      }
+
+      /* gated: the sidebar compacts only when a panel is present */
+      .shell:has(.shell__code-panel) .shell__sidebar {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+      }
+    }
+
+    .demo-label {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: hsl(220, 15%, 40%);
+      margin: 0 0 4px;
+    }
+
+    .demo-hint {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      color: hsl(220, 10%, 55%);
+      margin: 0 0 12px;
+    }
+    `} />
+
+### The Smell
+
+A `:has(#feature)` gate whose declarations style other elements — the sidebar, the main column — deserves scrutiny. The selector shape alone is not the problem: `.card:has(img) .card-body` from the examples above styles another element correctly, because its delta only makes sense while the image exists. The deciding test is whether the declaration remains necessary when the feature is absent. Responsive stacking, min-size resets, and overflow guards must hold on every page — when a gated declaration passes that test, remove the gate.
+
+### Why It Slips Through Review
+
+Every page the author and reviewer open during development happens to contain the feature, so the gated rule fires on every screen they check. The breakage lives only on the feature-absent pages nobody retests at a narrow viewport. Whenever a `:has()` gate appears in layout code, test the feature-absent variant explicitly.
+
 ## Browser Support
 
 - Chrome 105+
@@ -150,6 +388,7 @@ Global support exceeds 96%. Feature detection is available with `@supports selec
 - Not combining `:has()` with `:not()` for inverse logic (e.g., `.card:not(:has(img))`)
 - Forgetting that `:has()` can look at siblings, not just descendants (e.g., `h2:has(+ p)`)
 - Attempting to polyfill `:has()` — it requires real-time DOM awareness and cannot be efficiently polyfilled
+- Gating unconditional layout rules (responsive stacking, size resets) on the presence of an unrelated element — see "Pitfall: Layout Gated on Unrelated Structure" above
 
 ## When to Use
 

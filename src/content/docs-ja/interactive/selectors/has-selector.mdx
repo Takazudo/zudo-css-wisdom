@@ -133,6 +133,244 @@ tr:has(td:empty) {
 }
 ```
 
+## 落とし穴：無関係な構造にゲートされたレイアウト
+
+`:has()`を使うと、任意の要素の有無を条件にどんなルールでも簡単にゲートできます。しかし、無条件に適用されるべきレイアウトルール — レスポンシブなスタッキング、最小サイズのリセット、オーバーフロー対策 — にこれを適用すると、ゲート対象の要素が存在しないページだけが壊れます。
+
+### 失敗パターン
+
+```css
+/* BROKEN: base layout gated on an unrelated element's presence */
+@media (max-width: 1023px) {
+  .shell:has(#code-panel) {
+    flex-direction: column;
+  }
+  .shell:has(#code-panel) .sidebar {
+    width: 100%;
+  }
+}
+```
+
+意図は「狭いビューポートではシェルを縦に積む」でした。`:has(#code-panel)`のゲートは、その意図を無関係な条件 — そのページがたまたまコードパネルを含むかどうか — に結び付けてしまいます。パネルを持たないページ（インデックスページや設定ページ）は狭いビューポートでも横並びのままになり、縮まないサイドバーがメインコンテンツを画面外に押し出します。パネルを持つページはすべて正しく表示されるため、このバグは静かにリリースされてしまいます。
+
+<CssPreview client:load
+  title="壊れた例：スタッキングがコードパネルの有無にゲートされている"
+  html={`
+    <p class="demo-hint">Switch to the Mobile viewport (320px) — Page B never stacks and its content is cut off</p>
+    <p class="demo-label">Page A — has the code panel</p>
+    <div class="shell">
+      <aside class="shell__sidebar">Sidebar</aside>
+      <main class="shell__main">Main content. Must stay readable on every page.</main>
+      <section class="shell__code-panel">Code panel<br />const a = 1;<br />const b = 2;<br />const c = 3;</section>
+    </div>
+    <p class="demo-label">Page B — no code panel</p>
+    <div class="shell">
+      <aside class="shell__sidebar">Sidebar</aside>
+      <main class="shell__main">Main content. Must stay readable on every page.</main>
+    </div>
+    `}
+  css={`
+    .shell {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      margin-bottom: 12px;
+      background: hsl(220, 30%, 94%);
+      border-radius: 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: hsl(220, 25%, 25%);
+      overflow: hidden;
+    }
+
+    .shell__sidebar {
+      width: 150px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      background: hsl(255, 45%, 86%);
+      border-radius: 6px;
+    }
+
+    .shell__main {
+      flex: 1;
+      min-width: 220px;
+      padding: 12px;
+      background: hsl(0, 0%, 100%);
+      border-radius: 6px;
+    }
+
+    .shell__code-panel {
+      width: 130px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      background: hsl(150, 40%, 86%);
+      border-radius: 6px;
+    }
+
+    /* BROKEN: stacking is gated on the code panel's presence */
+    @media (max-width: 700px) {
+      .shell:has(.shell__code-panel) {
+        flex-direction: column;
+      }
+      .shell:has(.shell__code-panel) .shell__sidebar,
+      .shell:has(.shell__code-panel) .shell__code-panel {
+        width: 100%;
+      }
+    }
+
+    .demo-label {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: hsl(220, 15%, 40%);
+      margin: 0 0 4px;
+    }
+
+    .demo-hint {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      color: hsl(220, 10%, 55%);
+      margin: 0 0 12px;
+    }
+    `} />
+
+### 修正方法
+
+無条件であるべきレイアウトは無条件のままにします。ゲートするのは、その機能が導入する差分だけです：
+
+```css
+@media (max-width: 1023px) {
+  /* Unconditional: every page stacks */
+  .shell {
+    flex-direction: column;
+  }
+  .shell .sidebar {
+    width: 100%;
+  }
+
+  /* The panel's own delta needs no gate — this selector
+     already matches only when the panel exists */
+  .code-panel {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  /* Gate only deltas on OTHER elements that genuinely
+     depend on the panel's presence */
+  .shell:has(#code-panel) .sidebar {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+}
+```
+
+スタッキングはすべてのページに適用されるようになりました。パネル自身への差分にはゲートは不要です — `.code-panel`はパネルが存在するときにしかマッチしません。`:has()`のゲートが残るのは、パネルの存在に本当に依存する、他の要素への差分だけです。
+
+<CssPreview client:load
+  title="修正版：無条件のスタッキング、ゲートは真の差分のみ"
+  html={`
+    <p class="demo-hint">Switch to the Mobile viewport (320px) — both pages stack; the sidebar compacts only on the page with the panel</p>
+    <p class="demo-label">Page A — has the code panel</p>
+    <div class="shell">
+      <aside class="shell__sidebar">Sidebar</aside>
+      <main class="shell__main">Main content. Must stay readable on every page.</main>
+      <section class="shell__code-panel">Code panel<br />const a = 1;<br />const b = 2;<br />const c = 3;</section>
+    </div>
+    <p class="demo-label">Page B — no code panel</p>
+    <div class="shell">
+      <aside class="shell__sidebar">Sidebar</aside>
+      <main class="shell__main">Main content. Must stay readable on every page.</main>
+    </div>
+    `}
+  css={`
+    .shell {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      margin-bottom: 12px;
+      background: hsl(220, 30%, 94%);
+      border-radius: 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: hsl(220, 25%, 25%);
+      overflow: hidden;
+    }
+
+    .shell__sidebar {
+      width: 150px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      background: hsl(255, 45%, 86%);
+      border-radius: 6px;
+    }
+
+    .shell__main {
+      flex: 1;
+      min-width: 220px;
+      padding: 12px;
+      background: hsl(0, 0%, 100%);
+      border-radius: 6px;
+    }
+
+    .shell__code-panel {
+      width: 130px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      background: hsl(150, 40%, 86%);
+      border-radius: 6px;
+    }
+
+    /* FIXED: every shell stacks; deltas that depend on the panel stay gated */
+    @media (max-width: 700px) {
+      .shell {
+        flex-direction: column;
+      }
+      .shell__sidebar,
+      .shell__code-panel {
+        width: 100%;
+      }
+
+      /* the panel's own delta needs no gate */
+      .shell__code-panel {
+        max-height: 60px;
+        overflow-y: auto;
+      }
+
+      /* gated: the sidebar compacts only when a panel is present */
+      .shell:has(.shell__code-panel) .shell__sidebar {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+      }
+    }
+
+    .demo-label {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: hsl(220, 15%, 40%);
+      margin: 0 0 4px;
+    }
+
+    .demo-hint {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      color: hsl(220, 10%, 55%);
+      margin: 0 0 12px;
+    }
+    `} />
+
+### 危険信号
+
+他の要素 — サイドバーやメインカラム — をスタイリングする`:has(#feature)`のゲートは精査に値します。ただし、セレクターの形そのものが問題なのではありません。上記の例にある`.card:has(img) .card-body`は他の要素をスタイリングしていますが正しい使い方です — その差分は画像が存在するときにだけ意味を持つからです。判断基準は、その機能が存在しなくてもその宣言が必要かどうかです。レスポンシブなスタッキング、最小サイズのリセット、オーバーフロー対策はすべてのページで成立しなければなりません — ゲートされた宣言がこのテストに該当するなら、ゲートを外してください。
+
+### レビューをすり抜ける理由
+
+開発中に作者もレビュアーも、たまたまその機能を含むページばかりを開くため、ゲートされたルールは確認するすべての画面で発火します。壊れているのは、誰も狭いビューポートで再確認しない、機能を持たないページだけです。レイアウトコードに`:has()`のゲートが現れたときは、必ず機能が存在しないバリアントを明示的にテストしてください。
+
 ## ブラウザサポート
 
 - Chrome 105+
@@ -150,6 +388,7 @@ tr:has(td:empty) {
 - `:has()`と`:not()`を逆ロジックのために組み合わせない（例：`.card:not(:has(img))`）
 - `:has()`が子孫だけでなく兄弟も見ることができることを忘れる（例：`h2:has(+ p)`）
 - `:has()`のポリフィルを試みる — リアルタイムのDOM認識が必要で、効率的なポリフィルはできない
+- 無条件に適用すべきレイアウトルール（レスポンシブなスタッキング、サイズのリセット）を無関係な要素の有無でゲートする — 上記「落とし穴：無関係な構造にゲートされたレイアウト」を参照
 
 ## 使い分け
 
