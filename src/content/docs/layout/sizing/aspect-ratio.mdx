@@ -292,6 +292,8 @@ In practice, browsers already compute aspect ratio from the `width` and `height`
 - `cover` fills the box completely, cropping edges if needed
 - `contain` fits the entire content inside the box, leaving empty space
 
+`object-fit` only works on replaced elements such as `img` and `video` — it has no effect on `iframe`. To get the same `contain` behavior for an arbitrary element — a slide, a game canvas, or an embedded app that must fit a bounded box with bars on the correct axis — adding `max-height: 100%` does not work. See [Letterbox Stage](./letterbox-stage.mdx).
+
 ### Keep the padding-top hack only when
 
 - You must support Internet Explorer (end-of-life since June 2022)
