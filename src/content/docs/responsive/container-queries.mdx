@@ -456,7 +456,7 @@ Three rules keep such a scale from failing.
 
 ### Keep the rem Term Dominant
 
-Browser zoom scales `rem` values; it does not scale `cqi` values — zooming does not make the container wider, so the `cqi` term resolves to the same length while the `rem` term grows. In a token where the `cqi` term dominates, user zoom barely changes the text size. That fails WCAG 1.4.4 (Resize Text), which requires text to stay functional scaled up to 200%.
+Browser text scaling — text-only zoom, or a larger default font size — scales `rem` values; it does not scale `cqi` values: enlarging text does not make the container wider, so the `cqi` term resolves to the same length while the `rem` term grows. In a token where the `cqi` term dominates, scaling text barely changes the rendered size. That fails WCAG 1.4.4 (Resize Text), which requires text to stay functional scaled up to 200%.
 
 Rule of thumb: at the width the component is designed for, the `rem` term contributes at least ~60% of the resolved preferred value. Verify by resolving the preferred expression at the design width:
 
@@ -467,7 +467,7 @@ Rule of thumb: at the width the component is designed for, the `rem` term contri
 --font-size-stage-lg: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem);
 /* rem term:  0.9rem        = 14.4px  */
 /* cqi term:  1.8% of 480px =  8.64px */
-/* rem share: 14.4 / 23.04  = ~62%    */
+/* rem share: 14.4 / 23.04  = 62.5%   */
 
 /* NG: cqi-dominant */
 --font-size-stage-lg: clamp(1.1rem, 0.25rem + 4cqi, 2rem);
@@ -756,7 +756,7 @@ Drag the stage's resize handle (bottom-right corner) narrower and compare: the `
 
 | Rule | Failure it prevents |
 | --- | --- |
-| `rem` term at ~60% or more of the resolved value at the design width | Text that ignores browser zoom (WCAG 1.4.4) |
+| `rem` term at ~60% or more of the resolved value at the design width | Text that ignores browser text scaling (WCAG 1.4.4) |
 | cq tokens consumed only inside their container's subtree | Absurd spacing in chrome at extreme widths |
 | Hairlines stay literal `px` | Borders and rules fading out in narrow containers |
 
@@ -1147,7 +1147,7 @@ In the demo above, the `@container` cards adapt independently: the card in the n
 - **Using `container-type: size` unnecessarily**: Height-based containment (`size`) can cause layout issues. Use `inline-size` for the vast majority of cases.
 - **Not naming nested containers**: When containers are nested, omitting `container-name` leads to ambiguity — `@container` queries match the nearest ancestor container. Name containers when nesting to target specific ancestors.
 - **Querying the element itself**: The `@container` query targets the nearest ancestor with `container-type` set, not the element you are styling. The container and the styled element must be different elements.
-- **Letting the `cqi` term dominate a fluid token**: Browser zoom scales `rem`, not `cqi`, so a cqi-dominant `clamp()` barely responds to user zoom. Keep the `rem` term at ~60% or more of the resolved value at the design width.
+- **Letting the `cqi` term dominate a fluid token**: Browser text scaling grows `rem`, not `cqi`, so a cqi-dominant `clamp()` barely responds when the user enlarges text. Keep the `rem` term at ~60% or more of the resolved value at the design width.
 - **Consuming cq-unit tokens outside their container's subtree**: The unit resolves at the consuming element, against its own nearest ancestor container — or the small viewport fallback — not against the container the token was designed for.
 - **Fluid `cqi` border widths**: Hairlines go sub-pixel and fade out in narrow containers. Keep 1–2px hairlines as literal `px`.
 
