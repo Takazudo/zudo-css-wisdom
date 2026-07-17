@@ -15,11 +15,25 @@ Rearchitecting the spacing of one such app end to end — roughly 3,000 spacing-
 1. **The visible bugs were never invalid values.** Every broken surface used legal tokens. The failures were *relationships*: a timeline whose between-card gap (~25px) matched its within-card line rhythm (~24px) so the cards fused into one list; five different row densities (25, 29, 32, 49, and 56px tall) for the single role "pick one row from a vertical list."
 2. **Most token-level inconsistencies were invisible.** Four different dialog horizontal insets (24/20/16/12px) coexisted for months and no one ever saw it — only one dialog is on screen at a time. Toolbar padding that differed by 2px, badges that differed by 1px: measurably imperceptible.
 
-Together these invert the usual cleanup budget. Chasing every token inconsistency is mostly churn; the payoff lives in a handful of ratio, grouping, and role failures that a token audit cannot even represent. An app spacing architecture therefore needs different machinery than "use the scale": a rendered-pixel diagnosis, a pairing rule, role tokens, a scale-multiplier contract, and a migration-grade lint. Each follows.
+Together these invert the usual cleanup budget. Chasing every token inconsistency is mostly churn; the payoff lives in a handful of ratio, grouping, and role failures that a token audit cannot even represent.
 
 :::note[About the evidence in this article]
 The measurements, counts, and ratios throughout come from **one** app — a Tauri v2 desktop tool, measured before and after with `getComputedStyle`. They are real numbers, not illustrations, but they are a single project's numbers: treat them as a worked example that shows the shape of the problem, not as thresholds to copy. The perceptual verdicts in particular — "fused", "imperceptible", "reads as one group" — are visual-review judgments by the team, not user-study findings. Where this article states a rule, the rule is a house heuristic that survived contact with 3,000 usages; validate it against your own rendered pixels before adopting it.
 :::
+
+## The Solution
+
+An app spacing architecture needs different machinery than "use the scale". Five pieces, each a section below:
+
+| Piece | What it decides |
+| --- | --- |
+| Rendered-pixel diagnosis | what is actually broken, and what to leave alone |
+| The two-ladder pairing rule | which two gaps may meet at a grouping boundary |
+| Role tokens | what a recurring surface is called, so it stops drifting |
+| Figure/ground | how to group when the within-group rhythm is not yours to set |
+| The display-scale contract | which dimensions multiply with zoom, and which must not |
+
+A migration-grade lint (the ratchet) then holds the result in place. The order matters: diagnose first, because the diagnosis is what tells you which of the rest you actually need.
 
 ## Diagnose Rendered Pixels Before Architecting
 

@@ -6,7 +6,7 @@ description: デザイントークンシステムをビルド時に強制する 
 
 import CssPreview from '@/components/CssPreview';
 
-## The Problem
+## 問題
 
 メソドロジー記事は *どんなトークンを定義するか* は語りますが、*ビルド時にどう強制するか* には踏み込みません。強制がなければトークンシステムは腐っていきます。
 
@@ -17,7 +17,7 @@ import CssPreview from '@/components/CssPreview';
 
 強制されないトークンシステムは、コードレビューの祈りであって保証ではありません。AI 補助によるリファクタリングは回転をさらに早めます ―― トークンの移動は速く、貢献者の入れ替わりは多く、「みんな知っている」ルールは新しいエージェントと貢献者ごとに再学習されます。
 
-## The Solution
+## 解決方法
 
 pre-push と CI のタイミングで **マルチパス linter** を走らせ、コンポーネントコードと CSS をスキャンして既知のアンチパターンを検出します。各パスは異なるルールを強制します。デザインシステムが成長すれば新しいルールを追加できます。
 
@@ -433,7 +433,7 @@ CI も同じスクリプトを実行します。lint が失敗すれば push が
 
 lint ゲートには、computed style の検証条件と、複数のディスプレイスケールでの目を細めるテストを組み合わせましょう。lint は床であって天井ではありません ―― それが証明するのは誰も不正な値を書いていないことであり、「UI が正しい」よりはるかに弱い主張です。
 
-## When to Use
+## 使い分け
 
 ### 向いているケース
 
@@ -447,7 +447,7 @@ lint ゲートには、computed style の検証条件と、複数のディスプ
 - **プロトタイプや 1 ページもののサイト。** トークンシステムがまだ安定していません。いまルールをエンコードするのは早すぎます。
 - **トークンシステムを持たない単独開発者プロジェクト。** 強制すべき対象がそもそも存在しません。
 
-## References
+## 参考リンク
 
 - [`@takazudo/zudo-design-token-lint`](https://github.com/Takazudo/zudo-design-token-lint) ―― リファレンス実装（Tailwind class lint、Pass 1）
 - [zudo-pattern-gen `packages/design-token-lint`](https://github.com/zudolab/zudo-pattern-gen/tree/main/packages/design-token-lint) ―― vendor された例
