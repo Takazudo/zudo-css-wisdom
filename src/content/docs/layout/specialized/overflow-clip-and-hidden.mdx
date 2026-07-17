@@ -237,7 +237,7 @@ Focusable content hidden behind any clipping is an accessibility smell — keybo
 
 ## The Grid Paint-Through Bug
 
-Grid and flex tracks have two separate failure layers when content is oversized: geometry and paint. `min-height: 0` (or `min-width: 0`) fixes geometry — the track stops growing to fit its content. It does nothing about paint: the item's content still overflows its box with the default `overflow: visible`, and because inline content paints in a later phase than sibling backgrounds, the text renders on top of the next row.
+Grid and flex tracks have two separate failure layers when content is oversized: geometry and paint. `min-height: 0` (or `min-width: 0`) fixes geometry — the track stops growing to fit its content. It does nothing about paint: with the default `overflow: visible`, the item's content keeps painting past the track edge, overlaying the footer row below and escaping the panel entirely. Grid items paint atomically in document order, so an opaque background on the footer masks its own strip — but that only hides the overlap; the overflow still runs past the panel border below it. Nothing contains the content until the track's item clips it.
 
 ```css
 .app-panel {
@@ -261,14 +261,15 @@ Both steps are required. `min-height: 0` alone leaves the paint-through; `overfl
   height={440}
   html={`    <div class="overlap-demo">
       <div class="overlap-demo__col">
-        <div class="overlap-demo__label">min-height: 0 only — body paints through the footer</div>
+        <div class="overlap-demo__label">min-height: 0 only — body overlays the footer row</div>
         <div class="app-panel">
           <header class="app-panel__header">Header</header>
           <div class="app-panel__body">
-            <p>The body track is sized by 1fr and min-height: 0 keeps it from growing, so the panel geometry is stable. But this text is taller than the track, and with the default overflow: visible it keeps painting past the track edge.</p>
-            <p>Inline content paints in a later phase than sibling row backgrounds, so these lines render on top of the footer bar below — and continue past the panel border itself.</p>
+            <p>The body track is sized by 1fr, and min-height: 0 keeps the track from growing — the panel geometry is stable. But this text is taller than the track, and the default overflow: visible does not clip anything.</p>
+            <p>Nothing stops the overflow at the track edge: these lines run straight into the footer row below, overlaying it, and keep going past the panel border itself.</p>
+            <p>An opaque footer background would only mask its own strip — the content still escapes the panel. The real fix is to clip the track with overflow-y: clip.</p>
           </div>
-          <footer class="app-panel__footer">Footer — text from the row above paints over this bar</footer>
+          <footer class="app-panel__footer">Footer — the row above overlays this text</footer>
         </div>
       </div>
       <div class="overlap-demo__col">
@@ -276,8 +277,9 @@ Both steps are required. `min-height: 0` alone leaves the paint-through; `overfl
         <div class="app-panel">
           <header class="app-panel__header">Header</header>
           <div class="app-panel__body app-panel__body--clip">
-            <p>The body track is sized by 1fr and min-height: 0 keeps it from growing, so the panel geometry is stable. But this text is taller than the track, and with the default overflow: visible it keeps painting past the track edge.</p>
-            <p>Inline content paints in a later phase than sibling row backgrounds, so these lines render on top of the footer bar below — and continue past the panel border itself.</p>
+            <p>The body track is sized by 1fr, and min-height: 0 keeps the track from growing — the panel geometry is stable. But this text is taller than the track, and the default overflow: visible does not clip anything.</p>
+            <p>Nothing stops the overflow at the track edge: these lines run straight into the footer row below, overlaying it, and keep going past the panel border itself.</p>
+            <p>An opaque footer background would only mask its own strip — the content still escapes the panel. The real fix is to clip the track with overflow-y: clip.</p>
           </div>
           <footer class="app-panel__footer">Footer — unobstructed</footer>
         </div>
@@ -307,15 +309,21 @@ Both steps are required. `min-height: 0` alone leaves the paint-through; `overfl
     .app-panel {
       display: grid;
       grid-template-rows: auto 1fr auto;
-      height: 240px;
+      height: 220px;
       border: 2px solid hsl(220 20% 82%);
       border-radius: 8px;
       background: hsl(0 0% 100%);
     }
-    .app-panel__header,
-    .app-panel__footer {
+    .app-panel__header {
       padding: 10px 14px;
       background: hsl(220 45% 91%);
+      color: hsl(220 45% 28%);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .app-panel__footer {
+      padding: 10px 14px;
+      border-top: 2px solid hsl(220 45% 80%);
       color: hsl(220 45% 28%);
       font-size: 12px;
       font-weight: 600;
@@ -418,7 +426,7 @@ Clipping both axes cuts more than layout overflow — it cuts decorations. Full-
       justify-content: center;
       border-radius: 8px;
       background: hsl(0 0% 100%);
-      box-shadow: 0 2px 16px hsl(250 55% 40% / 0.45);
+      box-shadow: 0 0 18px 2px hsl(250 55% 40% / 0.5);
       font-size: 12px;
       font-weight: 600;
       color: hsl(250 30% 30%);

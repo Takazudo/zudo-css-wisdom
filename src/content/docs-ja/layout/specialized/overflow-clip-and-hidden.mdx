@@ -237,7 +237,7 @@ AIエージェントは、望まないオーバーフローに対する万能の
 
 ## Grid の描画突き抜けバグ
 
-Grid や Flex のトラックでは、コンテンツが大きすぎるときの不具合が「ジオメトリ」と「ペイント」という2つの独立した層で起こります。`min-height: 0`（または `min-width: 0`）が修正するのはジオメトリです。トラックがコンテンツに合わせて伸びるのを止めます。しかしペイントには何もしません。アイテムのコンテンツはデフォルトの `overflow: visible` のままボックスからあふれ続け、インラインコンテンツは兄弟要素の背景より後のフェーズで描画されるため、テキストが次の行の上に描かれます。
+Grid や Flex のトラックでは、コンテンツが大きすぎるときの不具合が「ジオメトリ」と「ペイント」という2つの独立した層で起こります。`min-height: 0`（または `min-width: 0`）が修正するのはジオメトリです。トラックがコンテンツに合わせて伸びるのを止めます。しかしペイントには何もしません。デフォルトの `overflow: visible` のままでは、アイテムのコンテンツはトラック端を越えて描画され続け、下のフッター行に重なり、パネルの外まで逃げ出します。Grid アイテムはドキュメント順にアトミックに描画されるため、フッターに不透明な背景を付ければ自分の帯だけは覆い隠せますが、それは重なりを隠すだけです。オーバーフローはその下のパネルボーダーも越えて続きます。トラックのアイテムがクリップするまで、コンテンツを封じ込めるものは何もありません。
 
 ```css
 .app-panel {
@@ -261,14 +261,15 @@ Grid や Flex のトラックでは、コンテンツが大きすぎるときの
   height={440}
   html={`    <div class="overlap-demo">
       <div class="overlap-demo__col">
-        <div class="overlap-demo__label">min-height: 0 only — body paints through the footer</div>
+        <div class="overlap-demo__label">min-height: 0 only — body overlays the footer row</div>
         <div class="app-panel">
           <header class="app-panel__header">Header</header>
           <div class="app-panel__body">
-            <p>The body track is sized by 1fr and min-height: 0 keeps it from growing, so the panel geometry is stable. But this text is taller than the track, and with the default overflow: visible it keeps painting past the track edge.</p>
-            <p>Inline content paints in a later phase than sibling row backgrounds, so these lines render on top of the footer bar below — and continue past the panel border itself.</p>
+            <p>The body track is sized by 1fr, and min-height: 0 keeps the track from growing — the panel geometry is stable. But this text is taller than the track, and the default overflow: visible does not clip anything.</p>
+            <p>Nothing stops the overflow at the track edge: these lines run straight into the footer row below, overlaying it, and keep going past the panel border itself.</p>
+            <p>An opaque footer background would only mask its own strip — the content still escapes the panel. The real fix is to clip the track with overflow-y: clip.</p>
           </div>
-          <footer class="app-panel__footer">Footer — text from the row above paints over this bar</footer>
+          <footer class="app-panel__footer">Footer — the row above overlays this text</footer>
         </div>
       </div>
       <div class="overlap-demo__col">
@@ -276,8 +277,9 @@ Grid や Flex のトラックでは、コンテンツが大きすぎるときの
         <div class="app-panel">
           <header class="app-panel__header">Header</header>
           <div class="app-panel__body app-panel__body--clip">
-            <p>The body track is sized by 1fr and min-height: 0 keeps it from growing, so the panel geometry is stable. But this text is taller than the track, and with the default overflow: visible it keeps painting past the track edge.</p>
-            <p>Inline content paints in a later phase than sibling row backgrounds, so these lines render on top of the footer bar below — and continue past the panel border itself.</p>
+            <p>The body track is sized by 1fr, and min-height: 0 keeps the track from growing — the panel geometry is stable. But this text is taller than the track, and the default overflow: visible does not clip anything.</p>
+            <p>Nothing stops the overflow at the track edge: these lines run straight into the footer row below, overlaying it, and keep going past the panel border itself.</p>
+            <p>An opaque footer background would only mask its own strip — the content still escapes the panel. The real fix is to clip the track with overflow-y: clip.</p>
           </div>
           <footer class="app-panel__footer">Footer — unobstructed</footer>
         </div>
@@ -307,15 +309,21 @@ Grid や Flex のトラックでは、コンテンツが大きすぎるときの
     .app-panel {
       display: grid;
       grid-template-rows: auto 1fr auto;
-      height: 240px;
+      height: 220px;
       border: 2px solid hsl(220 20% 82%);
       border-radius: 8px;
       background: hsl(0 0% 100%);
     }
-    .app-panel__header,
-    .app-panel__footer {
+    .app-panel__header {
       padding: 10px 14px;
       background: hsl(220 45% 91%);
+      color: hsl(220 45% 28%);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .app-panel__footer {
+      padding: 10px 14px;
+      border-top: 2px solid hsl(220 45% 80%);
       color: hsl(220 45% 28%);
       font-size: 12px;
       font-weight: 600;
@@ -418,7 +426,7 @@ Grid や Flex のトラックでは、コンテンツが大きすぎるときの
       justify-content: center;
       border-radius: 8px;
       background: hsl(0 0% 100%);
-      box-shadow: 0 2px 16px hsl(250 55% 40% / 0.45);
+      box-shadow: 0 0 18px 2px hsl(250 55% 40% / 0.5);
       font-size: 12px;
       font-weight: 600;
       color: hsl(250 30% 30%);
