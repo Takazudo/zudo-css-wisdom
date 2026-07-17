@@ -30,7 +30,7 @@ An app spacing architecture needs different machinery than "use the scale". Five
 | Rendered-pixel diagnosis | what is actually broken, and what to leave alone |
 | The two-ladder pairing rule | which two gaps may meet at a grouping boundary |
 | Role tokens | what a recurring surface is called, so it stops drifting |
-| Figure/ground | how to group when the within-group rhythm is not yours to set |
+| Common region | how to group when the within-group rhythm is not yours to set |
 | The display-scale contract | which dimensions multiply with zoom, and which must not |
 
 A migration-grade lint (the ratchet) then holds the result in place. The order matters: diagnose first, because the diagnosis is what tells you which of the rest you actually need.
@@ -50,7 +50,7 @@ In the motivating project the measured ranking came out:
 | — | Dialog insets 24/20/16/12 | one dialog visible at a time | invisible — deprioritize |
 | — | 2px toolbar / 1px badge deltas | below perception | invisible — deprioritize |
 
-Two surfaces measured as *already correct* became the north-stars for every later decision: a kanban card list (card↔card 6px vs card↔add-affordance 26px = **4.3×**) and a settings form (label↔control 10px vs group↔group 28px = **2.8×**). When you find validated ratios in your own app, write them down — "any new grouping should land in the 2×–3× band" is a far more concrete instruction than "space it nicely."
+Two surfaces measured as *already correct* became the north-stars for every later decision: a kanban card list (card↔card 6px vs card↔add-affordance 26px = **4.3×**) and a settings form (label↔control 10px vs group↔group 28px = **2.8×**). When you find validated ratios in your own app, write them down — "a clear grouping boundary lands around 2.5×–4.5× here, never below 2×" is a far more concrete instruction than "space it nicely," and it is drawn from your own surfaces rather than a rule of thumb.
 
 The governing rule that falls out: **spend complexity only where the pixels are visibly broken.** Where the diagnosis proves a defect invisible, unify to one value for maintainability and stop — no role token, no redesign, no debate.
 
@@ -61,12 +61,12 @@ The governing rule that falls out: **spend complexity only where the pixels are 
 The fix is a construction trick, not a smaller scale. A dense scale built on doublings usually contains two interleaved ×2 ladders:
 
 ```text
-Ladder A (×2):   4  →   8  →  16  →  32
+Ladder A (×2):   4  →   8  →  16  →  32     (2 extends it downward)
 Ladder B (×2):   6  →  12  →  24  →  48
-Off-ladder:      2 (below the ladders),  20 (fitting value between 16 and 24)
+Off-ladder:      20 (a fitting value between 16 and 24)
 ```
 
-**The heuristic: at any grouping boundary, pick the within-group gap and the between-group gap from the same ladder, at least one rung apart.** One rung is exactly 2× — the proximity ratio becomes automatic, and the rule is memorable enough to apply in review ("same ladder, one rung up"). It applies where **whitespace is the primary grouping cue**; where borders, fills, or bounded regions carry the grouping, they set the reading and the gap ratio matters less (see the figure/ground section below).
+**The heuristic: at any grouping boundary, pick the within-group gap and the between-group gap from the same ladder, at least one rung apart.** One rung is exactly 2× — the proximity ratio becomes automatic, and the rule is memorable enough to apply in review ("same ladder, one rung up"). It applies where **whitespace is the primary grouping cue**; where borders, fills, or bounded regions carry the grouping, they set the reading and the gap ratio matters less (see the common-region section below).
 
 | Within-group | Valid between-group (same ladder, ≥1 rung up) | Ratio |
 | --- | --- | --- |
@@ -75,7 +75,7 @@ Off-ladder:      2 (below the ladders),  20 (fitting value between 16 and 24)
 | 8 (A) | 16 / 32 | 2× / 4× |
 | 12 (B) | 24 / 48 | 2× / 4× |
 
-The pairings to avoid are equally teachable: any two *adjacent* steps used as within/between (4↔6, 6↔8, 8↔12, 12↔16, 16↔20…) tend to read as one group, because the ratio lands in the 1.2–1.5× band the eye does not resolve as a boundary. Off-ladder steps (2, 20) earn their place in *absolute fitting* — a hairline nudge, an inset that must clear a specific control — and make poor grouping partners. If you catch yourself pairing 16-within with 20-between, 32 is the ladder's answer.
+The pairings to avoid are equally teachable: any two *adjacent* steps used as within/between (4↔6, 6↔8, 8↔12, 12↔16, 16↔20…) tend to read as one group, because the ratio lands in the 1.2–1.5× band the eye does not resolve as a boundary. The off-ladder step (20) earns its place in *absolute fitting* — an inset that must clear a specific control — and makes a poor grouping partner because it has no same-ladder rung to pair with. If you catch yourself pairing 16-within with 20-between, 32 is the ladder's answer.
 
 <CssPreview client:load
   title="Two-Ladder Pairing — Adjacent Steps vs Same Ladder, One Rung Up"
@@ -193,7 +193,7 @@ The menu-row soup (five densities for one role) is not fixed by picking better s
       <div class="role-demo__row role-demo__row--menu">Preferences</div>
       <div class="role-demo__row role-demo__row--menu">Sign Out</div>
     </div>
-    <p class="role-demo__caption">menuItemCls — px 12 / py 4</p>
+    <p class="role-demo__caption">menuItemCls — px 8 / py 4</p>
     <div class="role-demo__panel">
       <div class="role-demo__row role-demo__row--picker">Search results</div>
       <div class="role-demo__row role-demo__row--picker">Recent files</div>
@@ -261,7 +261,7 @@ The menu-row soup (five densities for one role) is not fixed by picking better s
     padding: 18px 12px;
   }
   .role-demo__row--menu {
-    padding: 4px 12px;
+    padding: 4px 8px;
   }
   .role-demo__row--picker {
     padding: 6px 12px;
@@ -299,14 +299,14 @@ The bar for creating one is the same architectural judgment as in [Component Tok
 - **Fewer tiers than you think.** The temptation was three row tiers (menu / listbox / palette). Three tiers is one decision too many per call site — the ambiguity between "menu" and "listbox" is exactly what produced the soup. Two survived.
 - **Coincidental equality must not couple.** The app had a 28px settings hint-indent and an unrelated 28px prose steps-indent. Same number, different roles — sharing one token would weld two decisions together so neither can move. Equal values earn separate names (or one stays a documented arbitrary) when their reasons differ.
 
-## Figure/Ground Beats Gap Ratio When the Rhythm Is Intrinsic
+## Common Region Beats Gap Ratio When the Rhythm Is Intrinsic
 
 The proximity rule has a boundary condition that dense app surfaces hit constantly. The timeline's within-card "gap" of ~24px was not a `gap` — it was the intrinsic line-height of stacked label/title/body text. You cannot shrink it without harming readability, and out-ratioing it would demand ~48px between cards, wasting half the viewport on air.
 
-When the within-group rhythm is intrinsic, stop fighting with spacing and switch Gestalt principles: from *proximity* to **common region**. Give each card a bounded box — full border, radius, a fill — and a modest gap between boxes:
+When the within-group rhythm is intrinsic, stop fighting with spacing and switch Gestalt principles: from *proximity* to **common region** — the principle that elements inside one bounded area read as a unit regardless of their internal spacing. Give each card a bounded box — full border, radius, and a fill — and a modest gap between boxes. (The fill also adds a *figure/ground* cue, distinguishing card from background; common region is the load-bearing principle, and the fill reinforces it where the theme provides contrast.)
 
 <CssPreview client:load
-  title="Intrinsic Rhythm: Gap Ratio Fails, Figure/Ground Wins"
+  title="Intrinsic Rhythm: Gap Ratio Fails, Common Region Wins"
   html={`
 <div class="fg-demo">
   <div class="fg-demo__col">
@@ -424,7 +424,7 @@ When the within-group rhythm is intrinsic, stop fighting with spacing and switch
 
 The within-card text rhythm is identical in both columns — untouched. Only the boundary treatment changed. In the motivating app this took the timeline from "eight cards fuse into one scrolling list" to discrete rounded boxes with a measured 16px gap, confirmed by re-measurement at four display scales.
 
-One theme-dependent subtlety: in a dark theme the card fill may compute equal to the board background (`surface == bg`), so the figure/ground work is carried entirely by border + radius + gap. That is fine — the app's validated kanban reference had exactly that computed state — but it means a "card background must differ from container" verification predicate is theme-limited. Apply the fill class anyway (themes where the tokens diverge get the fill for free) and let border + gap + radius carry the guarantee.
+One theme-dependent subtlety: in a dark theme the card fill may compute equal to the board background (`surface == bg`), which removes the figure/ground cue entirely — there is no card-vs-background contrast left. Common region still holds, because border + radius + gap bound the region on their own. That is fine — the app's validated kanban reference had exactly that computed state — but it means a "card background must differ from container" verification predicate is theme-limited and tests the wrong thing. Apply the fill class anyway (themes where the tokens diverge get the figure/ground cue for free) and let border + gap + radius carry the guarantee.
 
 ## The Display-Scale Golden Rule and Its Exceptions
 
@@ -601,7 +601,7 @@ These roles recurred across every surface of the audited app and are likely to e
 | --- | --- | --- |
 | `close-btn` | one square hit-box size for every dialog close-X | the single most copy-pasted literal in the app (dozens of `w-[28px] h-[28px]` sites) — tokenize before it spreads |
 | `touch-min` | 44px floored minimum for every interactive row/button | the floor is the point — see exceptions table |
-| `card-gap` | gap between bounded cards on board-like surfaces | pairs with the figure/ground recipe |
+| `card-gap` | gap between bounded cards on board-like surfaces | pairs with the common-region recipe |
 | `section-gap` | the between-group boundary inside dialog/settings bodies | names your validated within↔between north-star (here: 10↔28 ≈ 2.8×) |
 | `tree-indent` family | `base + step × depth`, plus a fixed 1px connector | one helper for every tree; JS-rounded per depth |
 | `hint-indent` | indent aligning help text under a checkbox label | often an optical-fudge composite (checkbox 16 + gap 8 + 4px) — document the composition in a comment |
@@ -633,7 +633,7 @@ And know what a value-checking rule set does not catch. **Ratio and grouping fai
 | Deciding what to fix in an existing app | Measure rendered pixels; rank by visual misreading; unify the invisible and stop |
 | Pairing within/between gaps on a dense scale | Same ×2 ladder, one rung apart (≥2× automatic); adjacent steps never pair across a boundary |
 | Same role, drifting densities (menus, rows, dialog chrome) | One shared class constant per role; fewer tiers than feels natural |
-| Grouping fails but within-rhythm is line-height | Figure/ground (border + radius + fill + gap), not more margin |
+| Grouping fails but within-rhythm is line-height | Common region: a bounded box (border + radius + fill + gap), not more margin |
 | Any dimension in a display-scaled app | `calc(Npx * var(--display-scale))` unless it is a hairline, a touch floor, a sub-4px bar, vh, em prose, or a platform quirk |
 | Two roles share one pixel value | Separate names — coincidental equality must not couple decisions |
 | Turning on strict lint in a mature codebase | Per-area ratchet allowlists → pattern-based auto-accept → consolidate → lock |
@@ -643,7 +643,7 @@ And know what a value-checking rule set does not catch. **Ratio and grouping fai
 
 - **Treating "all values are valid tokens" as "the layout is correct."** The worst measured bug (cards fusing at ratio 1.0×) used nothing but legal tokens. Check relationships, not values.
 - **Fixing an invisible inconsistency with the same energy as a visible one.** Four dialog insets or a 2px toolbar delta are maintainability cleanups, not visual bugs — unify quietly; don't spend a role token or a redesign on them.
-- **Shrinking within-card text rhythm to "fix" grouping.** If the within-gap is intrinsic line-height, reducing it trades a grouping bug for a readability bug. Switch to figure/ground.
+- **Shrinking within-card text rhythm to "fix" grouping.** If the within-gap is intrinsic line-height, reducing it trades a grouping bug for a readability bug. Switch to a bounded box (common region).
 - **Writing fixed-px arbitraries in a display-scaled app.** `w-[28px]` freezes at every zoom level while the rest of the UI scales — and sizing lint won't catch it. The sanctioned form is `w-[calc(28px*var(--display-scale))]` or a token.
 - **Renaming or deleting base-scale steps for elegance.** A dense middle is a pairing problem, not a scale problem; touching step names multiplies the diff by every existing usage.
 - **Scaling everything, including the exceptions.** A scaled 44px touch target shrinks to 33px at 0.75×, dropping below the floor the product chose; a scaled 3px bar lands on a fractional 2.25px; a scaled 1px hairline stops being a hairline. Floors and fixed values are part of the system, not violations of it.

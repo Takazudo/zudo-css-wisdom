@@ -18,7 +18,7 @@ Consider a spacing scale with steps at 8px, 12px, 16px, 24px, and 32px. Every on
 
 Make the gap **between** groups clearly larger than the gap **within** a group — as a rule of thumb, at least roughly double. The absolute values matter less than the ratio between them. Two spacing values are both valid tokens and still describe two different structures depending on how they relate to each other.
 
-On a dense scale, make the rule mechanical rather than a judgment call. Find the ×2 ladders inside your scale — a scale with steps 4/6/8/12/16/24/32/48 contains two, `4→8→16→32` and `6→12→24→48` — and pick both gaps of any boundary **from the same ladder, one rung apart**. Same ladder, one rung up is exactly 2×, by construction. Adjacent scale steps (12 and 16, 16 and 20) are for different jobs in different places, never the two sides of one grouping boundary. One measured migration of roughly 3,000 spacing usages fixed every visible grouping bug by re-pairing boundaries this way, without renaming or deleting a single scale step — see [Spacing Architecture for Dense Desktop-Class Web Apps](../design-systems/app-spacing-architecture.mdx).
+On a dense scale, make the rule mechanical rather than a judgment call. Find the ×2 ladders inside your scale — a scale with steps 4/6/8/12/16/24/32/48 contains two, `4→8→16→32` and `6→12→24→48` — and pick both gaps of any boundary **from the same ladder, one rung apart**. Same ladder, one rung up is exactly 2×, by construction. Adjacent scale steps (12 and 16, 16 and 20) are for different jobs in different places, not the two sides of one grouping boundary. In one measured migration of roughly 3,000 spacing usages, every boundary whose gaps were *authored* was fixed by re-pairing alone — no scale step renamed or deleted. Boundaries whose within-group rhythm was intrinsic needed a different mechanism; see the next section, and [Spacing Architecture for Dense Desktop-Class Web Apps](../design-systems/app-spacing-architecture.mdx).
 
 <CssPreview client:load
   title="Ratio Over Absolute Value — Same Token Scale, Different Grouping"
@@ -99,7 +99,7 @@ The ratio rule assumes you control both gaps. Sometimes the within-group rhythm 
 
 When that happens, stop fighting with proximity and switch Gestalt principles: use **common region**. Give each group a bounded box — border, radius, fill — and a modest gap between boxes. A bounded region groups its contents regardless of internal rhythm, so a 16px inter-card gap reads cleanly against a 24px internal line rhythm that would have required 48px by ratio alone.
 
-The diagnostic: if "fix the ratio" implies either shrinking text line-height or doubling a gap that is already generous, the layout is asking for figure/ground, not more spacing. One measured case — a timeline whose between-card gap (~25px) matched its within-card line rhythm (~24px), fusing eight cards into one list — was resolved with the internal rhythm left byte-identical, adding only border, radius, and a 16px gap.
+The diagnostic: if "fix the ratio" implies either shrinking text line-height or doubling a gap that is already generous, the layout is asking for a bounded region (common region), not more spacing. One measured case — a timeline whose between-card gap (~25px) matched its within-card line rhythm (~24px), fusing eight cards into one list — was resolved with the internal rhythm left byte-identical, adding only border, radius, and a 16px gap.
 
 ## A Separator Has No Side of Its Own
 
