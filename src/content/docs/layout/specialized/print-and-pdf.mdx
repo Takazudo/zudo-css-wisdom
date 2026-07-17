@@ -157,12 +157,15 @@ Printing snapshots the page mid-animation: an element halfway through a fade-in 
   *::after {
     animation-duration: 0.001s !important;
     animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
     transition: none !important;
   }
 }
 ```
 
 Use a near-zero duration, not `animation: none`. Removing the animation entirely also removes its `fill-mode: forwards` end state — an entrance animation that fades from `opacity: 0` would snap back to invisible. A 0.001s duration lets the animation complete instantly, so `forwards` fill states apply and elements print in their final, settled positions.
+
+The `animation-iteration-count: 1` override handles looping animations: an `infinite` animation with a near-zero duration does not settle — it cycles rapidly, and the print snapshot lands on a random frame. Forcing a single iteration lets it finish.
 
 ## The macOS Preview Shadow Bug
 
@@ -249,6 +252,11 @@ Print wants natural block flow at design size. Reset the screen machinery per un
 
 ```css
 @media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
   .viewer {
     display: block;
     transform: none;
@@ -265,7 +273,16 @@ Print wants natural block flow at design size. Reset the screen machinery per un
 }
 ```
 
-The fixed `width`/`height` per unit must match the `@page` size (minus any `@page` margin) so each unit fills exactly one page. When both come from the same constants table (see the next two sections), they cannot drift apart.
+The `html`/`body` margin reset is not optional: the browser's default 8px body margin sits outside the unit, displacing it beyond the zero-margin page box — enough to clip edges or push content onto an extra page.
+
+The fixed `width`/`height` per unit must match the `@page` size (minus any `@page` margin) so each unit fills exactly one page. When the page size is dynamic (the ratio-table pattern from [Page Size with @page](#page-size-with-page)), emit the unit dimensions from the same injected rule so both change together and cannot drift apart:
+
+```js
+style.textContent = `
+  @page { size: ${width}px ${height}px; margin: 0; }
+  @media print { .slide { width: ${width}px; height: ${height}px; } }
+`;
+```
 
 ## Hiding Screen Chrome
 
@@ -320,7 +337,7 @@ await page.pdf({
 | One unit per page | `break-after: page` + `break-inside: avoid` (+ `page-break-*` aliases) |
 | Trailing blank page | `:last-child { break-after: auto; }` or `data-print-last` JS fallback |
 | Backgrounds missing | `print-color-adjust: exact` + `-webkit-print-color-adjust: exact` on `:root` |
-| Mid-animation frames printed | `animation-duration: 0.001s`, `animation-delay: 0s`, `transition: none` |
+| Mid-animation frames printed | `animation-duration: 0.001s`, `animation-delay: 0s`, `animation-iteration-count: 1`, `transition: none` |
 | Grey boxes in macOS Preview | Swap `box-shadow` for `filter: drop-shadow()` under print (targeted) |
 | Screen layout leaking into print | Reset `transform`, `overflow`, `aspect-ratio`; fixed design size per unit |
 | Wrong page count | Hide all non-content chrome under `@media print` |

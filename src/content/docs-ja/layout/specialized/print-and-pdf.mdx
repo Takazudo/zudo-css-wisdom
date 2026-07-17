@@ -157,12 +157,15 @@ visible.at(-1)?.setAttribute("data-print-last", "");
   *::after {
     animation-duration: 0.001s !important;
     animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
     transition: none !important;
   }
 }
 ```
 
 `animation: none` ではなく、ほぼゼロのdurationを使ってください。アニメーションを完全に除去すると `fill-mode: forwards` の終了状態も一緒に失われます — `opacity: 0` からフェードインする登場アニメーションは、不可視の状態に巻き戻ってしまいます。0.001sのdurationならアニメーションが瞬時に完了するため、`forwards` のfill状態が適用され、要素は最終的な確定位置で印刷されます。
+
+`animation-iteration-count: 1` のオーバーライドはループアニメーション対策です：`infinite` のアニメーションはdurationをほぼゼロにしても停止せず、高速に周回し続け、印刷スナップショットはランダムなフレームに当たります。1回に強制することで完走させられます。
 
 ## macOS Previewのシャドウバグ
 
@@ -249,6 +252,11 @@ ChromiumのPDFバックエンド（Skia）は `box-shadow` のぼかしをPDFの
 
 ```css
 @media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
   .viewer {
     display: block;
     transform: none;
@@ -265,7 +273,16 @@ ChromiumのPDFバックエンド（Skia）は `box-shadow` のぼかしをPDFの
 }
 ```
 
-単位ごとの固定 `width`/`height` は、各単位がちょうど1ページを満たすよう、`@page` サイズ（`@page` のmarginを差し引いた値）と一致していなければなりません。両方が同じ定数テーブルから来ていれば（次の2セクションを参照）、ずれようがありません。
+`html`/`body` のマージンリセットは省略できません：ブラウザのデフォルトである8pxのbodyマージンが単位の外側に残り、マージンゼロのページボックスから単位を押し出します — 端が切れたり、コンテンツが余分なページに押し出されたりするには十分な量です。
+
+単位ごとの固定 `width`/`height` は、各単位がちょうど1ページを満たすよう、`@page` サイズ（`@page` のmarginを差し引いた値）と一致していなければなりません。ページサイズが動的な場合（[@page によるページサイズ指定](#page-によるページサイズ指定)の比率テーブルのパターン）、単位の寸法も同じ注入ルールから出力し、両方が一緒に変化してずれようがない状態にします：
+
+```js
+style.textContent = `
+  @page { size: ${width}px ${height}px; margin: 0; }
+  @media print { .slide { width: ${width}px; height: ${height}px; } }
+`;
+```
 
 ## スクリーン用UIの非表示
 
@@ -320,7 +337,7 @@ await page.pdf({
 | 1単位1ページ | `break-after: page` + `break-inside: avoid`（+ `page-break-*` エイリアス） |
 | 末尾の空白ページ | `:last-child { break-after: auto; }` または `data-print-last` のJSフォールバック |
 | 背景が消える | `:root` に `print-color-adjust: exact` + `-webkit-print-color-adjust: exact` |
-| アニメーション途中のフレームが印刷される | `animation-duration: 0.001s`、`animation-delay: 0s`、`transition: none` |
+| アニメーション途中のフレームが印刷される | `animation-duration: 0.001s`、`animation-delay: 0s`、`animation-iteration-count: 1`、`transition: none` |
 | macOS Previewでグレーのボックス | 印刷時に `box-shadow` を `filter: drop-shadow()` に差し替え（標的限定） |
 | スクリーンレイアウトが印刷に漏れる | `transform`・`overflow`・`aspect-ratio` をリセットし、単位ごとに固定デザインサイズ |
 | ページ数がおかしい | `@media print` で非コンテンツUIをすべて非表示 |
