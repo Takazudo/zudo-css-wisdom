@@ -95,6 +95,10 @@ import CssPreview from '@/components/CssPreview';
 
 ```css
 /* ── App-chrome namespace: screen-only, scheme-aware ── */
+:root {
+  color-scheme: light dark; /* required — without it light-dark() always picks the first value */
+}
+
 @theme {
   --color-mychrome-surface: light-dark(hsl(0 0% 100%), hsl(222 20% 12%));
   --color-mychrome-text: light-dark(hsl(222 47% 11%), hsl(210 20% 88%));
@@ -653,13 +657,14 @@ grep -rn -- "--myns-palette-" src/  # raw tier (legitimate)
 
 ```bash
 # 1. Every utility used in markup must appear in the built CSS
-grep -c "tracking-widest" dist/assets/*.css
+grep -o "tracking-widest" dist/assets/*.css | wc -l
 # 0 = the class no-ops: the theme lacks --tracking-widest,
 #     so Tailwind generated no rule for it
 
 # 2. Every semantic token must be defined AND consumed
-grep -c -- "--color-myns-accent" dist/assets/*.css
+grep -o -- "--color-myns-accent" dist/assets/*.css | wc -l
 # 1 = defined once, referenced nowhere — dead or disconnected
+# (grep -o counts occurrences — minified CSS puts everything on one line)
 ```
 
 トークン lint はコンポーネントコード内の生リテラルを捕まえますが、テーマが定義していないトークンを参照するユーティリティは捕まえられません。そのマークアップには「生の値」が存在せず、ユーティリティが未定義なだけです — これはビルド出力にしか現れません。2つのチェックは異なる失敗クラスをカバーしており、互いを置き換えるものではありません。
