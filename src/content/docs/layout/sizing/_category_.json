@@ -2,5 +2,5 @@
   "label": "Sizing",
   "position": 3,
   "noPage": true,
-  "description": "Controlling element dimensions: intrinsic sizing keywords, aspect-ratio, clamp() for fluid scaling, and logical properties for i18n-safe layouts."
+  "description": "Controlling element dimensions: intrinsic sizing keywords, aspect-ratio, clamp() for fluid scaling, logical properties for i18n-safe layouts, and a letterboxed fixed-aspect stage."
 }
