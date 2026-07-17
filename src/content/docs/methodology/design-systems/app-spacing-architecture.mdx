@@ -17,6 +17,10 @@ Rearchitecting the spacing of one such app end to end — roughly 3,000 spacing-
 
 Together these invert the usual cleanup budget. Chasing every token inconsistency is mostly churn; the payoff lives in a handful of ratio, grouping, and role failures that a token audit cannot even represent. An app spacing architecture therefore needs different machinery than "use the scale": a rendered-pixel diagnosis, a pairing rule, role tokens, a scale-multiplier contract, and a migration-grade lint. Each follows.
 
+:::note[About the evidence in this article]
+The measurements, counts, and ratios throughout come from **one** app — a Tauri v2 desktop tool, measured before and after with `getComputedStyle`. They are real numbers, not illustrations, but they are a single project's numbers: treat them as a worked example that shows the shape of the problem, not as thresholds to copy. The perceptual verdicts in particular — "fused", "imperceptible", "reads as one group" — are visual-review judgments by the team, not user-study findings. Where this article states a rule, the rule is a house heuristic that survived contact with 3,000 usages; validate it against your own rendered pixels before adopting it.
+:::
+
 ## Diagnose Rendered Pixels Before Architecting
 
 Grep counts lie about visual impact in both directions. Before deciding anything, measure the app the way its users see it: screenshot every surface in a fixed matrix (empty / populated / overlay-open / long-text / focus states, desktop and mobile widths, multiple display scales), and read the actual gaps with `getComputedStyle` / `getBoundingClientRect`. Then rank problems by how badly the grouping misreads on screen — not by how many files carry the inconsistency.
@@ -48,7 +52,7 @@ Ladder B (×2):   6  →  12  →  24  →  48
 Off-ladder:      2 (below the ladders),  20 (fitting value between 16 and 24)
 ```
 
-**The rule: at any grouping boundary, pick the within-group gap and the between-group gap from the same ladder, at least one rung apart.** One rung is exactly 2× — the proximity ratio is now automatic, and the rule is memorable enough to apply in review ("same ladder, one rung up").
+**The heuristic: at any grouping boundary, pick the within-group gap and the between-group gap from the same ladder, at least one rung apart.** One rung is exactly 2× — the proximity ratio becomes automatic, and the rule is memorable enough to apply in review ("same ladder, one rung up"). It applies where **whitespace is the primary grouping cue**; where borders, fills, or bounded regions carry the grouping, they set the reading and the gap ratio matters less (see the figure/ground section below).
 
 | Within-group | Valid between-group (same ladder, ≥1 rung up) | Ratio |
 | --- | --- | --- |
@@ -57,7 +61,7 @@ Off-ladder:      2 (below the ladders),  20 (fitting value between 16 and 24)
 | 8 (A) | 16 / 32 | 2× / 4× |
 | 12 (B) | 24 / 48 | 2× / 4× |
 
-The forbidden pairings are equally teachable: any two *adjacent* steps used as within/between (4↔6, 6↔8, 8↔12, 12↔16, 16↔20…) read as one group — this is the exact failure the timeline measurement demonstrated. Off-ladder steps (2, 20) exist for *absolute fitting* — a hairline nudge, an inset that must clear a specific control — and are never grouping partners. If you catch yourself pairing 16-within with 20-between, the fix is 32.
+The pairings to avoid are equally teachable: any two *adjacent* steps used as within/between (4↔6, 6↔8, 8↔12, 12↔16, 16↔20…) tend to read as one group, because the ratio lands in the 1.2–1.5× band the eye does not resolve as a boundary. Off-ladder steps (2, 20) earn their place in *absolute fitting* — a hairline nudge, an inset that must clear a specific control — and make poor grouping partners. If you catch yourself pairing 16-within with 20-between, 32 is the ladder's answer.
 
 <CssPreview client:load
   title="Two-Ladder Pairing — Adjacent Steps vs Same Ladder, One Rung Up"
@@ -97,6 +101,11 @@ The forbidden pairings are equally teachable: any two *adjacent* steps used as w
     gap: 32px;
     padding: 24px;
     font-family: system-ui, sans-serif;
+  }
+  @media (max-width: 700px) {
+    .ladder-demo {
+      flex-direction: column;
+    }
   }
   .ladder-demo__col {
     flex: 1;
@@ -141,7 +150,7 @@ The forbidden pairings are equally teachable: any two *adjacent* steps used as w
 
 Both columns use 16px within each group. The left pairs it with 20px between groups — a legal off-ladder step, but only 1.25× the within-gap, so all four rows read as one list. The right pairs the same 16px with 32px, one rung up the same ladder: two groups, unmistakably. Squint at both and the difference is immediate.
 
-Two things to note about enforcement. First, **lint cannot see ratio** — a linter checks values in isolation, and every value in a broken pairing is legal. The doctrine is applied by review and by the squint test. Second, the doctrine is why the base scale never had to change: the migration kept all ~3,000 usages intact and fixed the visible bugs purely by re-pairing boundaries, which is what made the whole project tractable.
+Two things to note about enforcement. First, **a value-checking linter cannot see ratio** — it checks values in isolation, and every value in a broken pairing is legal. The doctrine is applied by review and by the squint test. Second, the doctrine is why the base scale never had to change: the migration left the token vocabulary and all ~3,000 usages intact, and fixed every boundary whose gaps were *authored* by re-pairing them alone. That is what made the project tractable. It is not the whole story — where the within-group rhythm was intrinsic rather than authored, re-pairing could not help and a different mechanism was needed, which the next section covers.
 
 ## Role Tokens Over Raw Scale Steps
 
@@ -185,6 +194,11 @@ The menu-row soup (five densities for one role) is not fixed by picking better s
     gap: 32px;
     padding: 24px;
     font-family: system-ui, sans-serif;
+  }
+  @media (max-width: 700px) {
+    .role-demo {
+      flex-direction: column;
+    }
   }
   .role-demo__col {
     flex: 1;
@@ -243,9 +257,9 @@ The menu-row soup (five densities for one role) is not fixed by picking better s
   height={430}
 />
 
-The left column is what unmanaged drift produces: every row is a legal token pairing, and the list still reads as five unrelated things. The right column collapses the same role onto two named tiers — and the deliberate step between them reads as a density choice, not a grouping boundary. Two delivery mechanisms cover all cases:
+The demo illustrates the shape of the drift rather than reproducing the measured heights exactly. The left column is what unmanaged drift produces: every row is a legal token pairing, and the list still reads as five unrelated things. The right column collapses the same role onto two named tiers — and the deliberate step between them reads as a density choice, not a grouping boundary. Two delivery mechanisms cover all cases:
 
-**Shared class constants** — when the role is a *pairing* of existing base-scale utilities. A row is a px+py pair; a dialog header is px+py+border. A single CSS variable cannot express a padding shape, but a named, exported constant can:
+**Shared class constants** — when the role is a *pairing* of existing base-scale utilities. A row is a px+py pair; a dialog header is px+py+border. A single Tailwind spacing token names one value, so it cannot bundle the several utilities a role needs; a named, exported constant can:
 
 ```tsx
 // exported from the shared UI package
@@ -255,7 +269,7 @@ export const dialogHeaderCls =
   "flex items-center justify-between px-3xl py-xl border-b border-edge";
 ```
 
-No new token, lint stays trivial (the underlying classes are already valid tokens), and `grep menuItemCls` proves "one role = one value" across the codebase. In the motivating app, collapsing five row densities onto **two** named tiers (compact menu 8/4, picker row 12/6 with a 44px touch floor) took the app from five row paddings to exactly two, verified by computed style.
+No new token, lint stays trivial (the underlying classes are already valid tokens), and `grep menuItemCls` makes adoption auditable — it shows every site that opted into the role, though it cannot prove no row still hand-rolls its own padding. In the motivating app, collapsing five row densities onto **two** named tiers (compact menu 8/4, picker row 12/6 with a 44px touch floor) took the app from five row paddings to exactly two, verified by computed style.
 
 **Component spacing tokens** — when the role's value is *off the base scale* or needs *independent scaling behavior*:
 
@@ -334,6 +348,11 @@ When the within-group rhythm is intrinsic, stop fighting with spacing and switch
     padding: 24px;
     font-family: system-ui, sans-serif;
   }
+  @media (max-width: 700px) {
+    .fg-demo {
+      flex-direction: column;
+    }
+  }
   .fg-demo__col {
     flex: 1;
     min-width: 0;
@@ -400,8 +419,8 @@ In a display-scaled app ([Display Scale Strategy](./display-scale-strategy.mdx))
 | Exception | Treatment | Why |
 | --- | --- | --- |
 | Hairlines (1px borders, dividers, tree connectors) | fixed `1px`, never multiplied | must stay crisp at every scale; only their *position* scales |
-| Touch-target floor | `max(44px, calc(44px * var(--display-scale)))` | 44px is physical ergonomics; at 0.75× a scaled value hits 33px — an a11y failure. Floor at ≤1.0×, grow above |
-| Sub-4px bars (accent stripes, drag pills, insertion indicators) | `max(2px, round(3px * var(--display-scale), 1px))` | raw `3px×0.75 = 2.25px` renders as a fuzzy sub-2px smear; `3px×1.5 = 4.5px` lands on a half-pixel. Floor + integer rounding keeps it crisp (measured: 2/3/5/6 at 0.75/1.0/1.5/2.0) |
+| Touch-target floor | `max(44px, calc(44px * var(--display-scale)))` | the floor is a product decision, not a scaled value: at 0.75× a scaled 44 hits 33px. WCAG 2.2 sets 24×24 CSS px as the AA minimum and 44×44 as the AAA enhanced target — pick your floor deliberately, then hold it at ≤1.0× and grow above |
+| Sub-4px bars (accent stripes, drag pills, insertion indicators) | `max(2px, round(3px * var(--display-scale), 1px))` | raw `3px×0.75 = 2.25px` is a fractional value the browser must antialias; `3px×1.5 = 4.5px` lands on a half-pixel. Floor + integer rounding keeps the value whole (measured: 2/3/5/6 at 0.75/1.0/1.5/2.0). Integer CSS px is not a crispness guarantee — device-pixel alignment still depends on DPR and position — but it removes the fractional-size source. Keep an unrounded fallback declaration for WebViews without `round()` |
 | Overlay vertical anchors | plain `vh`, not scaled | viewport-relative by design |
 | Prose content | em-based, out of the token system entirely | rides the font size, which scales on its own axis |
 | Platform-quirk px (16px iOS zoom threshold, safe-area math) | fixed, documented in-file | imposed by the platform, not the design |
@@ -473,6 +492,13 @@ In a display-scaled app ([Display Scale Strategy](./display-scale-strategy.mdx))
   #ds-200:checked ~ .ds-demo__switch label[for="ds-200"] {
     background: hsl(24, 70%, 45%);
     color: hsl(0, 0%, 100%);
+  }
+  #ds-075:focus-visible ~ .ds-demo__switch label[for="ds-075"],
+  #ds-100:focus-visible ~ .ds-demo__switch label[for="ds-100"],
+  #ds-150:focus-visible ~ .ds-demo__switch label[for="ds-150"],
+  #ds-200:focus-visible ~ .ds-demo__switch label[for="ds-200"] {
+    outline: 2px solid hsl(24, 70%, 45%);
+    outline-offset: 2px;
   }
   .ds-demo__stage {
     --display-scale: 1;
@@ -551,7 +577,7 @@ Step through the scales. The tokenized square grows 21/28/42/56 while the red `w
 
 Derived values must derive: a bar's centering offset is `calc(var(--spacing-accent-bar) / -2)`, never a hardcoded `-1.5px`. And where geometry is computed in JS (per-depth tree indents), round **once per computed value** — `Math.round((base + step * depth) * scale)` — so every row and its guide line land on the same integer device pixel at fractional scales. The one bug class this catches: a component that was never wired to the multiplier. In the motivating app, one tree implementation out of five (a settings sidebar) simply didn't scale — frozen at 1.0× geometry at every zoom level — and nobody had noticed because it drifted only when zoom changed. Unifying all five trees onto one `treeIndentStyle(depth)` helper fixed it as a side effect, verified at 0.75/1.0/1.5 (indent 9/12/18).
 
-Tailwind v4 wrinkle: each scaled token is declared **twice** — the unscaled base in `@theme` (so the utility class generates; `@theme` cannot carry `var()`) and the `calc()` override in `:root` (which wins the cascade at runtime). This split is load-bearing and is also a footgun: add a token to one block and not the other and you get either a dead utility or an unscaled value. Guard it with a unit test asserting the two blocks' `--spacing-*` key sets are equal minus a documented fixed-token allowlist.
+Tailwind v4 wrinkle: in the two-block arrangement this site documents in [Display Scale Strategy](./display-scale-strategy.mdx), each scaled token is declared **twice** — the unscaled base in `@theme`, which gives Tailwind the value it needs to generate the utility class, and the `calc()` override in `:root`, which wins the cascade at runtime. (This is a property of that arrangement, not a hard limitation of `@theme` — Tailwind v4 does allow variable references in theme values, and `@theme inline` changes how they are emitted. Check your toolchain before assuming the split is mandatory.) Where the split is in use it is load-bearing, and it is also a footgun: add a token to one block and not the other and you get either a dead utility or an unscaled value. Guard it with a unit test asserting the two blocks' `--spacing-*` key sets are equal minus a documented fixed-token allowlist.
 
 ## Recurring App Patterns Worth Naming
 
@@ -575,14 +601,16 @@ None of these is on the base scale, and that is the point — they are design de
 
 Turning strict spacing lint on in a mature codebase fails in both naive forms: "fix everything first" never lands, and "warn-only" is ignored forever. The pattern that worked — six parallel rollout areas, zero merge conflicts — is a **per-area ratchet**:
 
-1. **Land the rule plus a full current-violation baseline, green on day one.** Every existing violation goes into an allowlist keyed by file → exact class string. CI enforces "no *new* violations" immediately.
+1. **Land the rule plus a full current-violation baseline, green on day one.** Every existing violation goes into an allowlist keyed by file → exact class string, **plus an occurrence count**. Keying on file+string alone is a hole: a second identical violation added to the same file later matches the existing entry and passes silently. Count (or fingerprint) the occurrences so the ratchet only ever loosens deliberately. CI enforces "no *new* violations" immediately.
 2. **One allowlist file per rollout area** — not one central file. Each area's migration shrinks only its own file, so parallel branches never write the same line. A central allowlist is a merge-conflict magnet that serializes the whole migration.
-3. **Auto-accept the golden path by pattern, not by entry.** Any bracket value containing `var(--display-scale)` or `var(--spacing-*)` — plus `env()`/vh/vw/% viewport math and 1px structural hairlines, including `min()`/`max()` wrappers of those — is sanctioned by the rule itself. If every correct escape needed an allowlist line, the allowlist would grow at exactly the rate the codebase improves.
+3. **Auto-accept the golden path by pattern, not by entry.** The sanctioned escapes — bracket values built on `var(--display-scale)` or `var(--spacing-*)`, `env()`/vh/vw/% viewport math, 1px structural hairlines, and `min()`/`max()` wrappers of those — are sanctioned by the rule itself. Validate the **whole expression**, not the mere presence of a substring: a "contains `var()`" test happily admits `calc(999px + var(--spacing-sm))`, which is a raw literal wearing a token as a disguise. If every correct escape needed an allowlist line, the allowlist would grow at exactly the rate the codebase improves.
 4. **Consolidate and lock.** When the rollouts finish, move the handful of survivors into a single documented permanent-exception file and flip the rule to a hard error.
 
 Measured in the motivating project: 31 baseline allowlist entries across five area files → **2** permanent survivors (both `mx-[0.25em]`, em-based inline nudges that are exempt by principle), final lint clean over 1,042 files.
 
-Two rule-authoring details that bit hard enough to record. If your scale has digit-prefixed token names (`2xs`, `2xl`, `3xl`…), a numeric-utility ban must match **pure numbers only** (`^-?\d+(\.\d+)?$`) — `p-2` is a violation, `p-2xs` is a token. And know what the lint *cannot* see: ratio/grouping failures (every value legal, relationship broken) and fixed-px **sizing** arbitraries that bypass the display scale (`w-[28px]` is allowed by design — see [Two-Tier Size Strategy](./two-tier-size-strategy.mdx)). The motivating project's lint was green while 41 non-scaling close-button literals shipped. The complement to lint is a verification pass of computed-style predicates ("every close-X computes `--spacing-close-btn × scale`", "no two overlays anchor at different offsets") plus the squint test at multiple scales.
+Two rule-authoring details that bit hard enough to record. If your scale has digit-prefixed token names (`2xs`, `2xl`, `3xl`…), a numeric-utility ban must match **pure numbers only** (`^-?\d+(\.\d+)?$`) — `p-2` is a violation, `p-2xs` is a token.
+
+And know what a value-checking rule set does not catch. **Ratio and grouping failures** are structurally out of reach: every value is legal and the relationship is what broke, so no amount of per-value checking sees it. **Fixed-px sizing arbitraries** are a different case — `w-[28px]` is statically detectable, and a project that wants to ban it can; the shipped rule allows it *by design*, because the [Two-Tier](./two-tier-size-strategy.mdx) contract treats sizing arbitraries as legitimate. The motivating project's lint was green while 41 non-scaling close-button literals shipped — not because the tool was blind, but because nobody had told it that a display-scaled app changes that contract. The complement to lint is a verification pass of computed-style predicates ("every close-X computes `--spacing-close-btn × scale`", "no two overlays anchor at different offsets") plus the squint test at multiple scales.
 
 ## Quick Reference
 
@@ -604,7 +632,7 @@ Two rule-authoring details that bit hard enough to record. If your scale has dig
 - **Shrinking within-card text rhythm to "fix" grouping.** If the within-gap is intrinsic line-height, reducing it trades a grouping bug for a readability bug. Switch to figure/ground.
 - **Writing fixed-px arbitraries in a display-scaled app.** `w-[28px]` freezes at every zoom level while the rest of the UI scales — and sizing lint won't catch it. The sanctioned form is `w-[calc(28px*var(--display-scale))]` or a token.
 - **Renaming or deleting base-scale steps for elegance.** A dense middle is a pairing problem, not a scale problem; touching step names multiplies the diff by every existing usage.
-- **Scaling everything, including the exceptions.** A scaled 44px touch target is 33px at 0.75× (a11y failure); a scaled 3px bar is a 2.25px smear; a scaled 1px hairline goes blurry. Floors and fixed values are part of the system, not violations of it.
+- **Scaling everything, including the exceptions.** A scaled 44px touch target shrinks to 33px at 0.75×, dropping below the floor the product chose; a scaled 3px bar lands on a fractional 2.25px; a scaled 1px hairline stops being a hairline. Floors and fixed values are part of the system, not violations of it.
 - **One central lint allowlist for a parallel migration.** Every branch edits the same file; the merge conflicts arrive before the improvements do.
 
 ## When to Use

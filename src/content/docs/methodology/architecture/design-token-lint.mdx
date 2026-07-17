@@ -307,9 +307,9 @@ The lint config also supports `allowed`, `ignore`, and `prohibited` fields for p
 
 Everything above assumes a codebase that is already clean, or close to it. Turning a strict rule on in a **mature** codebase — where most adoptions actually start — fails in both naive forms: "fix everything first" never lands, and "warn-only" is ignored forever. The pattern that works is a **per-area ratchet**:
 
-1. **Land the rule plus a full current-violation baseline, green on day one.** Every existing violation goes into an allowlist keyed by file → exact class string. CI enforces "no *new* violations" from the first commit, while the backlog is paid down incrementally.
+1. **Land the rule plus a full current-violation baseline, green on day one.** Every existing violation goes into an allowlist keyed by file → exact class string, **plus an occurrence count**. Keying on file+string alone leaves a hole: a second identical violation added to the same file later matches the existing entry and passes silently. Count or fingerprint the occurrences so the ratchet only loosens deliberately. CI enforces "no *new* violations" from the first commit, while the backlog is paid down incrementally.
 2. **One allowlist file per rollout area, not one central file.** Each area's migration shrinks only its own file, so parallel branches never write the same line. A central allowlist is a merge-conflict magnet that serializes an otherwise parallel migration.
-3. **Auto-accept the golden path by pattern, not by entry.** When an escape form is *always* sanctioned, encode it in the rule itself. Any bracket value containing `var(--display-scale)` or `var(--spacing-*)` — plus `env()`/vh/vw/% viewport math and 1px structural hairlines, including `min()`/`max()` wrappers of those — passes without an allowlist line. If every correct escape needed an entry, the allowlist would grow at exactly the rate the codebase improves.
+3. **Auto-accept the golden path by pattern, not by entry.** When an escape form is *always* sanctioned, encode it in the rule itself: bracket values built on `var(--display-scale)` or `var(--spacing-*)`, `env()`/vh/vw/% viewport math, 1px structural hairlines, and `min()`/`max()` wrappers of those pass without an allowlist line. Match the **whole expression**, not the presence of a substring — a "contains `var()`" test admits `calc(999px + var(--spacing-sm))`, a raw literal wearing a token as a disguise. If every correct escape needed an entry, the allowlist would grow at exactly the rate the codebase improves.
 4. **Consolidate and lock.** When the rollouts finish, move the handful of survivors into a single documented permanent-exception file and flip the rule to a hard error.
 
 This introduces a third escape-hatch shape alongside the line-level comment and the config glob: **pattern-based acceptance**. Line comments are for exceptions; patterns are for contracts. A sanctioned form that must be annotated at every site is not a contract — it is friction that teaches people to reach for the ignore comment.
@@ -423,15 +423,15 @@ CI runs the same script. If lint fails, the push fails; if a developer pushes fr
 - **Treating Pass 1 as the whole pattern.** Pass 1 catches obvious raw values. Pass 2 catches the subtle "token name with literal value inside `:root`" rotation. Without Pass 2, the design system slowly migrates raw literals into the token-definition zone.
 - **Lint-failing examples inside `<CssPreview>` demos.** Raw `#ff0000` in a `css={...}` payload would violate the project's own demo conventions (every CSS value should be a valid `hsl()`/`oklch()` already, not a literal that "demonstrates the bug"). Keep lint-failing examples in fenced code blocks; reserve `<CssPreview>` for shipped, lint-clean code.
 
-### What this lint cannot see
+### What this rule set does not check
 
-A green design-token lint proves values, not layouts. Two defect classes ship straight through it.
+A green design-token lint proves values, not layouts. Two defect classes ship straight through it, for different reasons.
 
-**Proximity and ratio failures** — every value legal, the relationship illegible. A linter checks values in isolation, so a card list whose between-card gap equals its within-card rhythm passes every rule while reading as one fused blob (see [Spacing Philosophy](../design-principles/spacing-philosophy.mdx)).
+**Proximity and ratio failures** are structurally out of reach — every value is legal and the *relationship* is what broke. A rule that checks values in isolation cannot see that a card list's between-card gap equals its within-card rhythm, so the list passes every rule while reading as one fused blob (see [Spacing Philosophy](../design-principles/spacing-philosophy.mdx)).
 
-**Fixed-px sizing arbitraries that opt out of zoom** — in a display-scaled app, `w-[28px]` is allowed by the [Two-Tier](../design-systems/two-tier-size-strategy.mdx) contract and freezes that dimension at every zoom level. One audited project's lint was green across 1,042 files while 41 non-scaling close-button literals shipped.
+**Fixed-px sizing arbitraries that opt out of zoom** are a policy gap, not a blind spot. In a display-scaled app, `w-[28px]` freezes that dimension at every zoom level — but it is statically detectable, and a project that wants to ban it can. The shipped rule allows it *by design*, because the [Two-Tier](../design-systems/two-tier-size-strategy.mdx) contract treats sizing arbitraries as legitimate. One audited project's lint was green across 1,042 files while 41 non-scaling close-button literals shipped: the tool was doing exactly what it was configured to do.
 
-Pair the lint gate with computed-style verification predicates and a squint pass at multiple display scales. The lint is a floor, not a ceiling — it proves nobody wrote an illegal value, which is a much weaker claim than "the UI is correct."
+Pair the lint gate with computed-style verification predicates and a squint pass at multiple display scales. The lint is a floor, not a ceiling — it proves nobody wrote a value the config forbids, which is a much weaker claim than "the UI is correct."
 
 ## When to Use
 
