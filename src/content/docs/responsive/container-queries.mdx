@@ -424,6 +424,342 @@ For the `clamp()` patterns that combine these units into fluid font sizing — a
     }
     `} />
 
+## Container Query Units as a Token Scale
+
+A one-off `clamp()` handles a single element. When an entire component subtree — a stage, an embedded widget, a card system — must scale as one unit, define the `clamp()` values once as custom properties and consume them throughout the subtree. The result is a type and spacing scale proportional to the component's own width instead of the viewport:
+
+```css
+.stage {
+  container-type: inline-size;
+  container-name: stage;
+
+  /* Type scale — proportional to the stage, not the viewport */
+  --font-size-stage-sm: clamp(0.8rem, 0.7rem + 0.9cqi, 1rem);
+  --font-size-stage-md: clamp(0.95rem, 0.8rem + 1.4cqi, 1.3rem);
+  --font-size-stage-lg: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem);
+
+  /* Spacing scale */
+  --space-stage-sm: clamp(0.25rem, 0.2rem + 0.5cqi, 0.5rem);
+  --space-stage-md: clamp(0.5rem, 0.4rem + 1cqi, 1rem);
+  --space-stage-lg: clamp(1rem, 0.8rem + 2cqi, 2rem);
+}
+
+.stage__title {
+  font-size: var(--font-size-stage-lg);
+  margin-block-end: var(--space-stage-sm);
+}
+```
+
+A fixed-aspect stage is the typical host for this pattern — see [Letterbox Stage](../layout/sizing/letterbox-stage.mdx) for the container setup itself. Derive each `clamp()` slope with the same math as viewport-based fluid type — see [Fluid Font Sizing with clamp()](../typography/font-sizing/fluid-font-sizing.mdx). Keep the scale to a handful of steps: the discipline arguments in [Tight Token Strategy](../methodology/design-systems/tight-token-strategy/index.mdx) apply unchanged to component-scoped tokens.
+
+Three rules keep such a scale from failing.
+
+### Keep the rem Term Dominant
+
+Browser zoom scales `rem` values; it does not scale `cqi` values — zooming does not make the container wider, so the `cqi` term resolves to the same length while the `rem` term grows. In a token where the `cqi` term dominates, user zoom barely changes the text size. That fails WCAG 1.4.4 (Resize Text), which requires text to stay functional scaled up to 200%.
+
+Rule of thumb: at the width the component is designed for, the `rem` term contributes at least ~60% of the resolved preferred value. Verify by resolving the preferred expression at the design width:
+
+```css
+/* Design width: stage = 480px */
+
+/* OK: rem-dominant */
+--font-size-stage-lg: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem);
+/* rem term:  0.9rem        = 14.4px  */
+/* cqi term:  1.8% of 480px =  8.64px */
+/* rem share: 14.4 / 23.04  = ~62%    */
+
+/* NG: cqi-dominant */
+--font-size-stage-lg: clamp(1.1rem, 0.25rem + 4cqi, 2rem);
+/* rem term:  0.25rem       =  4px    */
+/* cqi term:  4% of 480px   = 19.2px  */
+/* rem share: 4 / 23.2      = ~17%    */
+```
+
+The demo simulates 200% text zoom by doubling the root font size — the same mechanism browser text scaling uses. The stage width is fixed at 280px, so the `cqi` terms resolve identically before and after the toggle. Both headings start at almost the same size; only the rem-dominant one responds.
+
+<CssPreview client:load
+  title="rem-dominant vs cqi-dominant tokens under simulated 200% text zoom"
+  html={`
+    <div class="zoom-sim">
+      <label class="zoom-sim__control">
+        <input type="checkbox" class="zoom-sim__toggle">
+        Simulate 200% text zoom
+      </label>
+      <div class="zoom-sim__stage">
+        <p class="zoom-sim__label">rem-dominant: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem)</p>
+        <p class="zoom-sim__heading zoom-sim__heading--rem">Responds to zoom</p>
+        <p class="zoom-sim__label">cqi-dominant: clamp(0.5rem, 7cqi, 3rem)</p>
+        <p class="zoom-sim__heading zoom-sim__heading--cqi">Ignores zoom</p>
+      </div>
+    </div>
+    `}
+  css={`
+    /* Text zoom simulation: browser text scaling grows the root
+       font size, which is exactly what rem tracks and cqi ignores.
+       Demo chrome (labels, control) uses px so it stays put. */
+    :root:has(.zoom-sim__toggle:checked) {
+      font-size: 200%;
+    }
+
+    .zoom-sim {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .zoom-sim__control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: hsl(215, 15%, 35%);
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
+    .zoom-sim__stage {
+      container-type: inline-size;
+      width: 280px;
+      max-width: 100%;
+      padding: 16px;
+      background: hsl(210, 45%, 96%);
+      border-radius: 8px;
+    }
+
+    .zoom-sim__label {
+      font-size: 12px;
+      font-weight: 600;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 2px;
+    }
+
+    .zoom-sim__heading {
+      font-weight: 700;
+      color: hsl(220, 20%, 20%);
+      line-height: 1.2;
+      margin: 0 0 14px;
+    }
+
+    .zoom-sim__heading--rem {
+      font-size: clamp(1.1rem, 0.9rem + 1.8cqi, 1.6rem);
+    }
+
+    .zoom-sim__heading--cqi {
+      font-size: clamp(0.5rem, 7cqi, 3rem);
+      margin-bottom: 0;
+    }
+    `}
+  height={280} />
+
+### Scope cq Tokens to Their Container's Subtree
+
+A custom property stores the `cqi` expression, not a resolved length. The unit resolves where the token is **consumed**, against that element's nearest ancestor container — or against the small viewport size when no ancestor container exists. A stage-scoped spacing token consumed in chrome outside the stage — a toolbar, an overlay, a status bar — therefore resolves against something other than the stage. At the width the page was developed at, the two resolutions can coincide; at extreme widths the outside consumer drifts into absurd gaps.
+
+The rule: a cq-unit token is scoped to the subtree of the container it was designed against. Chrome outside that subtree uses fixed or `rem` tokens. Suspect patterns:
+
+- A stage-scoped variable (`--space-stage-*`, `--font-size-stage-*`) referenced in a toolbar, overlay, tooltip, or any element rendered outside the stage subtree
+- A cq-unit token consumed on the container element itself — a container cannot query its own size, so the unit resolves against the next container up
+- Spacing that is correct on one page and wildly different on a wider one — the classic symptom of a token resolving against the viewport fallback
+
+In the demo, one `--space-md: 4cqi` token feeds both a toolbar outside the stage and a row inside it. The stage is fixed at 280px, so the inside gap stays at ~11px in every viewport. The toolbar has no ancestor container, so its gap resolves against the iframe viewport: at the Mobile viewport the two happen to match; at the Full viewport the toolbar gap explodes.
+
+<CssPreview client:load
+  title="One cqi token, consumed inside vs outside its container — switch viewports"
+  html={`
+    <div class="ctx-demo">
+      <h4 class="ctx-demo__label">Toolbar outside the stage — same token</h4>
+      <div class="ctx-demo__toolbar">
+        <button class="ctx-demo__btn">Save</button>
+        <button class="ctx-demo__btn">Undo</button>
+        <button class="ctx-demo__btn">Share</button>
+      </div>
+      <h4 class="ctx-demo__label">Row inside the stage (280px) — stable</h4>
+      <div class="ctx-demo__stage">
+        <div class="ctx-demo__row">
+          <span class="ctx-demo__chip">One</span>
+          <span class="ctx-demo__chip">Two</span>
+          <span class="ctx-demo__chip">Three</span>
+        </div>
+      </div>
+    </div>
+    `}
+  css={`
+    .ctx-demo {
+      /* One spacing token, inherited by everything below */
+      --space-md: 4cqi;
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .ctx-demo__label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 8px;
+    }
+
+    .ctx-demo__toolbar {
+      display: flex;
+      /* No ancestor container: 4cqi falls back to 4% of the
+         (iframe) viewport width — try the Full viewport */
+      gap: var(--space-md);
+      margin-bottom: 20px;
+    }
+
+    .ctx-demo__btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border: 1px solid hsl(215, 30%, 70%);
+      border-radius: 6px;
+      background: hsl(210, 45%, 97%);
+      color: hsl(215, 25%, 30%);
+    }
+
+    .ctx-demo__stage {
+      container-type: inline-size;
+      width: 280px;
+      max-width: 100%;
+      padding: 12px;
+      background: hsl(210, 45%, 96%);
+      border-radius: 8px;
+    }
+
+    .ctx-demo__row {
+      display: flex;
+      /* Inside the stage: 4cqi = 4% of 280px, at every viewport */
+      gap: var(--space-md);
+    }
+
+    .ctx-demo__chip {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 10px;
+      background: hsl(150, 40%, 88%);
+      color: hsl(150, 40%, 25%);
+      border-radius: 999px;
+    }
+    `}
+  height={220} />
+
+### Keep Hairlines Fixed-px
+
+A 1px hairline is already at the floor of what a screen renders. Give it a `cqi` width and it goes sub-pixel as the container narrows: the browser paints the fractional line as a faint anti-aliased smear or drops it entirely, depending on rounding and display density. Keep 1–2px hairlines — borders, rules, connectors — as literal `px` even in an otherwise fully fluid scale.
+
+```css
+/* NG: goes sub-pixel below a 400px stage and fades out */
+.stage__divider {
+  border-block-start: 0.25cqi solid hsl(215, 30%, 75%);
+}
+
+/* OK: fluid space, fixed hairline */
+.stage__card {
+  padding: var(--space-stage-md);
+  border: 1px solid hsl(215, 30%, 75%);
+}
+```
+
+Drag the stage's resize handle (bottom-right corner) narrower and compare: the `0.25cqi` border and rule fade toward invisible while the `1px` versions stay crisp.
+
+<CssPreview client:load
+  title="Fluid cqi hairline vs fixed 1px hairline — drag the stage narrower"
+  html={`
+    <div class="hairline-demo">
+      <p class="hairline-demo__hint">Drag the handle in the stage's bottom-right corner to narrow it.</p>
+      <div class="hairline-demo__stage">
+        <div class="hairline-demo__card hairline-demo__card--fluid">
+          <p class="hairline-demo__name">0.25cqi hairline</p>
+          <hr class="hairline-demo__rule hairline-demo__rule--fluid">
+          <p class="hairline-demo__text">Border and rule fade as the stage narrows.</p>
+        </div>
+        <div class="hairline-demo__card hairline-demo__card--fixed">
+          <p class="hairline-demo__name">1px hairline</p>
+          <hr class="hairline-demo__rule hairline-demo__rule--fixed">
+          <p class="hairline-demo__text">Border and rule stay crisp at every width.</p>
+        </div>
+      </div>
+    </div>
+    `}
+  css={`
+    .hairline-demo {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .hairline-demo__hint {
+      font-size: 12px;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 8px;
+    }
+
+    .hairline-demo__stage {
+      container-type: inline-size;
+      resize: horizontal;
+      overflow: auto;
+      width: min(440px, 100%);
+      min-width: 150px;
+      max-width: 100%;
+      padding: 12px;
+      border: 2px dashed hsl(215, 20%, 70%);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hairline-demo__card {
+      background: hsl(210, 45%, 97%);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+
+    .hairline-demo__card--fluid {
+      border: 0.25cqi solid hsl(215, 60%, 40%);
+    }
+
+    .hairline-demo__card--fixed {
+      border: 1px solid hsl(215, 60%, 40%);
+    }
+
+    .hairline-demo__name {
+      font-size: 12px;
+      font-weight: 700;
+      color: hsl(215, 25%, 30%);
+      margin: 0;
+    }
+
+    .hairline-demo__rule {
+      border: none;
+      margin: 8px 0;
+    }
+
+    .hairline-demo__rule--fluid {
+      border-top: 0.25cqi solid hsl(215, 60%, 40%);
+    }
+
+    .hairline-demo__rule--fixed {
+      border-top: 1px solid hsl(215, 60%, 40%);
+    }
+
+    .hairline-demo__text {
+      font-size: 12px;
+      color: hsl(215, 15%, 45%);
+      margin: 0;
+    }
+    `}
+  height={260} />
+
+### The Three Rules at a Glance
+
+| Rule | Failure it prevents |
+| --- | --- |
+| `rem` term at ~60% or more of the resolved value at the design width | Text that ignores browser zoom (WCAG 1.4.4) |
+| cq tokens consumed only inside their container's subtree | Absurd spacing in chrome at extreme widths |
+| Hairlines stay literal `px` | Borders and rules fading out in narrow containers |
+
 ## Card Component Adapting to Container Width
 
 A common real-world use case is a card component that works in any layout context: a narrow sidebar, a medium-width grid column, or a full-width main area.
@@ -811,6 +1147,9 @@ In the demo above, the `@container` cards adapt independently: the card in the n
 - **Using `container-type: size` unnecessarily**: Height-based containment (`size`) can cause layout issues. Use `inline-size` for the vast majority of cases.
 - **Not naming nested containers**: When containers are nested, omitting `container-name` leads to ambiguity — `@container` queries match the nearest ancestor container. Name containers when nesting to target specific ancestors.
 - **Querying the element itself**: The `@container` query targets the nearest ancestor with `container-type` set, not the element you are styling. The container and the styled element must be different elements.
+- **Letting the `cqi` term dominate a fluid token**: Browser zoom scales `rem`, not `cqi`, so a cqi-dominant `clamp()` barely responds to user zoom. Keep the `rem` term at ~60% or more of the resolved value at the design width.
+- **Consuming cq-unit tokens outside their container's subtree**: The unit resolves at the consuming element, against its own nearest ancestor container — or the small viewport fallback — not against the container the token was designed for.
+- **Fluid `cqi` border widths**: Hairlines go sub-pixel and fade out in narrow containers. Keep 1–2px hairlines as literal `px`.
 
 ## When to Use
 
