@@ -279,8 +279,10 @@ observer.observe(frame);
   title="内部の流動性: cqi 単位でコンテンツをステージに追従させる"
   html={`    <div class="frame frame--contain">
       <div class="stage stage--fluid">
-        <p class="stage__title">Letterboxed 16:9</p>
-        <p class="stage__sub">This text is sized with cqi units, so it tracks the stage, not the viewport.</p>
+        <div class="stage__inner">
+          <p class="stage__title">Letterboxed 16:9</p>
+          <p class="stage__sub">This text is sized with cqi units, so it tracks the stage, not the viewport.</p>
+        </div>
       </div>
     </div>`}
   css={`    .frame {
@@ -309,6 +311,10 @@ observer.observe(frame);
     }
     .stage--fluid {
       container-type: inline-size;
+    }
+    .stage__inner {
+      box-sizing: border-box;
+      height: 100%;
       display: grid;
       align-content: center;
       justify-items: center;
@@ -330,7 +336,7 @@ observer.observe(frame);
     }`}
   height={250} />
 
-2種類のコンテナタイプはきれいにネストします。フレームはサイズコンテナ（両軸。レターボックスの計算用）、ステージは inline-size コンテナ（自身のコンテンツ用）です。ルール内のコンテナクエリ単位は、マッチした要素から見て最も近い祖先コンテナに対して解決されます。そのため、ステージの幅ルール内の `cqw`/`cqh` はフレームを読み、コンテンツのルール内の `cqi` はステージを読みます。
+2種類のコンテナタイプはきれいにネストします。フレームはサイズコンテナ（両軸。レターボックスの計算用）、ステージは inline-size コンテナ（自身のコンテンツ用）です。ルール内のコンテナクエリ単位は、マッチした要素から見て最も近い祖先コンテナに対して解決されます。そのため、ステージの幅ルール内の `cqw`/`cqh` はフレームを読み、コンテンツのルール内の `cqi` はステージを読みます。`gap` と `padding` を内側の要素に置いているのも同じ理由です。要素自身の `container-type` はその要素自身の宣言には影響しないため、ステージに直接書いた `cqi` 値はフレームに対して解決されてしまいます。内側の要素には `box-sizing: border-box` も指定してあり、padding が aspect-ratio から導出されたボックスの内側に収まるようにしています。
 
 ### フレームが flex / grid の子であるとき
 

@@ -279,8 +279,10 @@ A letterboxed stage changes size with its frame, so content inside it should sca
   title="Interior fluidity: cqi units scale content with the stage"
   html={`    <div class="frame frame--contain">
       <div class="stage stage--fluid">
-        <p class="stage__title">Letterboxed 16:9</p>
-        <p class="stage__sub">This text is sized with cqi units, so it tracks the stage, not the viewport.</p>
+        <div class="stage__inner">
+          <p class="stage__title">Letterboxed 16:9</p>
+          <p class="stage__sub">This text is sized with cqi units, so it tracks the stage, not the viewport.</p>
+        </div>
       </div>
     </div>`}
   css={`    .frame {
@@ -309,6 +311,10 @@ A letterboxed stage changes size with its frame, so content inside it should sca
     }
     .stage--fluid {
       container-type: inline-size;
+    }
+    .stage__inner {
+      box-sizing: border-box;
+      height: 100%;
       display: grid;
       align-content: center;
       justify-items: center;
@@ -330,7 +336,7 @@ A letterboxed stage changes size with its frame, so content inside it should sca
     }`}
   height={250} />
 
-The two container types nest cleanly: the frame is a size container (both axes, for the letterbox math), and the stage is an inline-size container (for its own content). Container query units in a rule resolve against the nearest ancestor container of the matched element, so `cqw`/`cqh` in the stage's width rule read the frame, and `cqi` in the content rules reads the stage.
+The two container types nest cleanly: the frame is a size container (both axes, for the letterbox math), and the stage is an inline-size container (for its own content). Container query units in a rule resolve against the nearest ancestor container of the matched element, so `cqw`/`cqh` in the stage's width rule read the frame, and `cqi` in the content rules reads the stage. The `gap` and `padding` live on an inner element for the same reason: an element's own `container-type` never affects its own declarations, so `cqi` values placed directly on the stage would resolve against the frame instead. The inner element also carries `box-sizing: border-box`, keeping its padding inside the aspect-ratio-derived box.
 
 ### When the Frame Is a Flex or Grid Child
 
