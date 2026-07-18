@@ -5,21 +5,21 @@ set -euo pipefail
 #
 # Step order (cheap → expensive):
 #   1. Format check (mdx)
-#   2. Template drift check (needs node_modules — create-zudo-doc devDep)
-#   3. Pin parity check (pure-Node, reads package.json only)
-#   4. Wrangler pin check (needs node_modules — reads the zfb platform binary)
-#   5. Type checking (zfb check)
-#   6. Build (zfb build)
-#   7. HTML validation (html-validate dist/**/*.html)
-#   8. Link check (check-links)
+#   2. Type checking (zfb check)
+#   3. Build (zfb build)
+#   4. HTML validation (html-validate dist/**/*.html)
+#   5. Link check (check-links)
+#
+# The old-model guards (template-drift, pin-parity, wrangler-pin) were removed
+# with the v4 default-model migration.
 #
 # Env overrides for non-interactive use:
-#   B4PUSH_SKIP_HTML_VALIDATE=1  — skip HTML validation (step 7)
-#   B4PUSH_SKIP_LINK_CHECK=1     — skip link check (step 8)
+#   B4PUSH_SKIP_HTML_VALIDATE=1  — skip HTML validation (step 4)
+#   B4PUSH_SKIP_LINK_CHECK=1     — skip link check (step 5)
 
 START_TIME=$(date +%s)
 FAILURES=()
-TOTAL_STEPS=8
+TOTAL_STEPS=5
 CURRENT_STEP=0
 
 step() {
@@ -44,37 +44,7 @@ else
   fail "Format check"
 fi
 
-# ── Step 2: Template drift check ──────────────────────
-# Requires node_modules (reads create-zudo-doc devDep templates).
-# Run `pnpm install` first if this fails with "not found".
-step "Template drift check"
-if (cd "$ROOT_DIR" && pnpm check:template-drift); then
-  pass "Template drift check passed"
-else
-  fail "Template drift check"
-fi
-
-# ── Step 3: Pin parity check ──────────────────────────
-# Pure-Node: reads package.json only, no install needed.
-step "Pin parity check (check:pin-parity)"
-if (cd "$ROOT_DIR" && pnpm check:pin-parity); then
-  pass "Pin parity check passed"
-else
-  fail "Pin parity check"
-fi
-
-# ── Step 4: Wrangler pin check ────────────────────────
-# Requires node_modules (reads the zfb platform binary's embedded
-# EXPECTED_WRANGLER_VERSION). Catches a zfb bump that left the wrangler
-# pin stale, which would silently break local `zfb dev`/`preview`.
-step "Wrangler pin check (check:wrangler-pin)"
-if (cd "$ROOT_DIR" && pnpm check:wrangler-pin); then
-  pass "Wrangler pin check passed"
-else
-  fail "Wrangler pin check"
-fi
-
-# ── Step 5: Type checking ─────────────────────────────
+# ── Step 2: Type checking ─────────────────────────────
 step "Type checking (zfb check)"
 if (cd "$ROOT_DIR" && pnpm check); then
   pass "Type checking passed"
@@ -82,7 +52,7 @@ else
   fail "Type checking"
 fi
 
-# ── Step 6: Build ─────────────────────────────────────
+# ── Step 3: Build ─────────────────────────────────────
 step "Build (zfb build)"
 if (cd "$ROOT_DIR" && pnpm build); then
   pass "Build passed"
@@ -90,7 +60,7 @@ else
   fail "Build"
 fi
 
-# ── Step 7: HTML validation ───────────────────────────
+# ── Step 4: HTML validation ───────────────────────────
 step "HTML validation (html-validate)"
 if [[ "${B4PUSH_SKIP_HTML_VALIDATE:-}" == "1" ]]; then
   skip "HTML validation (B4PUSH_SKIP_HTML_VALIDATE=1)"
@@ -102,7 +72,7 @@ else
   fi
 fi
 
-# ── Step 8: Link check ───────────────────────────────
+# ── Step 5: Link check ───────────────────────────────
 step "Link check (check:links)"
 if [[ "${B4PUSH_SKIP_LINK_CHECK:-}" == "1" ]]; then
   skip "Link check (B4PUSH_SKIP_LINK_CHECK=1)"

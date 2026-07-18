@@ -55,7 +55,7 @@ run_worker_first = false
 
 # ---------------------------------------------------------------------------
 # Custom domain routing
-# route host MUST equal settings.siteUrl's host (src/config/settings.ts)
+# route host MUST equal the zudoDoc({ siteUrl }) host in zfb.config.ts
 # ---------------------------------------------------------------------------
 [[routes]]
 pattern = "zudo-css-wisdom.takazudomodular.com"

@@ -1,72 +1,55 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource preact */
-// Page module for the default-locale docs route.
+// Locked manifest (#2653 Decision 4): a SELF-CONTAINED doc-route stub —
+// REQUIRED because the injected DYNAMIC `/docs/[[...slug]]` route 404s in
+// `zfb dev` (real pre-existing gap in zfb's dev-mode dynamic-route rendering,
+// distinct from the `/`-injection gap zfb#1227; empirically confirmed on
+// #2653). This stub reconstructs the doc route from scratch using ONLY the
+// sanctioned package entrypoints — no `pages/lib`, no `@/config`:
+//   1. the `virtual:zudo-doc-route-context` virtual module (serializable
+//      settings/translations/tagVocabulary/colorSchemes payload),
+//   2. `@takazudo/zudo-doc/route-context` (`createRouteContext`),
+//   3. `@takazudo/zudo-doc/chrome` (`createChrome`), and
+//   4. `virtual:zudo-doc-chrome-bindings` (the host-callables channel).
+// The bindings import is unconditional: the routes plugin supplies an empty
+// object when `chromeBindingsModule` is unset, while configured projects get
+// their MDX/chrome bindings without editing this stub.
+// Makes `/docs/getting-started/` return 200 in BOTH `zfb dev` and `zfb build`
+// (see the "TM negative guard" case in route-injection-build.slow.test.ts for
+// the no-stub 404 proof this fixes).
 //
-// Default-locale (EN) catch-all docs route. paths() enumerates every page in
-// the "docs" collection plus auto-generated category index pages (for
-// categories without an index.mdx). Per-page props carry all pre-computed
-// data so the component is a pure renderer with no collection reads.
-//
-// paths() contract (zfb ADR-004 — synchronous):
-//   params: { slug: string[] }   — e.g. ["getting-started", "intro"]
-//   props:  { entry, autoIndex, breadcrumbs, prev, next }
-//
-// Route is the OPTIONAL catchall `[[...slug]]` so a bare root index.mdx can
-// build at `/docs/` (canonical root URL — #1891). The root entry emits
-// `params.slug = []` (zero segments) via `toSlugParams`; a required `[...slug]`
-// catchall rejects an empty array and would drop the whole route.
-//
-// The catchall slug is an array per zfb spec — the component joins it when
-// deriving the string form (e.g. for Content lookups, breadcrumbs, etc.).
-//
-// Locale: defaultLocale (EN). Non-default locales are handled by
-// pages/[locale]/docs/[[...slug]].tsx.
-//
-// Enumeration + per-entry derived data (breadcrumbs, prev/next, headings) are
-// built by the shared, memoized buildDocRouteEntries (#2010); rendering by the
-// shared renderDocPage. This file owns only the route's nav source and the
-// param/prop shapes.
+// docHistory note: when the docHistory feature is selected, the generator
+// patches this file to statically import DocHistory from
+// "@takazudo/zudo-doc/doc-history" and merge it over chromeBindings in
+// createChrome's hostBindings (second) argument —
+// DocHistory's chrome-derive default is a no-op stub (unlike
+// DesignTokenPanelBootstrap, which the package auto-defaults), so without
+// that patch the doc-history button never hydrates on this route.
 
-import { settings } from "@/config/settings";
-import { defaultLocale } from "@/config/i18n";
 import type { JSX } from "preact";
-import { resolveNavSource } from "../lib/_nav-source-docs";
-import type { DocPageEntryProps, DocPageAutoIndexProps } from "../lib/doc-page-props";
-import { buildDocRouteEntries } from "../lib/_doc-route-entries";
-import { renderDocPage } from "../lib/_chrome";
+import { routeContext } from "virtual:zudo-doc-route-context";
+import {
+  createRouteContext,
+  type RouteContextPayload,
+} from "@takazudo/zudo-doc/route-context";
+import { createChrome } from "@takazudo/zudo-doc/chrome";
+import { DocHistory } from "@takazudo/zudo-doc/doc-history";
+import { defineChromeBindings } from "@takazudo/zudo-doc/chrome-bindings";
+import { chromeBindings } from "virtual:zudo-doc-chrome-bindings";
+
+const ctx = routeContext as unknown as RouteContextPayload;
+const routeCtx = createRouteContext(ctx);
+const { renderDocPage } = createChrome(routeCtx, {
+  ...chromeBindings,
+  ...defineChromeBindings({ DocHistory }),
+});
 
 export const frontmatter = { title: "Docs" };
 
-// ---------------------------------------------------------------------------
-// Props contract
-// ---------------------------------------------------------------------------
-
-type DocPageProps = DocPageEntryProps | DocPageAutoIndexProps;
-
-// ---------------------------------------------------------------------------
-// paths() — synchronous route enumeration (ADR-004)
-// ---------------------------------------------------------------------------
-
-/**
- * Enumerate all doc routes for the default locale (EN).
- *
- * Synchronous per ADR-004: getCollection() resolves from the pre-loaded
- * ContentSnapshot. All nav-tree and breadcrumb computation is done in the
- * shared builder so the component is a pure renderer.
- */
-export function paths(): Array<{
-  params: { slug: string[] };
-  props: DocPageProps;
-}> {
-  const locale = defaultLocale;
-  // Identity-stable nav source (draft-filtered, unlisted retained). The same
-  // instances are returned across this route's many per-page paths()
-  // invocations, so both buildNavTree's identity fast-path and the
-  // buildDocRouteEntries memo key on them — see pages/lib/_nav-source-docs.ts
-  // (#1902).
-  const source = resolveNavSource(locale, undefined);
-
-  return buildDocRouteEntries({
+export function paths(): Array<{ params: { slug: string[] }; props: unknown }> {
+  const locale = routeCtx.defaultLocale;
+  const source = routeCtx.resolveNavSource(locale, undefined);
+  return routeCtx.buildDocRouteEntries({
     source,
     locale,
     routeSig: `docs;${locale}`,
@@ -76,15 +59,11 @@ export function paths(): Array<{
   }));
 }
 
-// ---------------------------------------------------------------------------
-// Page component
-// ---------------------------------------------------------------------------
-
-type PageArgs = DocPageProps & { params: { slug: string[] } };
+type PageArgs = { params: { slug: string[] } } & Record<string, unknown>;
 
 export default function DocsPage(props: PageArgs): JSX.Element {
-  return renderDocPage(props, {
-    locale: defaultLocale,
-    docHistoryContentDir: settings.docsDir,
+  return renderDocPage(props as never, {
+    locale: routeCtx.defaultLocale,
+    docHistoryContentDir: routeCtx.settings.docsDir,
   });
 }

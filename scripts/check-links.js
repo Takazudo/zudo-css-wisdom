@@ -271,8 +271,12 @@ export function formatReport(brokenLinks, mdxWarnings) {
 
 async function main() {
   const rootDir = resolve(__dirname, "..");
-  const settingsPath = join(rootDir, "src", "config", "settings.ts");
-  const basePath = await parseBasePath(settingsPath);
+  // Config values are fixed to the v4 `zudoDoc({...})` settings in zfb.config.ts
+  // (the former src/config/settings.ts was removed in the v4 migration):
+  //   base "/", docsDir "src/content/docs", ja locale dir "src/content/docs-ja".
+  const basePath = "/";
+  const docsDir = "src/content/docs";
+  const localeDirs = ["src/content/docs-ja"];
   const distDir = join(rootDir, "dist");
 
   console.log(`Checking links (base: ${basePath})...\n`);
@@ -285,7 +289,6 @@ async function main() {
   // Exclude versioned docs links — version content may be incomplete
   const excludePatterns = [/\/v\/[^/]+\//];
 
-  const { docsDir, localeDirs } = await parseContentDirs(settingsPath);
   const contentDirs = [join(rootDir, docsDir), ...localeDirs.map((d) => join(rootDir, d))];
 
   const [brokenLinks, mdxWarnings] = await Promise.all([
