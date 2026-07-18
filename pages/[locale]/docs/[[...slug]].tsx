@@ -1,117 +1,80 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource preact */
-// Page module for the locale-prefixed docs route.
+// Locked manifest (#2653 Decision 4, i18n addendum): the locale-prefixed
+// counterpart of pages/docs/[[...slug]].tsx — required for the same reason
+// (injected DYNAMIC routes 404 in `zfb dev`). Self-contained: only the
+// sanctioned package entrypoints — no `pages/lib`, no `@/config`. The
+// `virtual:zudo-doc-chrome-bindings` import is unconditional, just like the
+// default-locale stub: the routes plugin supplies `{}` when no host module is
+// configured. Mirrors
+// the package's own `routes/locale-docs-slug.tsx` shape, rebuilt from the
+// route-context payload instead of the package-internal `_context.js`.
 //
-// Non-default-locale catch-all docs route. paths() emits one route per
-// (locale, slug) combination — one locale from settings.locales per each
-// doc in that locale's merged collection (locale-first + base fallback).
+// Per-locale content dir + fallback notice (ported from
+// packages/zudo-doc/src/routes/locale-docs-slug.tsx and the showcase's
+// pages/[locale]/docs/[[...slug]].tsx): each route carries the locale's own
+// content directory (`getLocaleConfig(locale).dir`) and an `isFallback` flag.
+// A page that only exists in the default locale is served as an untranslated
+// FALLBACK — it must (a) read doc-history from the DEFAULT-locale content dir
+// (not the translated one, which has no such file), and (b) thread
+// `isFallback` so the chrome renders the "not translated yet" notice. Dropping
+// either — as this stub previously did by hardcoding `docsDir` for every
+// locale and never passing `isFallback` — silently breaks translated pages.
 //
-// paths() contract (zfb ADR-004 — synchronous):
-//   params: { locale: string; slug: string[] }
-//   props:  { entry, autoIndex, contentDir, isFallback, breadcrumbs, prev, next }
-//
-// Route is the OPTIONAL catchall `[[...slug]]` so a locale root index.mdx can
-// build at `/{locale}/docs/` (canonical root URL — #1891). The root entry
-// emits `params.slug = []` via `toSlugParams`; a required `[...slug]` catchall
-// rejects an empty array and would drop the ENTIRE locale route (the EN-root
-// index leaks in via the locale-first EN fallback, so this fires even before a
-// locale-specific root index exists — probe-observed page-count collapse).
-//
-// i18n / locale routing:
-//   - Default locale (EN) is handled by pages/docs/[[...slug]].tsx
-//     (prefixDefaultLocale: false).
-//   - Non-default locales emit /{locale}/docs/{slug}.
-//   - Locale-first merge: locale docs take priority; base EN docs fill in
-//     pages not translated yet (shown with a fallback notice).
-//
-// Enumeration + per-entry derived data are built by the shared, memoized
-// buildDocRouteEntries (#2010); rendering by the shared renderDocPage. This
-// file owns only the route's nav source and the param/prop shapes.
+// docHistory note: same as the default-locale stub — when docHistory is
+// selected, the generator patches this file too.
 
-import { settings } from "@/config/settings";
-import { getLocaleConfig, type Locale } from "@/config/i18n";
 import type { JSX } from "preact";
-import { resolveNavSource } from "../../lib/_nav-source-docs";
-import type { DocPageEntryProps, DocPageAutoIndexProps } from "../../lib/doc-page-props";
-import { buildDocRouteEntries } from "../../lib/_doc-route-entries";
-import { renderDocPage } from "../../lib/_chrome";
+import { routeContext } from "virtual:zudo-doc-route-context";
+import {
+  createRouteContext,
+  type RouteContextPayload,
+} from "@takazudo/zudo-doc/route-context";
+import { createChrome } from "@takazudo/zudo-doc/chrome";
+import { DocHistory } from "@takazudo/zudo-doc/doc-history";
+import { defineChromeBindings } from "@takazudo/zudo-doc/chrome-bindings";
+import { chromeBindings } from "virtual:zudo-doc-chrome-bindings";
+
+const ctx = routeContext as unknown as RouteContextPayload;
+const routeCtx = createRouteContext(ctx);
+const { renderDocPage } = createChrome(routeCtx, {
+  ...chromeBindings,
+  ...defineChromeBindings({ DocHistory }),
+});
 
 export const frontmatter = { title: "Docs" };
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/** Route-specific extra fields — present on both branches of the union. */
-interface LocaleDocPageExtra {
-  /** Content directory for the active locale (or base EN for fallbacks). */
-  contentDir: string;
-  /** True when this page falls back to the base EN collection. */
-  isFallback: boolean;
-}
-
-type DocPageProps =
-  | (DocPageEntryProps & LocaleDocPageExtra)
-  | (DocPageAutoIndexProps & LocaleDocPageExtra);
-
-// ---------------------------------------------------------------------------
-// paths() — synchronous (ADR-004)
-// ---------------------------------------------------------------------------
-
-/**
- * Emit one route per (non-default locale, slug) combination.
- *
- * Merge strategy:
- *   1. Load locale docs (e.g. "docs-ja").
- *   2. Load base EN docs ("docs").
- *   3. Locale docs take priority; base EN fills in slugs not translated.
- *   4. Track fallback slugs for the fallback-notice banner.
- *   5. Build nav tree, compute breadcrumbs and prev/next for each entry.
- *
- * Fallback detection (`isFallback`) comes from the merge's localeSlugSet —
- * the component uses it to show the "not yet translated" notice (matching
- * the Astro original).
- */
 export function paths(): Array<{
   params: { locale: string; slug: string[] };
-  props: DocPageProps;
+  props: unknown;
 }> {
   const result: Array<{
     params: { locale: string; slug: string[] };
-    props: DocPageProps;
+    props: unknown;
   }> = [];
 
-  for (const locale of Object.keys(settings.locales) as string[]) {
-    const localeConfig = getLocaleConfig(locale);
-    const contentDir = localeConfig?.dir ?? settings.docsDir;
-
-    // Identity-stable, locale-first merge with EN fallback. The same `docs` /
-    // `navDocs` / `categoryMeta` instances are reused across this route's many
-    // per-page paths() invocations so both buildNavTree's identity fast-path
-    // and the buildDocRouteEntries memo key on them — see
-    // pages/lib/_nav-source-docs.ts (#1902).
-    const source = resolveNavSource(locale as Locale, undefined, {
+  for (const locale of Object.keys(routeCtx.settings.locales)) {
+    const contentDir =
+      routeCtx.getLocaleConfig(locale)?.dir ?? routeCtx.settings.docsDir;
+    const source = routeCtx.resolveNavSource(locale, undefined, {
       applyDefaultLocaleOnlyFilter: true,
       keepUnlisted: true,
     });
-
-    for (const item of buildDocRouteEntries({
+    for (const item of routeCtx.buildDocRouteEntries({
       source,
-      locale: locale as Locale,
+      locale,
       routeSig: `locale-docs;${locale}`,
     })) {
-      // isFallback: page came from base docs, not the locale collection.
-      // Always false for autoIndex items (item.isFallback already is).
-      const extra: LocaleDocPageExtra = {
-        contentDir: item.isFallback ? settings.docsDir : contentDir,
-        isFallback: item.isFallback,
-      };
       result.push({
         params: { locale, slug: item.slugParams },
-        props:
-          item.props.kind === "entry"
-            ? { ...item.props, ...extra }
-            : { ...item.props, ...extra },
+        props: {
+          ...(item.props as unknown as Record<string, unknown>),
+          // Fallback pages exist only in the default locale, so their
+          // doc-history lives under the EN docsDir; translated pages read
+          // their own locale dir.
+          contentDir: item.isFallback ? routeCtx.settings.docsDir : contentDir,
+          isFallback: item.isFallback,
+        },
       });
     }
   }
@@ -119,15 +82,15 @@ export function paths(): Array<{
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// Page component
-// ---------------------------------------------------------------------------
-
-type PageArgs = DocPageProps & { params: { locale: string; slug: string[] } };
+type PageArgs = {
+  params: { locale: string; slug: string[] };
+  contentDir: string;
+  isFallback: boolean;
+} & Record<string, unknown>;
 
 export default function LocaleDocsPage(props: PageArgs): JSX.Element {
-  return renderDocPage(props, {
-    locale: props.params.locale as Locale,
+  return renderDocPage(props as never, {
+    locale: props.params.locale,
     isFallback: props.isFallback,
     docHistoryContentDir: props.contentDir,
   });

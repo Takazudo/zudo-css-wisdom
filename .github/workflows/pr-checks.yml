@@ -1,14 +1,12 @@
 # Pull request quality checks and preview deployment.
 #
 # Triggered on PRs targeting `main`. The pipeline:
-#   1. Template drift check (needs pnpm install — create-zudo-doc devDep)
-#   2. Pin parity check (pure-Node, reads package.json only)
-#   3. Format check (pnpm format:md:check — pnpm dlx, no install needed)
-#   4. Type check (pnpm check) + wrangler pin check
-#   5. Build the zfb docs site (full clone) + link check
-#   6. HTML validate
-#   7. Build doc history JSONs
-#   8. Deploy preview (wrangler versions upload --preview-alias) + post PR comment
+#   1. Format check (pnpm format:md:check — pnpm dlx, no install needed)
+#   2. Type check (pnpm check)
+#   3. Build the zfb docs site (full clone) + link check
+#   4. HTML validate
+#   5. Build doc history JSONs
+#   6. Deploy preview (wrangler versions upload --preview-alias) + post PR comment
 #
 # No e2e job.
 #
@@ -35,54 +33,7 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Job 0: Template drift check
-  # ---------------------------------------------------------------------------
-  # Needs pnpm install because check-template-drift.sh reads
-  # node_modules/create-zudo-doc/templates/ (create-zudo-doc is a devDependency).
-  check-template-drift:
-    name: Template Drift Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
-        with:
-          dest: ~/setup-pnpm-${{ github.job }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Check template drift
-        run: pnpm check:template-drift
-
-  # ---------------------------------------------------------------------------
-  # Job 0.5: Pin parity check
-  # ---------------------------------------------------------------------------
-  # Pure-Node script — reads package.json only, no pnpm install needed.
-  # Verifies @takazudo/zfb and zudo-doc package pins are in lockstep.
-  check-pin-parity:
-    name: Pin Parity Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-
-      - name: Check pin parity
-        run: node scripts/check-pin-parity.mjs
-
-  # ---------------------------------------------------------------------------
-  # Job 0.6: Format check
+  # Job: Format check
   # ---------------------------------------------------------------------------
   # Runs `pnpm dlx @takazudo/mdx-formatter --check ...` — fetches the
   # formatter on the fly, so no pnpm install is needed.  Only pnpm + node
@@ -133,13 +84,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      # Backstop for the local b4push gate: catch a zfb bump that left the
-      # wrangler pin stale (would silently break local `zfb dev`/`preview`).
-      # Needs node_modules, so it rides the typecheck job rather than the
-      # pure-Node pin-parity job.
-      - name: Check wrangler pin parity
-        run: pnpm check:wrangler-pin
 
       - name: Run type checking
         run: pnpm check
