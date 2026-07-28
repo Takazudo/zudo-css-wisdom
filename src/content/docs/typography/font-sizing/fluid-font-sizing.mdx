@@ -147,6 +147,8 @@ Container query units (`cqi`, `cqw`, and the rest) apply the same `clamp()` patt
 | Additive | `clamp(1rem, 0.5rem + 3cqi, 1.5rem)` | The `rem` base is a size floor independent of container width — text degrades gracefully even in a near-zero-width container. Use for headings that must stay legible at any container size. |
 | Pure | `clamp(1rem, 5cqi, 2rem)` | Font size is directly proportional to the container's inline size (`5cqi` = 5% of it). Use when the container already has hard min/max width bounds set elsewhere in the CSS, and text should track the container's actual rendered size rather than degrade gracefully. |
 
+For fixed-composition stages (slides, deck viewers, fixed-aspect embeds), the pure pattern is not just an option but the correct contract — including how to derive uniform legibility floors and handle the zoom trade-off: see [Stage-Proportional Typography](./stage-proportional-typography.mdx).
+
 To promote these one-off values into a component-scoped type and spacing token scale — and for the three rules that keep such a scale working (rem-dominant clamps for text-zoom accessibility, container-scoped consumption, fixed-px hairlines) — see [Container Query Units as a Token Scale](../../responsive/container-queries.mdx#container-query-units-as-a-token-scale).
 
 ## Common AI Mistakes

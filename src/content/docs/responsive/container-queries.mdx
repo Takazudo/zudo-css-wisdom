@@ -458,7 +458,7 @@ Three rules keep such a scale from failing.
 
 Browser text scaling — text-only zoom, or a larger default font size — scales `rem` values; it does not scale `cqi` values: enlarging text does not make the container wider, so the `cqi` term resolves to the same length while the `rem` term grows. In a token where the `cqi` term dominates, scaling text barely changes the rendered size. That fails WCAG 1.4.4 (Resize Text), which requires text to stay functional scaled up to 200%.
 
-Rule of thumb: at the width the component is designed for, the `rem` term contributes at least ~60% of the resolved preferred value. Verify by resolving the preferred expression at the design width:
+Rule of thumb: at the width the component is designed for, the `rem` term contributes at least ~60% of the resolved preferred value. One deliberate exception: fixed-composition stages (slides, deck viewers) want pure-cqi proportional type instead — see [Stage-Proportional Typography](../typography/font-sizing/stage-proportional-typography.mdx). Verify by resolving the preferred expression at the design width:
 
 ```css
 /* Design width: stage = 480px */
