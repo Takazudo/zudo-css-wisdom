@@ -105,15 +105,25 @@ function frontmatter(source) {
 }
 
 /**
- * YAML truthiness for `category_no_page`. Accepts the spellings a YAML parser
- * treats as true — `true`, `True`, `TRUE`, `yes`, `on` — and tolerates a
- * trailing `# comment`. The original `:\s*true\s*$` form missed all of these
- * and false-greened on exactly the dead nav link this check exists to catch.
+ * Truthiness for `category_no_page`, matching what the frontmatter parser
+ * ACTUALLY produces — gray-matter/js-yaml on the YAML 1.2 core schema.
+ *
+ * Only `true` / `True` / `TRUE` become a boolean there. `yes` and `on` are
+ * YAML 1.1 spellings that the 1.2 core schema parses as the STRINGS "yes" and
+ * "on"; zudo-doc requires a boolean, so such a page is still emitted.
+ *
+ * Accepting them here was an overcorrection on my part and a false POSITIVE:
+ * the page publishes normally, but this check would report NAV-404 and fail
+ * CI. A guard that blocks correct code is worse than the gap it closed — so
+ * the accepted set is exactly the three spellings that really suppress a page.
+ * Measured against js-yaml in zudo-test-wisdom, not inferred from the spec.
+ *
+ * Still tolerates a trailing `# comment`, which the original form missed.
  */
 function hasNoPage(fm) {
   const m = fm.match(/^\s*category_no_page\s*:\s*([^#\r\n]*)/m);
   if (!m) return false;
-  return /^(true|yes|on)$/i.test(m[1].trim());
+  return /^true$/i.test(m[1].trim());
 }
 
 /**
@@ -177,10 +187,14 @@ function parseLocales(source) {
   }
   if (end === -1) return [];
   const block = source.slice(open, end);
-  return [...block.matchAll(/(\w+)\s*:\s*\{[^}]*?\bdir\s*:\s*["']([^"']+)["']/g)].map((m) => ({
-    locale: m[1],
-    dir: m[2],
-  }));
+  // Key may be bare (`ja:`) or quoted, and BCP-47 tags contain hyphens
+  // (`"pt-BR"`, `zh-Hant`). A bare-\w+ pattern skipped those locales entirely,
+  // so a localized index with category_no_page would never be inspected and CI
+  // would pass on a 404ing localized nav route — the same false-green class as
+  // the bugs above.
+  return [
+    ...block.matchAll(/["']?([\w-]+)["']?\s*:\s*\{[^}]*?\bdir\s*:\s*["']([^"']+)["']/g),
+  ].map((m) => ({ locale: m[1], dir: m[2] }));
 }
 
 const failures = [];
@@ -274,7 +288,14 @@ for (const navPath of navPaths) {
   // Check the default locale and every configured locale — a suppressed JA
   // page behind a surviving JA header link is just as much a 404.
   const targets = [{ locale: "(default)", dir: docsDir }, ...locales];
-  let resolvedAnywhere = false;
+  // Tracked for the DEFAULT locale only. Collapsing every locale into one
+  // "resolved anywhere" flag let a page that exists solely in a translation
+  // suppress the warning for the default locale — which is the route that
+  // actually 404s. A missing translation is normal and must stay silent; a
+  // missing default-locale target is exactly what we cannot verify and must
+  // say so. Cuts against this file's own "absence of findings is not evidence
+  // of correctness" rule otherwise.
+  let defaultResolved = false;
 
   for (const t of targets) {
     let resolved = null;
@@ -285,7 +306,7 @@ for (const navPath of navPaths) {
       }
     }
     if (!resolved) continue;
-    resolvedAnywhere = true;
+    if (t.locale === "(default)") defaultResolved = true;
 
     if (hasNoPage(frontmatter(await readFile(resolved, "utf-8")))) {
       failures.push(
@@ -297,10 +318,11 @@ for (const navPath of navPaths) {
     }
   }
 
-  if (!resolvedAnywhere) {
+  if (!defaultResolved) {
     warnings.push(
-      `[UNRESOLVED] headerNav "${navPath}" — no source file found in any ` +
-        `content dir. Verify this link manually; the check could not.`,
+      `[UNRESOLVED] headerNav "${navPath}" — no source file found in the ` +
+        `default content dir (${docsDir}). Verify this link manually; the ` +
+        `check could not.`,
     );
   }
 }

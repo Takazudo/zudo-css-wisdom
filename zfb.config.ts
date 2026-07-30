@@ -26,6 +26,14 @@ export default defineConfig(
     locales: {
       ja: { label: "JA", dir: "src/content/docs-ja" },
     },
+    // Wide home grid on `/` and every locale home. Replaces the former
+    // hand-reconstructed pages/index.tsx + pages/[locale]/index.tsx, which
+    // existed only because zudo-doc 4.2.1 had no toggle for the wide band
+    // (upstream request zudolab/zudo-doc#2959, pattern originated here in
+    // PR #182). 4.4.x added `home.wide`, read by BOTH the package-owned root
+    // and locale index routes, so those host overrides are gone and the
+    // package routes are used again.
+    home: { wide: true },
     // v4 default is `true` — this site does not use mermaid, so keep it off.
     mermaid: false,
     sitemap: true,
