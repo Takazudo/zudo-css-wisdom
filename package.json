@@ -11,6 +11,7 @@
     "preview": "zfb preview",
     "check": "zfb check",
     "check:html": "html-validate \"dist/**/*.html\"",
+    "check:category-meta": "node scripts/check-category-meta.mjs",
     "check:links": "node scripts/check-links.js --strict-broken --allowlist=.check-links-allowlist",
     "format:md": "pnpm dlx @takazudo/mdx-formatter --write \"src/content/**/*.{md,mdx}\"",
     "format:md:check": "pnpm dlx @takazudo/mdx-formatter --check \"src/content/**/*.{md,mdx}\"",

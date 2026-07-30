@@ -1,6 +1,0 @@
-{
-  "label": "フォントサイズ",
-  "position": 1,
-  "noPage": true,
-  "description": "clamp()による流体フォントサイズ、画面幅ベースの戦略、3層サイズ設計、line-heightのベストプラクティスを解説します。"
-}

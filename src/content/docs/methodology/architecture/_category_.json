@@ -1,6 +1,0 @@
-{
-  "label": "Architecture",
-  "position": 1,
-  "description": "CSS scoping and cascade control: BEM, CSS Modules, component-first with Tailwind, cascade layers, and MDX content styling.",
-  "noPage": true
-}

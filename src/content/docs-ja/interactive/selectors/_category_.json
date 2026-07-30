@@ -1,6 +1,0 @@
-{
-  "label": "セレクター",
-  "position": 2,
-  "description": ":has()、:is()、:where() などのモダンセレクターで、JavaScriptに頼らない表現力豊かなスタイリングを実現します。",
-  "noPage": true
-}

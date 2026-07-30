@@ -1,6 +1,0 @@
-{
-  "label": "Design Systems",
-  "position": 2,
-  "description": "Design token strategies for Tailwind CSS v4: tight tokens, two-tier sizing, multi-namespace tokens, display scaling, and advanced custom properties.",
-  "noPage": true
-}
