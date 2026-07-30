@@ -1,6 +1,0 @@
-{
-  "label": "Flexbox & Grid",
-  "position": 1,
-  "noPage": true,
-  "description": "1次元・2次元レイアウトの中核エンジン：Flexboxパターン、Gridパターン、サブグリッドによる整列、余白を扱う gap と margin の使い分け。"
-}

@@ -1,6 +1,0 @@
-{
-  "label": "Positioning",
-  "position": 2,
-  "noPage": true,
-  "description": "Placing and stacking elements: centering techniques, the position property, stacking context and z-index, and anchor positioning."
-}

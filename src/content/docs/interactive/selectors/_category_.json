@@ -1,6 +1,0 @@
-{
-  "label": "Selectors",
-  "position": 2,
-  "description": "Modern selectors like :has(), :is(), and :where() for expressive, JavaScript-free styling.",
-  "noPage": true
-}

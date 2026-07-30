@@ -1,6 +1,0 @@
-{
-  "label": "Font Sizing",
-  "position": 1,
-  "noPage": true,
-  "description": "Fluid font scaling with clamp(), screen-width strategies, tiered sizing systems, and line-height practices."
-}

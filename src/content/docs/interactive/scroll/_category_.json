@@ -1,6 +1,0 @@
-{
-  "label": "Scroll",
-  "position": 3,
-  "description": "Scroll snap, scroll-driven animations, and overscroll behavior for native-feeling scroll experiences.",
-  "noPage": true
-}

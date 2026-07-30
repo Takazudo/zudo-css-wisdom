@@ -1,6 +1,0 @@
-{
-  "label": "Specialized",
-  "position": 4,
-  "noPage": true,
-  "description": "Targeted techniques for specific layout problems: object-fit for media, multi-column text flow, negative-margin breakout, table cell width control, overflow clip vs hidden, and print/PDF export."
-}

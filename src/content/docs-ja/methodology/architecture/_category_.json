@@ -1,6 +1,0 @@
-{
-  "label": "アーキテクチャ",
-  "position": 1,
-  "description": "CSSのスコープとカスケード管理：BEM、CSS Modules、Tailwindでのコンポーネント優先設計、カスケードレイヤー、MDXコンテンツのスタイリングを扱います。",
-  "noPage": true
-}

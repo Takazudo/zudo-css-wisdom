@@ -1,6 +1,0 @@
-{
-  "label": "ポジショニング",
-  "position": 2,
-  "noPage": true,
-  "description": "要素の配置と重なりを制御する：センタリング、position プロパティ、スタッキングコンテキストと z-index、アンカーポジショニング。"
-}
