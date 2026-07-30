@@ -5,21 +5,28 @@ set -euo pipefail
 #
 # Step order (cheap → expensive):
 #   1. Format check (mdx)
-#   2. Type checking (zfb check)
-#   3. Build (zfb build)
-#   4. HTML validation (html-validate dist/**/*.html)
-#   5. Link check (check-links)
+#   2. Category metadata check (pure-Node, reads src/ + zfb.config.ts)
+#   3. Template drift check (needs node_modules — create-zudo-doc devDep)
+#   4. Pin parity check (pure-Node, reads package.json only)
+#   5. Wrangler pin check (needs node_modules — reads the zfb platform binary)
+#   6. Type checking (zfb check)
+#   7. Build (zfb build)
+#   8. HTML validation (html-validate dist/**/*.html)
+#   9. Link check (check-links)
 #
-# The old-model guards (template-drift, pin-parity, wrangler-pin) were removed
-# with the v4 default-model migration.
+# Steps 3–5 were dropped from this repo during the v4 default-model migration
+# and restored alongside the category-metadata guard. Their absence is why
+# Takazudo/zudo-css-wisdom#183 survived here and in none of the sibling
+# *-wisdom repos: nothing was comparing this site against the create-zudo-doc
+# baseline or its own dependency pins.
 #
 # Env overrides for non-interactive use:
-#   B4PUSH_SKIP_HTML_VALIDATE=1  — skip HTML validation (step 4)
-#   B4PUSH_SKIP_LINK_CHECK=1     — skip link check (step 5)
+#   B4PUSH_SKIP_HTML_VALIDATE=1  — skip HTML validation (step 8)
+#   B4PUSH_SKIP_LINK_CHECK=1     — skip link check (step 9)
 
 START_TIME=$(date +%s)
 FAILURES=()
-TOTAL_STEPS=5
+TOTAL_STEPS=9
 CURRENT_STEP=0
 
 step() {
@@ -44,7 +51,50 @@ else
   fail "Format check"
 fi
 
-# ── Step 2: Type checking ─────────────────────────────
+# ── Step 2: Category metadata check ───────────────────
+# Pure-Node. Fails on any `_category_.json` sidecar (zudo-doc silently ignores
+# them under zfb, discarding every label/position/description/noPage) and on a
+# headerNav entry pointing at a `category_no_page` page. Neither failure mode is
+# visible to type checking, html-validate, or the link check.
+step "Category metadata check (check:category-meta)"
+if (cd "$ROOT_DIR" && pnpm check:category-meta); then
+  pass "Category metadata check passed"
+else
+  fail "Category metadata check"
+fi
+
+# ── Step 3: Template drift check ──────────────────────
+# Requires node_modules (reads create-zudo-doc devDep templates).
+# Run `pnpm install` first if this fails with "not found".
+step "Template drift check"
+if (cd "$ROOT_DIR" && pnpm check:template-drift); then
+  pass "Template drift check passed"
+else
+  fail "Template drift check"
+fi
+
+# ── Step 4: Pin parity check ──────────────────────────
+# Pure-Node: reads package.json only, no install needed. Keeps the zfb trio and
+# the zudo-doc trio (including create-zudo-doc) each internally in lockstep.
+step "Pin parity check (check:pin-parity)"
+if (cd "$ROOT_DIR" && pnpm check:pin-parity); then
+  pass "Pin parity check passed"
+else
+  fail "Pin parity check"
+fi
+
+# ── Step 5: Wrangler pin check ────────────────────────
+# Requires node_modules (reads the zfb platform binary's embedded
+# EXPECTED_WRANGLER_VERSION). Catches a zfb bump that left the wrangler
+# pin stale, which would silently break local `zfb dev`/`preview`.
+step "Wrangler pin check (check:wrangler-pin)"
+if (cd "$ROOT_DIR" && pnpm check:wrangler-pin); then
+  pass "Wrangler pin check passed"
+else
+  fail "Wrangler pin check"
+fi
+
+# ── Step 6: Type checking ─────────────────────────────
 step "Type checking (zfb check)"
 if (cd "$ROOT_DIR" && pnpm check); then
   pass "Type checking passed"
@@ -52,7 +102,7 @@ else
   fail "Type checking"
 fi
 
-# ── Step 3: Build ─────────────────────────────────────
+# ── Step 7: Build ─────────────────────────────────────
 step "Build (zfb build)"
 if (cd "$ROOT_DIR" && pnpm build); then
   pass "Build passed"
@@ -60,7 +110,7 @@ else
   fail "Build"
 fi
 
-# ── Step 4: HTML validation ───────────────────────────
+# ── Step 8: HTML validation ───────────────────────────
 step "HTML validation (html-validate)"
 if [[ "${B4PUSH_SKIP_HTML_VALIDATE:-}" == "1" ]]; then
   skip "HTML validation (B4PUSH_SKIP_HTML_VALIDATE=1)"
@@ -72,7 +122,7 @@ else
   fi
 fi
 
-# ── Step 5: Link check ───────────────────────────────
+# ── Step 9: Link check ───────────────────────────────
 step "Link check (check:links)"
 if [[ "${B4PUSH_SKIP_LINK_CHECK:-}" == "1" ]]; then
   skip "Link check (B4PUSH_SKIP_LINK_CHECK=1)"
