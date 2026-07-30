@@ -39,14 +39,18 @@ pages/[locale]/docs/[[...slug]].tsx
 # @takazudo/zudo-doc via theme.css / content.css / features.css.
 src/styles/global.css
 
-# ── Wide home page override (origin of the family-wide pattern) ───────────
-# pages/index.tsx is reconstructed (no longer the locked 1-line re-export of
-# @takazudo/zudo-doc/routes/index) to render HomePageView with `wide`, matching
-# the zudo-doc showcase. zudo-doc still has no config toggle for the wide home
-# grid; upstream request: https://github.com/zudolab/zudo-doc/issues/2959.
-# This repo is where the pattern originated (css-wisdom PR #182) and the sibling
-# wisdom repos carry the same divergence.
-pages/index.tsx
+# ── (retired) Wide home page override ─────────────────────────────────────
+# `pages/index.tsx` used to be listed here: it was a hand-reconstructed route
+# rendering HomePageView with `wide`, because zudo-doc 4.2.1 exposed no config
+# toggle for the wide home grid. The pattern originated in this repo
+# (css-wisdom PR #182) and upstream tracked it as zudolab/zudo-doc#2959.
+#
+# zudo-doc 4.4.x ships `home: { wide?: boolean }`, read by BOTH the
+# package-owned root and locale index routes, so the override is gone:
+# pages/index.tsx is back to the stock 1-line re-export (and the sibling
+# pages/[locale]/index.tsx override was deleted outright). The entry is
+# deliberately NOT replaced — the file is now template-identical and the drift
+# check actively verifies that.
 
 # ── tsconfig.json: load-bearing, do NOT adopt the template version ────────
 # The template ships a 3-line config that `extends
