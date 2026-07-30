@@ -27,27 +27,49 @@
  *   1. FAIL on any `_category_.json` under src/. Upstream retired the sidecar in
  *      favour of index.mdx frontmatter; any remaining file is dead weight that
  *      reads as configuration but is silently ignored.
- *   2. FAIL when a `headerNav` entry targets a page with
- *      `category_no_page: true`. Suppressing a category that the header links to
- *      turns that link into a site-wide 404, and zfb's `--strict-broken` does
- *      NOT catch it (measured on the zfb docs site).
+ *   2. FAIL when a `headerNav` entry targets a page with `category_no_page:
+ *      true`, in the default locale OR in any configured locale. Suppressing a
+ *      category the header links to turns that link into a site-wide 404, and
+ *      zfb's `--strict-broken` does NOT catch it.
  *
- * Unresolvable headerNav paths are reported as warnings, not failures — the
- * path→file resolution below is a heuristic and must never fail a build on its
- * own uncertainty.
+ * ── A NOTE ON SELF-DEFEAT ─────────────────────────────────────────────────
+ * The first version of this script printed a green OK on a repo where it had
+ * parsed ZERO nav entries, because that repo declares `headerNav` in
+ * src/config/settings.ts and spreads it into zfb.config.ts — so the regex found
+ * nothing and "checked everything successfully" was indistinguishable from
+ * "checked nothing". A guard against silent false-greens that itself
+ * false-greens is worse than no guard, because it manufactures confidence.
+ *
+ * Two rules follow, and both must be preserved by anyone editing this file:
+ *   - ALWAYS report the counts actually inspected (sidecars scanned, nav entries
+ *     parsed, locales considered). A reader must be able to see "0 checked".
+ *   - Treat "found no headerNav at all" as a WARNING worth printing loudly, not
+ *     as success. Absence of findings is not evidence of correctness.
+ *
+ * Unresolvable nav paths are warnings, not failures — the path→file resolution
+ * is a heuristic and must not fail a build on its own uncertainty.
  *
  * Usage: node scripts/check-category-meta.mjs
  * Exit:  0 = OK (warnings allowed), 1 = violations found
  */
 
 import { readFile, readdir, access } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+// fileURLToPath, not .pathname — the latter keeps percent-escapes, so a checkout
+// under a path with spaces or non-ASCII silently resolves to a directory that
+// does not exist, walk() swallows the ENOENT, and the script exits 0 having
+// scanned nothing.
+const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/[/\\]$/, "");
 const SRC = join(ROOT, "src");
 const CONFIG = join(ROOT, "zfb.config.ts");
+// headerNav may live directly in zfb.config.ts or in a settings module that the
+// config spreads. Both shapes exist across the wisdom repos.
+const CONFIG_SOURCES = [CONFIG, join(ROOT, "src", "config", "settings.ts")];
 
 const SKIP_DIRS = new Set(["node_modules", ".git", "dist", ".astro", ".zfb", ".zfb-build"]);
+const PAGE_EXTS = [".mdx", ".md"];
 
 async function exists(p) {
   try {
@@ -82,14 +104,22 @@ function frontmatter(source) {
   return m ? m[1] : "";
 }
 
+/**
+ * YAML truthiness for `category_no_page`. Accepts the spellings a YAML parser
+ * treats as true — `true`, `True`, `TRUE`, `yes`, `on` — and tolerates a
+ * trailing `# comment`. The original `:\s*true\s*$` form missed all of these
+ * and false-greened on exactly the dead nav link this check exists to catch.
+ */
 function hasNoPage(fm) {
-  return /^\s*category_no_page\s*:\s*true\s*$/m.test(fm);
+  const m = fm.match(/^\s*category_no_page\s*:\s*([^#\r\n]*)/m);
+  if (!m) return false;
+  return /^(true|yes|on)$/i.test(m[1].trim());
 }
 
 /**
- * Pull `path:` values out of the `headerNav: [ ... ]` array in zfb.config.ts.
- * Regex rather than a TS parse: the config is a plain literal in every wisdom
- * repo, and this script must stay dependency-free.
+ * Pull `path:` values out of a `headerNav: [ ... ]` array. Regex rather than a
+ * TS parse: the configs are plain literals and this script stays dependency-free.
+ * Returns [] when the file declares no headerNav.
  */
 function parseHeaderNav(source) {
   const start = source.indexOf("headerNav:");
@@ -109,8 +139,7 @@ function parseHeaderNav(source) {
     }
   }
   if (end === -1) return [];
-  const block = source.slice(open, end);
-  return [...block.matchAll(/path\s*:\s*["'`]([^"'`]+)["'`]/g)].map((m) => m[1]);
+  return [...source.slice(open, end).matchAll(/path\s*:\s*["'`]([^"'`]+)["'`]/g)].map((m) => m[1]);
 }
 
 function parseDocsDir(source) {
@@ -123,12 +152,55 @@ function parseBase(source) {
   return m ? m[1] : "/";
 }
 
+/**
+ * Parse `locales: { ja: { label: "JA", dir: "src/content/docs-ja" }, ... }`.
+ * A locale-only `category_no_page` suppresses that locale's route while the
+ * localized header link survives — the headline failure mode, and one the
+ * default-docsDir-only resolution was completely blind to.
+ */
+function parseLocales(source) {
+  const start = source.indexOf("locales:");
+  if (start === -1) return [];
+  const open = source.indexOf("{", start);
+  if (open === -1) return [];
+  let depth = 0;
+  let end = -1;
+  for (let i = open; i < source.length; i++) {
+    if (source[i] === "{") depth++;
+    else if (source[i] === "}") {
+      depth--;
+      if (depth === 0) {
+        end = i;
+        break;
+      }
+    }
+  }
+  if (end === -1) return [];
+  const block = source.slice(open, end);
+  return [...block.matchAll(/(\w+)\s*:\s*\{[^}]*?\bdir\s*:\s*["']([^"']+)["']/g)].map((m) => ({
+    locale: m[1],
+    dir: m[2],
+  }));
+}
+
 const failures = [];
 const warnings = [];
+const notes = [];
 
 // ── Check 1: no _category_.json sidecars ──────────────────────────────────
 const srcFiles = await walk(SRC);
-const sidecars = srcFiles.filter((f) => f.endsWith("/_category_.json"));
+// sep-aware so this also matches on Windows backslash paths.
+const sidecars = srcFiles.filter(
+  (f) => f.endsWith(`${sep}_category_.json`) || f.endsWith("/_category_.json"),
+);
+
+if (srcFiles.length === 0) {
+  warnings.push(
+    `[EMPTY-SCAN] no files found under ${relative(ROOT, SRC)}/ — the sidecar ` +
+      `check inspected nothing. Verify the repo layout; this is not a pass.`,
+  );
+}
+notes.push(`scanned ${srcFiles.length} source file(s) under ${relative(ROOT, SRC)}/`);
 
 for (const f of sidecars) {
   failures.push(
@@ -140,62 +212,106 @@ for (const f of sidecars) {
 }
 
 // ── Check 2: headerNav must not target a suppressed category ──────────────
-if (await exists(CONFIG)) {
-  const configSource = await readFile(CONFIG, "utf-8");
-  const navPaths = parseHeaderNav(configSource);
-  const docsDir = parseDocsDir(configSource);
-  const base = parseBase(configSource);
+let navPaths = [];
+let navSource = null;
+let docsDir = "src/content/docs";
+let base = "/";
+let locales = [];
 
-  for (const navPath of navPaths) {
-    // Strip the configured base prefix, then the leading route segment
-    // (`/docs`), leaving the docsDir-relative slug.
-    let slug = navPath;
-    if (base && base !== "/" && slug.startsWith(base)) slug = slug.slice(base.length);
-    slug = slug.replace(/^\/+/, "").replace(/\/+$/, "");
-    if (slug === "docs") slug = "";
-    else if (slug.startsWith("docs/")) slug = slug.slice("docs/".length);
+for (const candidate of CONFIG_SOURCES) {
+  if (!(await exists(candidate))) continue;
+  const source = await readFile(candidate, "utf-8");
+  if (docsDir === "src/content/docs") docsDir = parseDocsDir(source);
+  if (base === "/") base = parseBase(source);
+  if (locales.length === 0) locales = parseLocales(source);
+  const found = parseHeaderNav(source);
+  if (found.length > 0 && navPaths.length === 0) {
+    navPaths = found;
+    navSource = candidate;
+  }
+}
 
-    const candidates = slug
-      ? [join(ROOT, docsDir, slug, "index.mdx"), join(ROOT, docsDir, `${slug}.mdx`)]
-      : [join(ROOT, docsDir, "index.mdx")];
+if (navPaths.length === 0) {
+  warnings.push(
+    `[NO-NAV] no headerNav entries found in ${CONFIG_SOURCES.map((c) => relative(ROOT, c)).join(" or ")}. ` +
+      `The headerNav→suppressed-category check inspected ZERO links. If this ` +
+      `site does define a header nav, it is declared somewhere this script does ` +
+      `not look and the check is a no-op — fix the canonical script in ` +
+      `wisdom-tweaker/shared/scripts/ rather than ignoring this warning.`,
+  );
+} else {
+  notes.push(
+    `parsed ${navPaths.length} headerNav entr(ies) from ${relative(ROOT, navSource)}`,
+  );
+}
+notes.push(
+  locales.length > 0
+    ? `checking ${locales.length + 1} locale dir(s): ${docsDir}, ${locales.map((l) => l.dir).join(", ")}`
+    : `checking 1 locale dir: ${docsDir}`,
+);
 
+/** Candidate source files for a nav slug within one content dir. */
+function candidatesFor(dir, slug) {
+  const out = [];
+  for (const ext of PAGE_EXTS) {
+    if (slug) {
+      out.push(join(ROOT, dir, slug, `index${ext}`));
+      out.push(join(ROOT, dir, `${slug}${ext}`));
+    } else {
+      out.push(join(ROOT, dir, `index${ext}`));
+    }
+  }
+  return out;
+}
+
+for (const navPath of navPaths) {
+  let slug = navPath;
+  if (base && base !== "/" && slug.startsWith(base)) slug = slug.slice(base.length);
+  slug = slug.replace(/^\/+/, "").replace(/\/+$/, "");
+  if (slug === "docs") slug = "";
+  else if (slug.startsWith("docs/")) slug = slug.slice("docs/".length);
+
+  // Check the default locale and every configured locale — a suppressed JA
+  // page behind a surviving JA header link is just as much a 404.
+  const targets = [{ locale: "(default)", dir: docsDir }, ...locales];
+  let resolvedAnywhere = false;
+
+  for (const t of targets) {
     let resolved = null;
-    for (const c of candidates) {
+    for (const c of candidatesFor(t.dir, slug)) {
       if (await exists(c)) {
         resolved = c;
         break;
       }
     }
+    if (!resolved) continue;
+    resolvedAnywhere = true;
 
-    if (!resolved) {
-      warnings.push(
-        `[UNRESOLVED] headerNav "${navPath}" — could not resolve to a source ` +
-          `file under ${docsDir}/. Verify the link manually; this check could ` +
-          `not.`,
-      );
-      continue;
-    }
-
-    const fm = frontmatter(await readFile(resolved, "utf-8"));
-    if (hasNoPage(fm)) {
+    if (hasNoPage(frontmatter(await readFile(resolved, "utf-8")))) {
       failures.push(
-        `[NAV-404] headerNav "${navPath}" targets ${relative(ROOT, resolved)}, ` +
-          `which sets category_no_page: true. That page is never emitted, so ` +
-          `the header link 404s site-wide. Remove the nav entry or drop ` +
-          `category_no_page.`,
+        `[NAV-404] headerNav "${navPath}" targets ${relative(ROOT, resolved)} ` +
+          `(locale ${t.locale}), which sets category_no_page. That page is ` +
+          `never emitted, so the header link 404s. Remove the nav entry or ` +
+          `drop category_no_page.`,
       );
     }
   }
-} else {
-  warnings.push(`[NO-CONFIG] ${relative(ROOT, CONFIG)} not found — headerNav check skipped.`);
+
+  if (!resolvedAnywhere) {
+    warnings.push(
+      `[UNRESOLVED] headerNav "${navPath}" — no source file found in any ` +
+        `content dir. Verify this link manually; the check could not.`,
+    );
+  }
 }
 
 // ── Report ────────────────────────────────────────────────────────────────
+// Counts always print, so "checked nothing" can never masquerade as "all good".
+for (const n of notes) console.log(`  · ${n}`);
 for (const w of warnings) console.warn(`  ⚠️  ${w}`);
 
 if (failures.length === 0) {
-  const scanned = sidecars.length === 0 ? "no sidecars" : `${sidecars.length} sidecars`;
-  console.log(`OK — category metadata check passed (${scanned}).`);
+  console.log(`OK — category metadata check passed (${sidecars.length} sidecar(s) found).`);
   process.exit(0);
 }
 

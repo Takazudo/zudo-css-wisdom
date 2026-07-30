@@ -30,10 +30,19 @@ const __dirname = dirname(__filename);
 const ROOT_DIR = resolve(__dirname, "..");
 const ROOT_PKG_PATH = resolve(ROOT_DIR, "package.json");
 
+// CANONICAL COPY: wisdom-tweaker/shared/scripts/. Distributed verbatim to every
+// *-wisdom repo. Edit here, then re-sync — do not patch a single repo's copy.
+//
+// zfb-md-wasm belongs in this list: it is versioned in lockstep with the rest of
+// the zfb family and zudo-doc peer-requires it at the same range. It was omitted
+// originally, so a stale md-wasm passed the guard silently — which is exactly
+// the failure this check exists to prevent, and it went unnoticed until the
+// family moved off next.89.
 const ZFB_PACKAGES = [
   "@takazudo/zfb",
   "@takazudo/zfb-runtime",
   "@takazudo/zfb-adapter-cloudflare",
+  "@takazudo/zfb-md-wasm",
 ];
 
 const ZUDO_DOC_PACKAGES = [
