@@ -95,3 +95,24 @@ tsconfig.json
 # knows nothing about. Adopting the template would rename the skill and break
 # the symlink in ~/.claude/skills/.
 scripts/setup-doc-skill.sh
+
+# ── Host brand favicons: do NOT adopt the template set ────────────────────
+# zudo-doc 5.0.0 added a default favicon set to the base template
+# (favicon.ico + 16x16/32x32 PNGs + favicon.svg) and emits the SVG link
+# AHEAD of the .ico/.png entries. The template artwork is a generic purple
+# "Z" placeholder; this repo ships its own orange (#ff9900) "C" mark across
+# all four files, so adopting the template would replace real branding with a
+# placeholder — and because the SVG link comes first, it would win outright.
+#
+# public/favicon.svg is new here: it carries this repo's own "C" artwork, not
+# the template's. It was added precisely so the 5.x SVG-first favicon link
+# resolves to the host brand instead of 404ing.
+#
+# Note for whoever touches these next: public/favicon.ico is not an ICO file —
+# it is SVG markup under a .ico name (`file(1)` reports "SVG Scalable Vector
+# Graphics image"). That predates this migration and is left as-is here rather
+# than fixed silently inside a dependency bump.
+public/favicon.ico
+public/favicon-16x16.png
+public/favicon-32x32.png
+public/favicon.svg

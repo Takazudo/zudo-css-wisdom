@@ -10,15 +10,70 @@ fi
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 ALLOWLIST="$ROOT_DIR/.template-drift-allowlist"
 
-# Templates come from create-zudo-doc installed as a devDependency.
-# The published package ships templates/base/ and templates/features/ so
-# consuming sites can compare their scaffolded files against the generator
-# source without needing a monorepo checkout.
-BASE_DIR="$ROOT_DIR/node_modules/create-zudo-doc/templates/base"
-FEATURES_DIR="$ROOT_DIR/node_modules/create-zudo-doc/templates/features"
+# v5 note: the v4-era sibling this script was ported from reads templates
+# straight out of `node_modules/create-zudo-doc` because that project keeps
+# create-zudo-doc pinned as a devDependency. Here, create-zudo-doc is a
+# one-shot scaffolding CLI (`pnpm create zudo-doc`) and is deliberately NOT a
+# project dependency post-scaffold (see check-pin-parity.mjs), so there is no
+# local copy of its templates to diff against.
+#
+# Resolve the matching release from the registry instead and cache it under
+# node_modules/.cache (already gitignored via the blanket `node_modules`
+# rule), so only the first run needs network access. The expected
+# create-zudo-doc version is derived from the INSTALLED `@takazudo/zudo-doc`
+# version (node_modules, i.e. what the lockfile actually resolved) rather
+# than the package.json range specifier — package.json pins zudo-doc with a
+# caret (`^5.2.0`), so reading the specifier would silently pin the templates
+# to the range's minimum forever, even after a `pnpm up` resolves a newer
+# compatible zudo-doc release. The two packages ship in lockstep (same
+# release train), so this stays correct across future zudo-doc bumps with no
+# edits to this script.
+CREATE_ZUDO_DOC_VERSION=$(node -e "
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const pkgPath = path.join('$ROOT_DIR', 'node_modules/@takazudo/zudo-doc/package.json');
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+  process.stdout.write(pkg.version ?? '');
+" 2>/dev/null)
+
+if [[ -z "$CREATE_ZUDO_DOC_VERSION" ]]; then
+  echo "Error: could not read the installed @takazudo/zudo-doc version from node_modules." >&2
+  echo "  Run 'pnpm install' first." >&2
+  exit 1
+fi
+
+CACHE_ROOT="$ROOT_DIR/node_modules/.cache/create-zudo-doc-templates"
+CACHE_DIR="$CACHE_ROOT/$CREATE_ZUDO_DOC_VERSION"
+BASE_DIR="$CACHE_DIR/templates/base"
+FEATURES_DIR="$CACHE_DIR/templates/features"
 
 if [[ ! -d "$BASE_DIR" ]]; then
-  echo "Error: $BASE_DIR not found. Run 'pnpm install' first." >&2
+  echo "Fetching create-zudo-doc@$CREATE_ZUDO_DOC_VERSION templates (first run only, cached after)..."
+  FETCH_DIR="$(mktemp -d)"
+  trap 'rm -rf "$FETCH_DIR"' EXIT
+
+  if ! (cd "$FETCH_DIR" && npm pack "create-zudo-doc@$CREATE_ZUDO_DOC_VERSION" --silent >/dev/null); then
+    echo "Error: failed to fetch create-zudo-doc@$CREATE_ZUDO_DOC_VERSION from the registry." >&2
+    echo "  (needed to compare host files against their scaffold baseline; check network access)" >&2
+    exit 1
+  fi
+
+  TARBALL="$(find "$FETCH_DIR" -maxdepth 1 -name '*.tgz' -print -quit)"
+  if [[ -z "$TARBALL" ]]; then
+    echo "Error: npm pack did not produce a tarball for create-zudo-doc@$CREATE_ZUDO_DOC_VERSION." >&2
+    exit 1
+  fi
+  tar -xzf "$TARBALL" -C "$FETCH_DIR"
+
+  mkdir -p "$CACHE_ROOT"
+  rm -rf "$CACHE_DIR"
+  mv "$FETCH_DIR/package" "$CACHE_DIR"
+  trap - EXIT
+  rm -rf "$FETCH_DIR"
+fi
+
+if [[ ! -d "$BASE_DIR" ]]; then
+  echo "Error: $BASE_DIR not found after fetching create-zudo-doc@$CREATE_ZUDO_DOC_VERSION." >&2
   exit 1
 fi
 
@@ -70,24 +125,16 @@ done < <(find "$BASE_DIR" -type f -print0 | sort -z)
 
 echo "Checking feature template files..."
 
-# Only check features that were scaffolded for this site.
-#
-# In zudo-doc 4.x nearly every feature (docHistory, llmsTxt, imageEnlarge,
-# sidebarToggle, bodyFootUtil, claudeResources, ...) is package-internal and
-# toggled via the `zudoDoc()` config — those features ship NO host files, so
-# they have no feature template directory. The only create-zudo-doc 4.x
-# feature dirs that inject host files are: i18n, claudeSkills, tauri, tauriDev.
-#
-# This site enables i18n (bilingual EN+JA docs → pages/[locale]/docs stub) and
-# none of claudeSkills / tauri / tauriDev, so only i18n is checked here. Adding
-# an unscaffolded feature would produce spurious [MISSING IN PROD] errors.
-#
-# claudeSkills is deliberately NOT checked even though .claude/skills/ happens
-# to contain zudo-doc-translate / zudo-doc-design-system / zudo-doc-version-bump
-# directories: setup-preset.json does not list claudeSkills among this site's
-# features, and those skill files are host-maintained working documents (they
-# are published as docs through the `claudeResources` config, which is a
-# separate, package-internal feature that ships no host files).
+# Only check features that were scaffolded for this site (see
+# setup-preset.json `features`). create-zudo-doc 5.x ships template-file
+# feature dirs for: i18n, claudeSkills, tauri, tauriDev — everything else
+# (search, sidebarResizer, docHistory, llmsTxt, claudeResources,
+# skillSymlinker, ...) is package-internal and toggled via the `zudoDoc()`
+# config, with no host files to track here. This site enables i18n
+# (bilingual EN+JA docs) and none of claudeSkills / tauri / tauriDev — the
+# skills under .claude/skills/ here are this repo's own hand-written ones, not
+# the scaffolded .claude/skills/zudo-doc-* set. Adding an unscaffolded feature
+# would produce spurious [MISSING IN PROD] errors.
 for feature in i18n; do
   feature_dir="$FEATURES_DIR/$feature"
   files_dir="$feature_dir/files"
