@@ -26,6 +26,12 @@ export default defineConfig(
     locales: {
       ja: { label: "JA", dir: "src/content/docs-ja" },
     },
+    // Home-hero brand mark. MUST be set explicitly: zudo-doc's default is
+    // `"auto"`, a generated SVG seeded by `siteName` that silently replaces
+    // this site's own asset (the W banner settled in 84d2f19). Rendered as a
+    // theme-adaptive CSS mask in `bg-fg`, which is why the source SVG is a
+    // flat `fill:#fff` silhouette.
+    logo: "/img/logo.svg",
     // Wide home grid on `/` and every locale home. Replaces the former
     // hand-reconstructed pages/index.tsx + pages/[locale]/index.tsx, which
     // existed only because zudo-doc 4.2.1 had no toggle for the wide band
