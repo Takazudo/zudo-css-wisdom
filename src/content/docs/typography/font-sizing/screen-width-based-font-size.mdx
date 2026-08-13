@@ -19,7 +19,7 @@ A single `clamp()` cannot express this piecewise scaling. You would need media q
 
 Combine **breakpoint-specific media queries** with **per-range `clamp()` values**. Each breakpoint gets its own `clamp()` that smoothly scales within that range, and the ranges are stitched together so the maximum of one range equals the minimum of the next.
 
-This article builds on [Fluid Font Sizing with clamp()](./fluid-font-sizing). Make sure you understand basic `clamp()` usage before reading further.
+This article builds on [Fluid Font Sizing with clamp()](./fluid-font-sizing.mdx). Make sure you understand basic `clamp()` usage before reading further.
 
 ### The Formula
 
@@ -446,7 +446,7 @@ A real-world example showing a site header with logo text that scales smoothly a
 - **Display headings** in hero sections that require different scaling rates at different viewport ranges
 - **Any element** where a single `clamp()` doesn't give enough control over the scaling curve
 
-Prefer a single `clamp()` (covered in [Fluid Font Sizing](./fluid-font-sizing)) when:
+Prefer a single `clamp()` (covered in [Fluid Font Sizing](./fluid-font-sizing.mdx)) when:
 
 - The scaling range is simple (one min → one max across all viewports)
 - Pixel-precise control at breakpoint boundaries is not required

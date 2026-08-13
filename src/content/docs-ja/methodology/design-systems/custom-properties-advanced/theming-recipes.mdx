@@ -5,7 +5,7 @@ sidebar_position: 2
 
 import CssPreview from '@/components/CssPreview';
 
-CSSカスタムプロパティを使った完全なテーマシステムレシピです。各レシピはプロダクション対応のパターンで、自分のプロジェクトに適応できます。これらのレシピは [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy) で説明されているレイヤードアーキテクチャ — パレットトークン、セマンティックテーマトークン、コンポーネントスコープのオーバーライド — をカスケードと `var()` フォールバックを使って実装しています。
+CSSカスタムプロパティを使った完全なテーマシステムレシピです。各レシピはプロダクション対応のパターンで、自分のプロジェクトに適応できます。これらのレシピは [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy.mdx) で説明されているレイヤードアーキテクチャ — パレットトークン、セマンティックテーマトークン、コンポーネントスコープのオーバーライド — をカスケードと `var()` フォールバックを使って実装しています。
 
 ## ライト/ダークテーマとカスタムプロパティ
 
@@ -239,7 +239,7 @@ CSSカスタムプロパティを使った完全なテーマシステムレシ�
 
 ## Surface/Contentレイヤーパターン
 
-3つの論理レイヤーを定義します — **surface**（背景）、**content**（テキスト）、**accent**（インタラクティブなハイライト）。コンポーネントは生の色ではなくレイヤーを参照するため、ページ全体のテーマ切り替えが簡単になります。これは [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy) の実践例です — 以下のレイヤーは Tier 2（セマンティックテーマトークン）に対応しています。
+3つの論理レイヤーを定義します — **surface**（背景）、**content**（テキスト）、**accent**（インタラクティブなハイライト）。コンポーネントは生の色ではなくレイヤーを参照するため、ページ全体のテーマ切り替えが簡単になります。これは [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy.mdx) の実践例です — 以下のレイヤーは Tier 2（セマンティックテーマトークン）に対応しています。
 
 <CssPreview client:load
   title="Surface / Contentレイヤーパターン"

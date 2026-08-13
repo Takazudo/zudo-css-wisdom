@@ -1289,7 +1289,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 ダークモードは3層システムに自然に適合します。パレット（ティア 1）はそのままです。すべての色はすでに揃っています。ダークモードは、同じセマンティックトークンに対して異なるパレット値を選択する、もう一つのティア 2 マッピングにすぎません。CSS の `light-dark()` 関数を使うと、両方の値を1つの宣言にまとめられるため、特にすっきりと記述できます。
 
-ダークモードのテクニックについて詳しくは、[ダークモード戦略](../dark-mode-strategies/)を参照してください。
+ダークモードのテクニックについて詳しくは、[ダークモード戦略](./dark-mode-strategies.mdx)を参照してください。
 
 <CssPreview client:load
   title="light-dark() によるティア 2 でのダークモード"
@@ -1466,7 +1466,7 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 - **コンポーネントが数個以上あるプロジェクト** — 一貫性が必要になった時点で、3層のオーバーヘッドは元が取れます
 - **マルチテーマまたはホワイトラベル製品** — ティア 2 によりテーマの切り替えが容易になります
 - **デザインシステムやコンポーネントライブラリ** — コンポーネントは生の色ではなくテーマトークンを参照すべきです
-- **ダークモード** — ダークモードはもう一つのティア 2 マッピングにすぎません（[ダークモード戦略](../dark-mode-strategies/)を参照）
+- **ダークモード** — ダークモードはもう一つのティア 2 マッピングにすぎません（[ダークモード戦略](./dark-mode-strategies.mdx)を参照）
 - **段階的な導入** — ティア 1 + 2 から始めて、コンポーネントにスコープ付きカラーが必要になったらティア 3 を追加できます
 
 ### 3層構成が過剰なケース
@@ -1477,13 +1477,13 @@ Tailwind + コンポーネントファーストのプロジェクト（React、V
 
 ## 関連記事
 
-- [カラーパレット戦略](../color-palette-strategy/) — パレットカラー（ティア 1）の選び方と生成方法
+- [カラーパレット戦略](./color-palette-strategy.mdx) — パレットカラー（ティア 1）の選び方と生成方法
 - [OKLCH カラースペース](./oklch-color-space.mdx) — OKLCH がパレットグループ内で知覚的に均等なステップを生み出す理由（グレースケール = ほぼゼロのクロマでの L ランプ、ブランド = 色相固定での明度ランプ）
-- [ダークモード戦略](../dark-mode-strategies/) — ティア 2 のトークン切り替えと連携するダークモードのテクニック
-- [カスタムプロパティ上級編](../../../methodology/design-systems/custom-properties-advanced/) — フォールバックチェーン、スペーストグル、3層パターンを実装するコンポーネント API
-- [テーマレシピ](../../methodology/design-systems/custom-properties-advanced/theming-recipes) — このアーキテクチャを使った本番向けテーマレシピ
-- [カラートークンパターン](../../methodology/design-systems/tight-token-strategy/color-tokens) — Tailwind の `@theme` システムにおける3層トークンの適用
-- [3層フォントサイズ戦略](../../../typography/font-sizing/three-tier-font-size-strategy/) — 同じ3層アーキテクチャをフォントサイズに適用する方法
+- [ダークモード戦略](./dark-mode-strategies.mdx) — ティア 2 のトークン切り替えと連携するダークモードのテクニック
+- [カスタムプロパティ上級編](../../methodology/design-systems/custom-properties-advanced/index.mdx) — フォールバックチェーン、スペーストグル、3層パターンを実装するコンポーネント API
+- [テーマレシピ](../../methodology/design-systems/custom-properties-advanced/theming-recipes.mdx) — このアーキテクチャを使った本番向けテーマレシピ
+- [カラートークンパターン](../../methodology/design-systems/tight-token-strategy/color-tokens.mdx) — Tailwind の `@theme` システムにおける3層トークンの適用
+- [3層フォントサイズ戦略](../../typography/font-sizing/three-tier-font-size-strategy.mdx) — 同じ3層アーキテクチャをフォントサイズに適用する方法
 
 ## 参考資料
 

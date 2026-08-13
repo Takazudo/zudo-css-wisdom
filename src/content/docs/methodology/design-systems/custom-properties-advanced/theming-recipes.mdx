@@ -5,7 +5,7 @@ sidebar_position: 2
 
 import CssPreview from '@/components/CssPreview';
 
-Complete theme system recipes using CSS custom properties. Each recipe is a production-ready pattern you can adapt to your own projects. These recipes implement the layered architecture described in [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy) — palette tokens, semantic theme tokens, and component-scoped overrides — using the cascade and `var()` fallbacks.
+Complete theme system recipes using CSS custom properties. Each recipe is a production-ready pattern you can adapt to your own projects. These recipes implement the layered architecture described in [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy.mdx) — palette tokens, semantic theme tokens, and component-scoped overrides — using the cascade and `var()` fallbacks.
 
 ## Light/Dark Theme with Custom Properties
 
@@ -239,7 +239,7 @@ Expose a set of custom properties as a component's public styling API. Consumers
 
 ## Surface/Content Layer Pattern
 
-Define three logical layers — **surface** (backgrounds), **content** (text), and **accent** (interactive highlights). Components reference layers instead of raw colors, making full-page theme swaps trivial. This is the [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy) in action — the layers below correspond to Tier 2 (semantic theme tokens).
+Define three logical layers — **surface** (backgrounds), **content** (text), and **accent** (interactive highlights). Components reference layers instead of raw colors, making full-page theme swaps trivial. This is the [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy.mdx) in action — the layers below correspond to Tier 2 (semantic theme tokens).
 
 <CssPreview client:load
   title="Surface / Content Layer Pattern"

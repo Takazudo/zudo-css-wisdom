@@ -27,7 +27,7 @@ UI を構築する際、フォントサイズの値を直接使いたくなり�
 
 重要なポイントは、**各ティアはその上のティアのみを参照する**ということです。コンポーネントはテーマトークンを使います。テーマトークンはスケール値を指します。スケールは実際の rem/px 値を保持します。
 
-これは [3層カラー戦略](../../../styling/color/three-tier-color-strategy/)（パレット → テーマ → コンポーネント）と同じアーキテクチャを、フォントサイズに適用したものです。
+これは [3層カラー戦略](../../styling/color/three-tier-color-strategy.mdx)（パレット → テーマ → コンポーネント）と同じアーキテクチャを、フォントサイズに適用したものです。
 
 ## コード例
 
@@ -150,7 +150,7 @@ Tailwind プロジェクトでは、ティア 1 は `@theme` ブロックに配�
 }
 ```
 
-Tailwind の `@theme` 設定の詳細（ペアとなる line-height や weight トークンを含む）については、[タイポグラフィトークンパターン](../../../methodology/design-systems/tight-token-strategy/typography-tokens/)を参照してください。
+Tailwind の `@theme` 設定の詳細（ペアとなる line-height や weight トークンを含む）については、[タイポグラフィトークンパターン](../../methodology/design-systems/tight-token-strategy/typography-tokens.mdx)を参照してください。
 
 ### ティア 2: テーマ
 
@@ -876,7 +876,7 @@ Tailwind v4 プロジェクトでは、3つのティアは既存のパターン�
 }
 ```
 
-これにより `text-xs` から `text-2xl` のユーティリティが使えるようになります。ペアとなる line-height や weight トークンを含む完全な Tailwind 設定については、[タイポグラフィトークンパターン](../../../methodology/design-systems/tight-token-strategy/typography-tokens/)を参照してください。
+これにより `text-xs` から `text-2xl` のユーティリティが使えるようになります。ペアとなる line-height や weight トークンを含む完全な Tailwind 設定については、[タイポグラフィトークンパターン](../../methodology/design-systems/tight-token-strategy/typography-tokens.mdx)を参照してください。
 
 **ティア 2** → `:root` 上の CSS カスタムプロパティ。Tailwind ユーティリティではなく、CSS で使用するセマンティックトークンです。
 
@@ -917,10 +917,10 @@ Tailwind v4 プロジェクトでは、3つのティアは既存のパターン�
 
 ## 関連記事
 
-- [タイポグラフィトークンパターン](../../../methodology/design-systems/tight-token-strategy/typography-tokens/) — Tailwind でのティア 1 の実践的な `@theme` 設定
-- [3層カラー戦略](../../../styling/color/three-tier-color-strategy/) — 同じ3層アーキテクチャをカラーに適用したもの
-- [行の高さのベストプラクティス](../line-height-best-practices/) — タイプスケールに合わせた line-height の選び方
-- [clamp()を使った流体フォントサイズ](../fluid-font-sizing/) — `clamp()` でティア 1 の値をレスポンシブにする方法
+- [タイポグラフィトークンパターン](../../methodology/design-systems/tight-token-strategy/typography-tokens.mdx) — Tailwind でのティア 1 の実践的な `@theme` 設定
+- [3層カラー戦略](../../styling/color/three-tier-color-strategy.mdx) — 同じ3層アーキテクチャをカラーに適用したもの
+- [行の高さのベストプラクティス](./line-height-best-practices.mdx) — タイプスケールに合わせた line-height の選び方
+- [clamp()を使った流体フォントサイズ](./fluid-font-sizing.mdx) — `clamp()` でティア 1 の値をレスポンシブにする方法
 
 ## 参考資料
 

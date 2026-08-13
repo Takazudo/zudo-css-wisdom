@@ -27,7 +27,7 @@ Organize font sizes into **three tiers**, each with a clear purpose:
 
 The key insight: **each tier only references the tier above it**. Components use theme tokens. Theme tokens point to scale values. Scale holds the actual rem/px values.
 
-This is the same architecture as the [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy/) (palette → theme → component), applied to font sizes.
+This is the same architecture as the [Three-Tier Color Strategy](../../styling/color/three-tier-color-strategy.mdx) (palette → theme → component), applied to font sizes.
 
 ## Code Examples
 
@@ -150,7 +150,7 @@ In a Tailwind project, Tier 1 lives in the `@theme` block:
 }
 ```
 
-For detailed Tailwind `@theme` configuration, including paired line-heights and weight tokens, see [Typography Token Patterns](../../../methodology/design-systems/tight-token-strategy/typography-tokens/).
+For detailed Tailwind `@theme` configuration, including paired line-heights and weight tokens, see [Typography Token Patterns](../../methodology/design-systems/tight-token-strategy/typography-tokens.mdx).
 
 ### Tier 2: The Theme
 
@@ -876,7 +876,7 @@ In a Tailwind v4 project, the three tiers map naturally to existing patterns:
 }
 ```
 
-This gives you `text-xs` through `text-2xl` utilities. For the full Tailwind configuration including paired line-heights and weight tokens, see [Typography Token Patterns](../../../methodology/design-systems/tight-token-strategy/typography-tokens/).
+This gives you `text-xs` through `text-2xl` utilities. For the full Tailwind configuration including paired line-heights and weight tokens, see [Typography Token Patterns](../../methodology/design-systems/tight-token-strategy/typography-tokens.mdx).
 
 **Tier 2** → CSS custom properties on `:root`. These are not Tailwind utilities — they are semantic tokens used in your CSS:
 
@@ -917,10 +917,10 @@ Components reference these in their CSS: `font-size: var(--font-heading)`.
 
 ## Related Articles
 
-- [Typography Token Patterns](../../../methodology/design-systems/tight-token-strategy/typography-tokens/) — Practical `@theme` configuration for Tier 1 in Tailwind
-- [Three-Tier Color Strategy](../../../styling/color/three-tier-color-strategy/) — The same three-tier architecture applied to colors
-- [Line Height Best Practices](../line-height-best-practices/) — Choosing line-heights to pair with your type scale
-- [Fluid Font Sizing](../fluid-font-sizing/) — Making Tier 1 values responsive with `clamp()`
+- [Typography Token Patterns](../../methodology/design-systems/tight-token-strategy/typography-tokens.mdx) — Practical `@theme` configuration for Tier 1 in Tailwind
+- [Three-Tier Color Strategy](../../styling/color/three-tier-color-strategy.mdx) — The same three-tier architecture applied to colors
+- [Line Height Best Practices](./line-height-best-practices.mdx) — Choosing line-heights to pair with your type scale
+- [Fluid Font Sizing](./fluid-font-sizing.mdx) — Making Tier 1 values responsive with `clamp()`
 
 ## References
 
