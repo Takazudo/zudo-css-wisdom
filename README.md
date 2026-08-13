@@ -10,12 +10,15 @@ Not official CSS documentation. Written for practical reference and AI-assisted 
 
 ## Topics
 
-- Layout: Flexbox, Grid, positioning, centering, sizing, specialized layouts
-- Typography: Font sizing, fonts, text control
-- Styling: Color, effects, shadows and borders
-- Responsive: Container queries, fluid design, media queries, responsive patterns
-- Interactive: Forms, scroll, selectors, states and transitions
-- Methodology: Architecture (BEM, cascade layers, CSS modules), design systems
+21 flat categories, grouped into 7 header-nav topic items (plus a separate Claude nav item that is not a content category):
+
+- **Overview**: What is zudo-css, css-wisdom skill docs
+- **Layout**: Flexbox & Grid, positioning, sizing, media, document layout
+- **Typography**: Font sizing, fonts, text control
+- **Styling**: Color, effects, shadows and borders
+- **Responsive**: Container queries, fluid design, media queries, responsive patterns
+- **Interactive**: States & transitions, selectors, scroll, accessibility
+- **Methodology**: Architecture (BEM, cascade layers, CSS modules), design tokens, custom properties, design principles
 
 ## Commands
 
