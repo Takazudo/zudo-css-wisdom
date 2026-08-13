@@ -232,19 +232,23 @@
 /ja/docs/typography/text-effects /ja/docs/effects 301
 
 # --- Dynamic: dissolved umbrella / junk-drawer category catch-alls (EN) ---
+# Longer/more-specific prefixes MUST precede their umbrella prefix -- first match
+# wins, so /docs/layout/specialized/* and /docs/typography/text-effects/* would be
+# unreachable dead rules if listed after their broader /docs/layout/* /
+# /docs/typography/* umbrella catch-alls (codex-review finding on #198).
+/docs/layout/specialized/* /docs/document-layout 301
+/docs/typography/text-effects/* /docs/effects 301
 /docs/layout/* /docs/flexbox-and-grid 301
 /docs/typography/* /docs/font-sizing 301
 /docs/styling/* /docs/color 301
 /docs/interactive/* /docs/states-and-transitions 301
 /docs/methodology/* /docs/architecture 301
-/docs/layout/specialized/* /docs/document-layout 301
-/docs/typography/text-effects/* /docs/effects 301
 
 # --- Dynamic: dissolved umbrella / junk-drawer category catch-alls (JA) ---
+/ja/docs/layout/specialized/* /ja/docs/document-layout 301
+/ja/docs/typography/text-effects/* /ja/docs/effects 301
 /ja/docs/layout/* /ja/docs/flexbox-and-grid 301
 /ja/docs/typography/* /ja/docs/font-sizing 301
 /ja/docs/styling/* /ja/docs/color 301
 /ja/docs/interactive/* /ja/docs/states-and-transitions 301
 /ja/docs/methodology/* /ja/docs/architecture 301
-/ja/docs/layout/specialized/* /ja/docs/document-layout 301
-/ja/docs/typography/text-effects/* /ja/docs/effects 301
