@@ -26,7 +26,7 @@ set -euo pipefail
 
 START_TIME=$(date +%s)
 FAILURES=()
-TOTAL_STEPS=10
+TOTAL_STEPS=11
 CURRENT_STEP=0
 
 step() {
@@ -144,6 +144,16 @@ if (cd "$ROOT_DIR" && pnpm check:nav-labels); then
 else
   fail "Nav label guard"
 fi
+# --- redirect coverage (#200) ---
+# Every pre-migration URL from the Flat Category Restructure (epic #196) must
+# still resolve via public/_redirects. Needs dist/ from Step 7's build.
+step "Redirect coverage check (check:redirects)"
+if (cd "$ROOT_DIR" && pnpm check:redirects); then
+  pass "Redirect coverage check passed"
+else
+  fail "Redirect coverage check"
+fi
+# --- end redirect coverage (#200) ---
 
 # ── Summary ──────────────────────────────────────────
 END_TIME=$(date +%s)
