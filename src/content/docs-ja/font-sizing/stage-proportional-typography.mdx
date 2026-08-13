@@ -1,0 +1,210 @@
+---
+title: ステージ比例タイポグラフィ
+sidebar_position: 5
+description: スライドなど固定コンポジションのステージ向け pure-cqi タイプスケール — rem 優位ルールを破るべき場面。
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+スライド、埋め込みプレゼンテーションステージ、固定アスペクト比のプレビューカード — これらは**固定コンポジション**のサーフェスです。デザインはひとつの基準サイズ（例: 1280×720）で作られ、どのサイズで表示されてもその構図の忠実な縮小・拡大であるべきです。ステージ幅の 6.85% で置かれたテキストは、どのサイズでも 6.85% のまま — PowerPoint、reveal.js、Marp の挙動です。
+
+標準的な fluid type のガイダンス — `rem` 項が優位な加算型 `clamp()` トークン（[Container Queries → rem 項を優位に保つ](../responsive/container-queries.mdx#トークンスケールとしてのコンテナクエリ単位-rem項を優位に保つ)参照）— は、これを積極的に壊します。`rem` フロアのせいで、ステージがデザイン幅の一定割合を下回るとテキストが縮まなくなり、狭いステージではキャンバスに対して文字が肥大化し、折り返し、フッターと衝突し、ステージの `overflow: hidden` で切り取られます。
+
+rem 優位トークンを使った実際のスライドシステムでの計測値（タイトルはステージ幅の 6.85% でデザイン）:
+
+| ステージ幅 | タイトルのステージ幅比 |
+| --- | --- |
+| 1280px（デザイン幅） | 6.85% ✓ |
+| 640px | 11.1% |
+| 320px | 19.6% — 約3倍のサイズ、コンテンツはクリップされる |
+
+AI エージェント（そして rem 優位ルール自体）は、あらゆる場所で加算型トークンを推します。ステージにとっては、それは誤ったデフォルトです。
+
+## 解決策
+
+固定コンポジションのステージ内では、タイプスケールを**ステージに純粋比例**させます。各トークンはデザイン幅のピクセルサイズから導出した素の `cqi` 値にします。
+
+```
+preferred-cqi = design-px / (design-width-px / 100)
+```
+
+デザイン幅 1280px の場合、1cqi = 12.8px:
+
+```css
+.slide-stage {
+  container-type: inline-size;
+
+  /* デザイン幅 1280px で 25.6px -> どの幅でも 2cqi */
+  --type-base:    max(0.3rem, 2cqi);
+  --type-lg:      max(0.396rem, 2.6375cqi);
+  --type-display: max(1.028rem, 6.85cqi);   /* 87.68px @ 1280 */
+}
+```
+
+意図的なポイントが2つ:
+
+- **max キャップなし。** プロジェクター級の大きなステージでも拡大し続けるべき — 比例は両方向の契約です。
+- **`max()` の小さなフロアは可読性用であって、デザイン用ではない。** フロアは極端に小さいコンテナでもテキストが描画可能であるためだけに存在し、デザインが想定するどのサイズよりも十分小さくなければなりません。
+
+### 均一フロアのテクニック
+
+トークンごとに恣意的なフロアを与えると、フロアが*異なる*ステージ幅で発動し、タイプ階層が不均一に潰れます（display がまだ縮んでいるのに本文が固まる、あるいはその逆）。代わりに、すべてのフロアを**同じ最小ステージ幅**から導出します:
+
+```
+floor-rem = preferred-cqi × (min-stage-px / 100) / 16
+```
+
+`min-stage-px = 240` なら、各トークンのフロアは 240px ステージでの比例値になります — すべてのフロアが同時に発動するため、トークン間の相対スケールは最後まで保たれ、240px 未満ではスケール全体が一緒に固定されます。それ以下はサムネイルの領域で、埋め込み側の問題です（タイプを再スタイルするのではなく、サムネイル自体をスケールする）。
+
+### ズームのトレードオフ — 意識的に決める
+
+rem 優位ルールは WCAG 1.4.4 のために存在します。ブラウザの**テキストのみズーム**は `rem` をスケールしますが `cqi` はスケールしないため、pure-cqi タイプはそれを無視します。そしてページ全体ズームが解決してくれると思い込まないこと — **ビューポートにフィットする**ステージでは、ズームすると CSS ピクセルのビューポートが縮み、ステージも一緒に縮むため、cqi 由来のテキストは物理サイズがほぼ変わりません（フロアが変化をもたらすのは、ステージがフロアのしきい値に達したときだけ）。ページ全体ズームでタイプが本当に拡大されるのは、ステージがビューポートフィットではなく固定 CSS ピクセルサイズを持つ場合だけです。つまり比例型への移行は、アクセシビリティのトレードオフを回避するのではなく**受け入れる**ことを意味します — reveal.js、Marp、Google Slides が固定コンポジションのサーフェスで行っているのと同じ選択です。
+
+この決定を書き残してください（トークンファイルのコメントとアーキテクチャドキュメントに）。そして旧契約をアサートするテストがあれば反転させること — さもないと次のコントリビューターがトークンを「修正」して戻してしまいます。
+
+| 戦略 | ステージに比例? | テキストのみズームに反応? | 備考 |
+| --- | --- | --- | --- |
+| 加算型 rem 優位 `clamp()` | ✗ デザイン幅の約1/3未満で | ✓ | フローするページ内のカード/ウィジェットには正解 — デフォルトルール |
+| **pure cqi + 均一フロア** | ✓ | ✗（フロアのみ） | 固定コンポジションのステージには正解 |
+| ステージ `font-size: Ncqi` + `em` スケール | ✓ 単一の共有フロアまで | ✗ | ノブは1つだが、1つのフロアが全サイズを同時に壊す |
+| 固定 px キャンバスの `transform: scale()` | ✓（ヘアラインまで全部） | ✗ | DOM ネイティブなサイズ指定を放棄。テキストがぼやけうる |
+
+<CssPreview client:load
+  title="rem-dominant vs pure-cqi type in a slide stage — drag the stage narrower"
+  html={`
+    <div class="stage-demo">
+      <p class="stage-demo__hint">Drag the resize handle (bottom-right of each stage) narrower and compare.</p>
+      <p class="stage-demo__label">Additive rem-dominant tokens — text stops shrinking, composition breaks</p>
+      <div class="stage-demo__stage stage-demo__stage--rem">
+        <p class="stage-demo__kicker">03 — Direction</p>
+        <p class="stage-demo__title">Built to be extended</p>
+        <p class="stage-demo__body">Extensibility is a design prerequisite, not an afterthought.</p>
+      </div>
+      <p class="stage-demo__label">Pure cqi tokens — a faithful miniature at every width</p>
+      <div class="stage-demo__stage stage-demo__stage--cqi">
+        <p class="stage-demo__kicker">03 — Direction</p>
+        <p class="stage-demo__title">Built to be extended</p>
+        <p class="stage-demo__body">Extensibility is a design prerequisite, not an afterthought.</p>
+      </div>
+    </div>
+    `}
+  css={`
+    .stage-demo {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .stage-demo__hint {
+      font-size: 12px;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 10px;
+    }
+
+    .stage-demo__label {
+      font-size: 12px;
+      font-weight: 600;
+      color: hsl(215, 15%, 45%);
+      margin: 0 0 6px;
+    }
+
+    .stage-demo__stage {
+      container-type: inline-size;
+      resize: horizontal;
+      overflow: hidden;
+      width: min(480px, 100%);
+      min-width: 140px;
+      max-width: 100%;
+      aspect-ratio: 16 / 9;
+      background: white;
+      border: 1px solid hsl(215, 25%, 80%);
+      border-radius: 6px;
+      padding: 4cqi 5cqi;
+      margin-bottom: 16px;
+      color: hsl(220, 25%, 15%);
+    }
+
+    /* Additive rem-dominant tokens (the flowing-page default) */
+    .stage-demo__stage--rem {
+      --type-sm: clamp(0.95rem, 0.85rem + 0.55cqi, 1.3rem);
+      --type-display: clamp(2.4rem, 2.1rem + 1.7cqi, 3.5rem);
+      --type-lg: clamp(1.2rem, 1.05rem + 0.8cqi, 1.7rem);
+    }
+
+    /* Pure cqi with uniform floors (min stage 240px) */
+    .stage-demo__stage--cqi {
+      --type-sm: max(0.3rem, 1.6cqi);
+      --type-display: max(0.9rem, 4.8cqi);
+      --type-lg: max(0.5rem, 2.6cqi);
+    }
+
+    .stage-demo__kicker {
+      font-size: var(--type-sm);
+      font-weight: 700;
+      color: hsl(224, 70%, 52%);
+      margin: 0;
+    }
+
+    .stage-demo__title {
+      font-size: var(--type-display);
+      font-weight: 800;
+      line-height: 1.2;
+      margin: 0.4em 0 0;
+    }
+
+    .stage-demo__body {
+      font-size: var(--type-lg);
+      color: hsl(215, 15%, 40%);
+      line-height: 1.5;
+      margin: 0.5em 0 0;
+    }
+    `}
+  height={560} />
+
+## 比例性を決定的に検証する
+
+「だいたい良さそう」は rem フロアが忍び戻ってくる入口です。不変条件は検証可能です: **描画されたフォントサイズ ÷ ステージ幅は定数**。2つ以上の幅でアサートします（フロアが発動しないよう、均一フロア幅より上に保つ）:
+
+```ts
+// Playwright: title designed at 6.85% of stage width
+for (const width of [1600, 480]) {
+  await page.setViewportSize({ width, height: 900 });
+  const stage = (await page.locator('.slide-stage').boundingBox())!.width;
+  const font = await page
+    .locator('.slide-title')
+    .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(font / stage).toBeCloseTo(0.0685, 3);
+}
+```
+
+鏡像のテストも重要です。コードベースが以前 rem 優位契約（「フォントはコンテナより*少なく*縮む」）をアサートしていたなら、そのテストはトークン変更と同じコミットで反転させる必要があります。さもないと CI が移行をブロックします。
+
+## AI がよくやる間違い
+
+- **ステージ内で rem 優位ルールを適用する**: rem 比率 60% ルールはフローするページ内のコンポーネント用。固定コンポジションのステージ内では、小さいステージで2〜3倍の過大テキストと `overflow: hidden` によるクリップを生みます。
+- **ステージ外にステージ比例トークンを適用する**: 逆の間違い。ページのクローム、ツールバー、本文は加算型/rem サイズ指定のまま — pure cqi はステージのサブツリーだけにスコープします。
+- **トークンごとの恣意的なフロア**: 異なるステージ幅で発動するフロアはタイプ階層を不均一に潰します。すべてのフロアをひとつの最小ステージ幅から導出すること。
+- **習慣で max キャップを付ける**: キャップは大きいステージで比例性を再び壊します。ステージは両方向にスケールします。
+- **トークンだけ変えて契約アーティファクトを変えない**: アーキテクチャドキュメント、トークンファイルのコメント、旧挙動をアサートするテストは同じ変更で反転させること。
+- **cqi 係数の導出を暗黙にしたまま移行する**: 各 cqi 係数はデザイン幅の px 値から導出し（`px ÷ (design-width ÷ 100)`）、デザイン幅での描画が移行前後でビット同一になるようにします。
+
+## いつ使うか
+
+- スライドシステム、プレゼンテーションステージ、デッキビューアとそのサムネイル
+- 基準デザインサイズで作られる固定アスペクトの埋め込み（動画オーバーレイのローワーサード、証明書/領収書プレビュー、ソーシャルカードレンダラー）
+- 「ひとつの構図のスケール画像」が正直なメンタルモデルであるあらゆるサーフェス
+
+以下は加算型 rem 優位トークン（[Container Queries](../responsive/container-queries.mdx#トークンスケールとしてのコンテナクエリ単位) のデフォルト）のままにします:
+
+- スケールではなくリフローするカード、ウィジェット、コンポーネント
+- テキストのみズームのアクセシビリティが優先されるフロー文書内のすべて
+- 散文コンテキストの本文
+
+## 参考資料
+
+- [Container Queries — Container Query Units as a Token Scale](../responsive/container-queries.mdx#トークンスケールとしてのコンテナクエリ単位)
+- [Fluid Font Sizing with clamp()](./fluid-font-sizing.mdx)
+- [Container Query Units — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries#container_query_length_units)
+- [reveal.js — Presentation Size](https://revealjs.com/presentation-size/)
+- [WCAG 1.4.4 Resize Text](https://www.w3.org/WAI/WCAG21/Understanding/resize-text.html)

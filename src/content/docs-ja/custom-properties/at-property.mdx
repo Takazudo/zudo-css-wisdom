@@ -1,0 +1,311 @@
+---
+title: "@property（型付きカスタムプロパティ）"
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+標準的なCSSカスタムプロパティは型がなく、ブラウザはそれらを任意の文字列として扱います。つまり、カスタムプロパティのアニメーションやトランジション（例：グラデーションのスムーズなトランジション）ができず、ブラウザが値を検証することもできず、継承の動作を制御することもできません。AIエージェントが`@property`を使うことは稀で、代わりに`@property`なら簡単に実現できるエフェクトに対してJavaScriptアニメーションや複雑な回避策に頼りがちです。
+
+## 解決方法
+
+`@property`アットルールを使うと、CSSカスタムプロパティに型（`syntax`）、初期値、継承の制御を正式に登録できます。プロパティに型が付けられると、ブラウザがそれを補間できるようになり、グラデーション、グラデーション内の色、個別の数値など、これまでアニメーションが不可能だった値のスムーズなトランジションやアニメーションが可能になります。
+
+## コード例
+
+### 基本的な`@property`宣言
+
+```css
+@property --primary-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #2563eb;
+}
+
+@property --card-radius {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 8px;
+}
+
+@property --opacity-level {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+```
+
+### グラデーションのアニメーション
+
+`@property`なしでは、グラデーションのトランジションは瞬時に切り替わります。型付きプロパティを使えば、スムーズな補間が可能になります。
+
+```css
+@property --gradient-start {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #3b82f6;
+}
+
+@property --gradient-end {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #8b5cf6;
+}
+
+.hero-banner {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  transition: --gradient-start 0.6s, --gradient-end 0.6s;
+}
+
+.hero-banner:hover {
+  --gradient-start: #ec4899;
+  --gradient-end: #f59e0b;
+}
+```
+
+### グラデーション角度のアニメーション
+
+```css
+@property --angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.rotating-gradient {
+  background: linear-gradient(var(--angle), #3b82f6, #8b5cf6);
+  animation: rotate-gradient 3s linear infinite;
+}
+
+@keyframes rotate-gradient {
+  to {
+    --angle: 360deg;
+  }
+}
+```
+
+### パーセンテージアニメーションによるプログレスインジケーター
+
+```css
+@property --progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+.progress-ring {
+  background: conic-gradient(
+    #2563eb var(--progress),
+    #e5e7eb var(--progress)
+  );
+  border-radius: 50%;
+  transition: --progress 1s ease-out;
+}
+
+.progress-ring[data-value="75"] {
+  --progress: 75%;
+}
+```
+
+### 型安全なデザイントークン
+
+```css
+@property --spacing-unit {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0.25rem;
+}
+
+@property --brand-hue {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 220;
+}
+
+.design-system {
+  --spacing-unit: 0.25rem;
+  --brand-hue: 220;
+}
+
+.card {
+  padding: calc(var(--spacing-unit) * 4);
+  background: hsl(var(--brand-hue) 90% 95%);
+  border: 1px solid hsl(var(--brand-hue) 60% 70%);
+}
+```
+
+### 継承の制御
+
+```css
+@property --section-bg {
+  syntax: "<color>";
+  inherits: false; /* Does NOT cascade to children */
+  initial-value: transparent;
+}
+
+.section {
+  --section-bg: #f0f9ff;
+  background: var(--section-bg);
+}
+
+/* Nested sections get transparent (initial-value), not the parent's blue */
+.section .section {
+  /* --section-bg is transparent here because inherits: false */
+  background: var(--section-bg);
+}
+```
+
+### サポートされるsyntax型
+
+```css
+/* All supported syntax descriptors */
+@property --a { syntax: "<color>"; inherits: false; initial-value: black; }
+@property --b { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --c { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+@property --d { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --e { syntax: "<integer>"; inherits: false; initial-value: 0; }
+@property --f { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@property --g { syntax: "<time>"; inherits: false; initial-value: 0s; }
+@property --h { syntax: "<resolution>"; inherits: false; initial-value: 1dppx; }
+@property --i { syntax: "<length-percentage>"; inherits: false; initial-value: 0px; }
+@property --j { syntax: "<image>"; inherits: false; initial-value: url(); }
+@property --k { syntax: "<transform-function>"; inherits: false; initial-value: scale(1); }
+@property --l { syntax: "<custom-ident>"; inherits: false; initial-value: none; }
+
+/* Union types */
+@property --m { syntax: "<color> | <length>"; inherits: false; initial-value: black; }
+
+/* Universal (any value, like regular custom properties) */
+@property --n { syntax: "*"; inherits: true; }
+```
+
+## ブラウザサポート
+
+- Chrome 85+
+- Edge 85+
+- Firefox 128+
+- Safari 15.4+
+
+グローバルサポートは93%を超えています。Firefoxは2024年半ばにサポートを追加し、`@property`はすべての主要ブラウザで利用可能になりました。2024年7月時点でBaseline Newly availableです。
+
+## AIがよくやるミス
+
+- グラデーションやカスタムプロパティ値のアニメーション時に`@property`を使わず、スムーズなトランジションの代わりに瞬時の切り替えになる
+- 型付きカスタムプロパティがネイティブに処理できるエフェクトに対して、JavaScriptベースのアニメーション（requestAnimationFrame）を使用する
+- 3つのディスクリプタ（`syntax`、`inherits`、`initial-value`）がすべて必須であることを忘れる（`syntax`が`*`の場合の`initial-value`を除く）
+- プロパティがコンポーネントスコープであるべき場合に`inherits: true`を設定し、意図しないカスケードの漏れを引き起こす
+- `@property`がグラデーションのアニメーションを可能にすることを知らない — これが最もインパクトがあり、最も見落とされるユースケース
+- `@property`の登録をJavaScriptの`CSS.registerProperty()` APIと混同する — 静的な定義にはCSSアットルールが推奨される
+
+## 使い分け
+
+- スムーズなグラデーションのトランジションとアニメーション（最も重要なユースケース）
+- conic/radialグラデーションを使ったアニメーション付きプログレスインジケーター、ローディングスピナー、ビジュアルエフェクト
+- ブラウザがプロパティ値を検証すべき型安全なデザイントークン
+- カスタムプロパティがネストされたコンポーネントにカスケードするのを防ぐための継承制御
+- カスタムプロパティ値の補間が必要なあらゆるアニメーション
+
+## ライブプレビュー
+
+<CssPreview client:load
+  title="@propertyによるグラデーションアニメーション — ホバーで確認"
+  html={`
+    <div class="gradient-box">
+      <span>Hover me</span>
+    </div>
+    <p class="hint">Without @property, gradient transitions snap instantly. With typed properties, colors interpolate smoothly.</p>
+    `}
+  css={`
+    @property --gradient-start {
+      syntax: "<color>";
+      inherits: false;
+      initial-value: #3b82f6;
+    }
+
+    @property --gradient-end {
+      syntax: "<color>";
+      inherits: false;
+      initial-value: #8b5cf6;
+    }
+
+    .gradient-box {
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      transition: --gradient-start 0.6s ease, --gradient-end 0.6s ease;
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .gradient-box:hover {
+      --gradient-start: #ec4899;
+      --gradient-end: #f59e0b;
+    }
+
+    .gradient-box span {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .hint {
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    `} />
+
+<CssPreview client:load
+  title="@propertyによるグラデーション角度の回転"
+  html={`
+    <div class="rotating-gradient"></div>
+    <p class="hint">The --angle property is typed as &lt;angle&gt;, enabling smooth continuous rotation via @keyframes</p>
+    `}
+  css={`
+    @property --angle {
+      syntax: "<angle>";
+      inherits: false;
+      initial-value: 0deg;
+    }
+
+    .rotating-gradient {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: conic-gradient(from var(--angle), #3b82f6, #8b5cf6, #ec4899, #f59e0b, #3b82f6);
+      animation: rotate-gradient 3s linear infinite;
+      box-shadow: 0 4px 24px rgba(59, 130, 246, 0.3);
+    }
+
+    @keyframes rotate-gradient {
+    to {
+      --angle: 360deg;
+    }
+    }
+
+    .hint {
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    `}
+  height={300} />
+
+## 参考リンク
+
+- [@property - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@property)
+- [@property: Next-gen CSS variables now with universal browser support - web.dev](https://web.dev/blog/at-property-baseline)
+- [@property: giving superpowers to CSS variables - web.dev](https://web.dev/at-property)
+- [Providing Type Definitions for CSS with @property - Modern CSS Solutions](https://moderncss.dev/providing-type-definitions-for-css-with-at-property/)
+- [@property - CSS-Tricks](https://css-tricks.com/almanac/rules/p/property/)

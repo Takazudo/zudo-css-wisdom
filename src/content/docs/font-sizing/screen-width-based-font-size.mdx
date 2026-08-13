@@ -1,0 +1,460 @@
+---
+title: Screen-Width Based Font Size Definition
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+Basic `clamp()` typography scales font size linearly across the **entire** viewport range. This works for simple cases, but falls short when you need precise control over how text scales within specific breakpoint ranges. For example, a site logo might need to:
+
+- Stay at 15–24px within the `lg` breakpoint range (1024–1280px)
+- Scale to 24–30px within the `xl` range (1280–1536px)
+- Reach 30–36px in the `2xl` range (1536–1920px)
+
+A single `clamp()` cannot express this piecewise scaling. You would need media queries with fixed sizes, creating jarring jumps — or a single clamp that doesn't precisely hit the sizes you want at each breakpoint boundary.
+
+## The Solution
+
+Combine **breakpoint-specific media queries** with **per-range `clamp()` values**. Each breakpoint gets its own `clamp()` that smoothly scales within that range, and the ranges are stitched together so the maximum of one range equals the minimum of the next.
+
+This article builds on [Fluid Font Sizing with clamp()](./fluid-font-sizing.mdx). Make sure you understand basic `clamp()` usage before reading further.
+
+### The Formula
+
+For a given breakpoint range from `startVw` to `endVw`, scaling font size from `minSize` to `maxSize`:
+
+```
+slope = (maxSize - minSize) / (endVw - startVw)
+intercept = minSize - slope × startVw
+```
+
+This gives you:
+
+```css
+font-size: clamp(minSize, calc(intercept + slope × 1vw), maxSize);
+```
+
+For example, scaling 15px → 24px across the 1024px → 1280px range:
+
+```
+slope = (24 - 15) / (1280 - 1024) = 9 / 256 ≈ 0.03516 (3.516vw)
+intercept = 15 - 0.03516 × 1024 = 15 - 36 ≈ -21px
+```
+
+Result: `clamp(15px, calc(-21px + 3.516vw), 24px)`
+
+**Verification:** At 1024px → `calc(-21 + 0.03516 × 1024)` = `calc(-21 + 36)` = 15px. At 1280px → `calc(-21 + 0.03516 × 1280)` = `calc(-21 + 45)` = 24px.
+
+## Code Examples
+
+### Basic Segmented Fluid Font Size
+
+```css
+.site-title {
+  /* Base: fixed size for small screens */
+  font-size: 15px;
+}
+
+/* lg: 1024px – 1280px → scale 15px to 24px */
+@media (min-width: 1024px) {
+  .site-title {
+    font-size: clamp(15px, calc(-21px + 3.516vw), 24px);
+  }
+}
+
+/* xl: 1280px – 1536px → scale 24px to 30px */
+@media (min-width: 1280px) {
+  .site-title {
+    font-size: clamp(24px, calc(-6px + 2.344vw), 30px);
+  }
+}
+
+/* 2xl: 1536px – 1920px → scale 30px to 36px */
+@media (min-width: 1536px) {
+  .site-title {
+    font-size: clamp(30px, calc(6px + 1.563vw), 36px);
+  }
+}
+```
+
+Note: The demos below use scaled-down breakpoints (320px / 500px / 768px) so the fluid scaling is visible within the preview iframe. The code examples above show production-appropriate breakpoints.
+
+<CssPreview client:load
+  title="Segmented fluid font size — switch between Mobile and Full viewports to see scaling"
+  html={`<div class="seg-demo">
+  <div class="seg-demo__label">Site Title (segmented clamp)</div>
+  <h1 class="seg-demo__title">Takazudo Modular</h1>
+  <div class="seg-demo__info">
+    <p>This title uses different <code>clamp()</code> values at each breakpoint range, giving precise control over scaling behavior.</p>
+  </div>
+  <div class="seg-demo__comparison">
+    <div class="seg-demo__card">
+      <div class="seg-demo__card-label">Base (&lt;320px)</div>
+      <div class="seg-demo__card-value">14px fixed</div>
+    </div>
+    <div class="seg-demo__card">
+      <div class="seg-demo__card-label">320–500px</div>
+      <div class="seg-demo__card-value">14px → 20px</div>
+    </div>
+    <div class="seg-demo__card">
+      <div class="seg-demo__card-label">500–768px</div>
+      <div class="seg-demo__card-value">20px → 28px</div>
+    </div>
+    <div class="seg-demo__card">
+      <div class="seg-demo__card-label">768px+</div>
+      <div class="seg-demo__card-value">28px → 36px</div>
+    </div>
+  </div>
+</div>`}
+  css={`.seg-demo {
+  padding: 2rem;
+  font-family: system-ui, sans-serif;
+}
+.seg-demo__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(0 0% 40%);
+  margin-bottom: 0.25rem;
+}
+.seg-demo__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+  color: hsl(220 30% 15%);
+}
+@media (min-width: 320px) {
+  .seg-demo__title {
+    font-size: clamp(14px, calc(3.3px + 3.333vw), 20px);
+  }
+}
+@media (min-width: 500px) {
+  .seg-demo__title {
+    font-size: clamp(20px, calc(5.1px + 2.985vw), 28px);
+  }
+}
+@media (min-width: 768px) {
+  .seg-demo__title {
+    font-size: clamp(28px, calc(4px + 3.125vw), 36px);
+  }
+}
+.seg-demo__info {
+  margin-bottom: 1.5rem;
+}
+.seg-demo__info p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: hsl(0 0% 35%);
+  margin: 0;
+}
+.seg-demo__info code {
+  background: hsl(220 15% 94%);
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+.seg-demo__comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+.seg-demo__card {
+  background: hsl(220 15% 96%);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+.seg-demo__card-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: hsl(0 0% 40%);
+  margin-bottom: 0.25rem;
+}
+.seg-demo__card-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: hsl(220 50% 40%);
+}`}
+  height={320} />
+
+### Design Token System with Segmented Scaling
+
+Define a reusable token system where each font size step has precise per-breakpoint scaling:
+
+```css
+:root {
+  /* Small screens: fixed base sizes */
+  --font-size-display: 24px;
+  --font-size-title: 20px;
+  --font-size-heading: 18px;
+  --font-size-body: 16px;
+}
+
+/* lg: 1024px – 1280px */
+@media (min-width: 1024px) {
+  :root {
+    --font-size-display: clamp(28px, calc(-4px + 3.125vw), 36px);
+    --font-size-title: clamp(22px, calc(-2px + 2.344vw), 28px);
+    --font-size-heading: clamp(18px, calc(2px + 1.563vw), 22px);
+    --font-size-body: clamp(16px, calc(8px + 0.781vw), 18px);
+  }
+}
+
+/* xl: 1280px – 1536px */
+@media (min-width: 1280px) {
+  :root {
+    --font-size-display: clamp(36px, calc(-24px + 4.688vw), 48px);
+    --font-size-title: clamp(28px, calc(-12px + 3.125vw), 36px);
+    --font-size-heading: clamp(22px, calc(2px + 1.563vw), 26px);
+    --font-size-body: clamp(18px, calc(8px + 0.781vw), 20px);
+  }
+}
+```
+
+<CssPreview client:load
+  title="Design token font sizes — each step scales independently per breakpoint"
+  html={`<div class="token-demo">
+  <div class="token-demo__scale">
+    <div class="token-demo__item">
+      <span class="token-demo__label">--font-size-display</span>
+      <span class="token-demo__text token-demo__text--display">Display Text</span>
+    </div>
+    <div class="token-demo__item">
+      <span class="token-demo__label">--font-size-title</span>
+      <span class="token-demo__text token-demo__text--title">Title Text</span>
+    </div>
+    <div class="token-demo__item">
+      <span class="token-demo__label">--font-size-heading</span>
+      <span class="token-demo__text token-demo__text--heading">Heading Text</span>
+    </div>
+    <div class="token-demo__item">
+      <span class="token-demo__label">--font-size-body</span>
+      <span class="token-demo__text token-demo__text--body">Body text that uses the base font size token for comfortable reading across all viewport sizes.</span>
+    </div>
+  </div>
+</div>`}
+  css={`:root {
+  --font-size-display: 24px;
+  --font-size-title: 20px;
+  --font-size-heading: 18px;
+  --font-size-body: 16px;
+}
+@media (min-width: 320px) {
+  :root {
+    --font-size-display: clamp(24px, calc(10.7px + 4.167vw), 32px);
+    --font-size-title: clamp(20px, calc(11.1px + 2.778vw), 26px);
+    --font-size-heading: clamp(18px, calc(12.7px + 1.667vw), 22px);
+    --font-size-body: clamp(16px, calc(13.3px + 0.833vw), 18px);
+  }
+}
+@media (min-width: 500px) {
+  :root {
+    --font-size-display: clamp(32px, calc(-0.9px + 6.343vw), 50px);
+    --font-size-title: clamp(26px, calc(3.8px + 4.478vw), 38px);
+    --font-size-heading: clamp(22px, calc(7.1px + 2.985vw), 30px);
+    --font-size-body: clamp(18px, calc(11.3px + 1.493vw), 22px);
+  }
+}
+.token-demo {
+  padding: 2rem;
+  font-family: system-ui, sans-serif;
+}
+.token-demo__scale {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.token-demo__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid hsl(0 0% 90%);
+}
+.token-demo__item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.token-demo__label {
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: hsl(220 50% 50%);
+  letter-spacing: 0.02em;
+}
+.token-demo__text {
+  color: hsl(220 30% 15%);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.token-demo__text--display {
+  font-size: var(--font-size-display);
+}
+.token-demo__text--title {
+  font-size: var(--font-size-title);
+}
+.token-demo__text--heading {
+  font-size: var(--font-size-heading);
+}
+.token-demo__text--body {
+  font-size: var(--font-size-body);
+  font-weight: 400;
+  line-height: 1.6;
+}`}
+  height={400} />
+
+### Calculating clamp() Values for Any Range
+
+Here is a step-by-step example for calculating the `clamp()` preferred value for any viewport range.
+
+**Goal:** Scale font from 22px at 1024px viewport to 28px at 1280px viewport.
+
+```
+Step 1: Calculate the slope
+  slope = (28 - 22) / (1280 - 1024)
+        = 6 / 256
+        ≈ 0.02344
+
+Step 2: Calculate the intercept (base offset in px)
+  intercept = minSize - slope × startVw
+            = 22 - 0.02344 × 1024
+            ≈ 22 - 24
+            = -2px
+
+Step 3: Assemble the clamp()
+  font-size: clamp(22px, calc(-2px + 2.344vw), 28px);
+```
+
+**Verification:** At 1024px viewport → `calc(-2 + 0.02344 × 1024)` = `calc(-2 + 24)` = 22px. At 1280px → `calc(-2 + 0.02344 × 1280)` = `calc(-2 + 30)` = 28px.
+
+### Full Page Header Example
+
+A real-world example showing a site header with logo text that scales smoothly across all breakpoints:
+
+<CssPreview client:load
+  title="Site header with segmented fluid logo text — compare Mobile vs Full viewport"
+  html={`<header class="header-demo">
+  <div class="header-demo__inner">
+    <div class="header-demo__logo">
+      <svg class="header-demo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <span class="header-demo__title">Project Dashboard</span>
+    </div>
+    <nav class="header-demo__nav">
+      <a class="header-demo__link" href="#">Docs</a>
+      <a class="header-demo__link" href="#">Blog</a>
+      <a class="header-demo__link" href="#">About</a>
+    </nav>
+  </div>
+</header>
+<main class="header-demo__main">
+  <h1 class="header-demo__heading">Welcome</h1>
+  <p class="header-demo__body">The header logo text above scales smoothly within each breakpoint range using segmented clamp() values. Try switching between Mobile and Full viewports to see the difference.</p>
+</main>`}
+  css={`.header-demo__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: hsl(220 25% 18%);
+  font-family: system-ui, sans-serif;
+}
+.header-demo__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.header-demo__icon {
+  width: 1.5em;
+  height: 1.5em;
+  color: hsl(35 90% 55%);
+  flex-shrink: 0;
+}
+.header-demo__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: hsl(0 0% 100%);
+  white-space: nowrap;
+}
+@media (min-width: 320px) {
+  .header-demo__title {
+    font-size: clamp(14px, calc(3.3px + 3.333vw), 20px);
+  }
+}
+@media (min-width: 500px) {
+  .header-demo__title {
+    font-size: clamp(20px, calc(5.1px + 2.985vw), 28px);
+  }
+}
+@media (min-width: 768px) {
+  .header-demo__title {
+    font-size: clamp(28px, calc(4px + 3.125vw), 36px);
+  }
+}
+.header-demo__nav {
+  display: flex;
+  gap: 1rem;
+}
+.header-demo__link {
+  font-size: 0.875rem;
+  color: hsl(0 0% 75%);
+  text-decoration: none;
+}
+.header-demo__link:hover {
+  color: hsl(0 0% 100%);
+}
+.header-demo__main {
+  padding: 2rem 1.5rem;
+  font-family: system-ui, sans-serif;
+}
+.header-demo__heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: hsl(220 30% 15%);
+  margin: 0 0 0.75rem;
+}
+@media (min-width: 500px) {
+  .header-demo__heading {
+    font-size: clamp(20px, calc(5.1px + 2.985vw), 28px);
+  }
+}
+.header-demo__body {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: hsl(0 0% 35%);
+  margin: 0;
+  max-width: 60ch;
+}`}
+  height={280} />
+
+## Common AI Mistakes
+
+- Using a single `clamp()` across the full viewport range when precise per-breakpoint control is needed — the scaling rate cannot be tuned for different ranges
+- Forgetting to align the `max` of one range with the `min` of the next, causing visible jumps at breakpoint boundaries (e.g., 24px max at lg but 26px min at xl creates a 2px jump)
+- Getting the formula wrong — the denominator is the **viewport range** `(endVw - startVw)`, not `(endVw - minSize)`. Mixing viewport width with font size produces incorrect slopes
+- Using `vw` alone without `calc()` offset — `font-size: 2vw` gives 20px at 1000px viewport but you cannot control where it starts and stops
+- Applying segmented clamp to body text or small UI labels where a single `clamp()` or fixed size is sufficient — this technique is best for display and title text
+- Not verifying the math — always check that `calc(intercept + slope × startVw)` equals your intended minimum size
+
+## When to Use
+
+- **Site logos and brand text** that must hit exact sizes at specific breakpoints
+- **Design token font-size definitions** where each token step needs independent scaling behavior
+- **Display headings** in hero sections that require different scaling rates at different viewport ranges
+- **Any element** where a single `clamp()` doesn't give enough control over the scaling curve
+
+Prefer a single `clamp()` (covered in [Fluid Font Sizing](./fluid-font-sizing.mdx)) when:
+
+- The scaling range is simple (one min → one max across all viewports)
+- Pixel-precise control at breakpoint boundaries is not required
+- You want minimal CSS for straightforward responsive text
+
+## References
+
+- [MDN: clamp()](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/clamp)
+- [Linearly Scale font-size with CSS clamp() — CSS-Tricks](https://css-tricks.com/linearly-scale-font-size-with-css-clamp-based-on-the-viewport/)
+- [Modern Fluid Typography Using CSS Clamp — Smashing Magazine](https://www.smashingmagazine.com/2022/01/modern-fluid-typography-css-clamp/)
+- [Fluid Type Scale Calculator](https://www.fluid-type-scale.com/)

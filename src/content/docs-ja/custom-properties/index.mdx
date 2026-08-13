@@ -1,0 +1,353 @@
+---
+title: 高度なカスタムプロパティ
+sidebar_position: 20
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+CSSカスタムプロパティ（変数）は広く使われていますが、ほとんどの開発者やAIエージェントは表面をなぞるだけにとどまります — `:root`にシンプルな色やサイズのトークンを定義し、`var()`で参照するだけです。スペーストグルトリック、フォールバックチェーン、計算によるプロパティの関連付けといった高度なパターンはほとんど活用されず、条件付きスタイリングに不要なJavaScript、硬直的なテーマシステム、重複した宣言につながります。
+
+## 解決方法
+
+CSSカスタムプロパティは単純な変数の置換よりもはるかに強力です。カスケードに参加し、任意の要素にスコープでき、多段階のフォールバックチェーンをサポートし、スペーストグルトリックと組み合わせることでブーリアンのような条件ロジックを作成できます — すべて純粋なCSSでJavaScriptなしで実現できます。
+
+## コード例
+
+### スペーストグルトリック
+
+スペーストグルは`var()`のフォールバックの仕組みを利用します。カスタムプロパティを単一のスペース（` `）に設定すると有効で「パススルー」し、`initial`に設定するとフォールバック値が使用されます。
+
+```css
+/* The toggle: space = ON, initial = OFF */
+.card {
+  --is-featured: initial; /* OFF by default */
+
+  /* When ON, value becomes " blue"; when OFF, fallback "gray" is used */
+  background: var(--is-featured) blue, gray;
+  color: var(--is-featured) white, #333;
+  border-width: var(--is-featured) 3px, 1px;
+}
+
+.card.featured {
+  --is-featured: ; /* ON (single space) */
+}
+```
+
+### ダークモード用のスペーストグル
+
+```css
+:root {
+  --dark: initial; /* Light mode by default */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dark: ; /* Enable dark mode */
+  }
+}
+
+body {
+  background: var(--dark) #1a1a2e, #ffffff;
+  color: var(--dark) #e0e0e0, #1a1a2e;
+}
+
+.card {
+  background: var(--dark) #2d2d44, #f5f5f5;
+  border-color: var(--dark) #444, #ddd;
+}
+```
+
+### テーマ用のフォールバックチェーン
+
+コンポーネントが段階的に広いデフォルトを確認するレイヤード設定システムを作成します。これは[3層カラー戦略](../color/three-tier-color-strategy.mdx)の背後にあるメカニズムです — コンポーネントトークンはテーマトークンにフォールバックし、テーマトークンはパレット値にフォールバックします。
+
+```css
+.button {
+  /* Check component-specific → theme-level → hardcoded default */
+  background: var(--button-bg, var(--accent-color, #2563eb));
+  color: var(--button-color, var(--accent-contrast, white));
+  padding: var(--button-padding, var(--spacing-sm, 0.5rem 1rem));
+  border-radius: var(--button-radius, var(--radius, 4px));
+}
+
+/* Theme-level override: changes all components using --accent-color */
+.theme-warm {
+  --accent-color: #ea580c;
+  --accent-contrast: white;
+}
+
+/* Component-specific override: changes only buttons */
+.cta-section {
+  --button-bg: #16a34a;
+  --button-color: white;
+}
+```
+
+### コンポーネントバリアント用のスコープ付きカスタムプロパティ
+
+すべてのバリアントに個別のクラスを作成する代わりに、カスタムプロパティをスタイリングAPIとして使用します。
+
+```css
+.badge {
+  --_bg: var(--badge-bg, #e5e7eb);
+  --_color: var(--badge-color, #374151);
+  --_size: var(--badge-size, 0.75rem);
+
+  background: var(--_bg);
+  color: var(--_color);
+  font-size: var(--_size);
+  padding: 0.25em 0.75em;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* Variants set only the custom properties */
+.badge-success {
+  --badge-bg: #dcfce7;
+  --badge-color: #166534;
+}
+
+.badge-error {
+  --badge-bg: #fee2e2;
+  --badge-color: #991b1b;
+}
+```
+
+### `calc()`による計算された関係
+
+```css
+.fluid-type {
+  --min-size: 1;
+  --max-size: 1.5;
+  --min-width: 320;
+  --max-width: 1200;
+
+  font-size: calc(
+    (var(--min-size) * 1rem) +
+    (var(--max-size) - var(--min-size)) *
+    (100vw - var(--min-width) * 1px) /
+    (var(--max-width) - var(--min-width))
+  );
+}
+
+h1 { --min-size: 1.5; --max-size: 3; }
+h2 { --min-size: 1.25; --max-size: 2; }
+```
+
+### CSSとJavaScript間の状態共有
+
+```css
+.progress-bar {
+  --progress: 0;
+
+  width: calc(var(--progress) * 1%);
+  background: hsl(calc(var(--progress) * 1.2) 70% 50%);
+  transition: width 0.3s, background 0.3s;
+}
+```
+
+```html
+<div class="progress-bar" style="--progress: 75"></div>
+
+<script>
+  // Update from JavaScript — CSS handles the visual mapping
+  element.style.setProperty('--progress', newValue);
+</script>
+```
+
+### プライベートカスタムプロパティの命名規則
+
+`--`の後にアンダースコアを付けて、コンシューマーが設定すべきでない「内部」プロパティであることを示します。
+
+```css
+.tooltip {
+  /* Public API */
+  --tooltip-bg: var(--surface-inverse, #1f2937);
+  --tooltip-color: var(--text-inverse, white);
+
+  /* Private (internal computation) */
+  --_arrow-size: 6px;
+  --_offset: calc(100% + var(--_arrow-size) + 4px);
+
+  background: var(--tooltip-bg);
+  color: var(--tooltip-color);
+  transform: translateY(calc(-1 * var(--_offset)));
+}
+```
+
+## ブラウザサポート
+
+- Chrome 49+
+- Firefox 31+
+- Safari 9.1+
+- Edge 15+
+
+カスタムプロパティはほぼユニバーサルなサポート（98%以上）があります。スペーストグルトリックで使用される`initial`キーワードの動作は、カスタムプロパティをサポートするすべてのブラウザで動作します。パフォーマンスを最適にするために、3レベルを超えるフォールバックチェーンは避け、`setProperty()`の呼び出しは`:root`ではなく最も具体的な要素にスコープしましょう。
+
+## AIがよくやるミス
+
+- スペーストグルトリックで処理できるビジュアル状態のトグルにJavaScriptを使用する
+- カスタムプロパティをコンポーネントにスコープする代わりに`:root`にのみ定義する
+- テーマ可能なコンポーネントAPIにフォールバックチェーンを活用しない
+- カスタムプロパティベースのバリアントを使う代わりに、すべてのバリアントに個別のCSSクラスを作成する
+- `calc()`内でカスタムプロパティなしの生の値を使用し、値間の関係を不透明にする
+- フォールバックチェーンを深くネストする（4レベル以上）ことで解決のオーバーヘッドを増やす
+- パブリックとプライベートのカスタムプロパティを区別するための命名規則（`--_`プレフィックスなど）を使用しない
+
+## 使い分け
+
+- フォールバックチェーンによるコンポーネントレベルのオーバーライドを持つテーマシステム
+- スペーストグルトリックによるブーリアンのような条件付きスタイリング（ダークモード、フィーチャーフラグ）
+- コンシューマーがプロパティを設定して外観をカスタマイズするコンポーネントバリアントAPI
+- 値間の計算された関係（レスポンシブサイジング、カラーパレット）
+- クラストグルなしのCSSとJavaScriptの状態橋渡し
+
+## ライブプレビュー
+
+<CssPreview client:load
+  title="スペーストグルトリック"
+  html={`
+    <div class="cards">
+      <div class="card">
+        <h3>Regular Card</h3>
+        <p>Default styling — --is-featured is off (initial)</p>
+      </div>
+      <div class="card featured">
+        <h3>Featured Card</h3>
+        <p>Featured styling — --is-featured is on (space value)</p>
+      </div>
+      <div class="card">
+        <h3>Regular Card</h3>
+        <p>Back to default styling</p>
+      </div>
+    </div>
+    <p class="hint">The .featured class sets <code>--is-featured</code> to a space value, toggling multiple properties at once with zero JavaScript</p>
+    `}
+  css={`
+    .cards {
+      font-family: system-ui, sans-serif;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .card {
+      --is-featured: initial;
+
+      background: var(--is-featured) linear-gradient(135deg, #fbbf24, #f59e0b), #f8fafc;
+      color: var(--is-featured) #78350f, #334155;
+      border: var(--is-featured) 2px solid #f59e0b, 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: transform 0.2s;
+    }
+
+    .card.featured {
+      --is-featured: ;
+      transform: scale(1.05);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
+    }
+
+    .card h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 0.85rem;
+      opacity: 0.8;
+      line-height: 1.5;
+    }
+
+    .hint {
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    code {
+      background: #f1f5f9;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+    `} />
+
+<CssPreview client:load
+  title="コンポーネントのカスタムプロパティAPI"
+  html={`
+    <div class="demo">
+      <div class="badge">Default</div>
+      <div class="badge badge-success">Success</div>
+      <div class="badge badge-error">Error</div>
+      <div class="badge badge-info">Info</div>
+    </div>
+    <p class="hint">Each variant sets only custom properties — the base .badge rule handles all rendering</p>
+    `}
+  css={`
+    .demo {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .badge {
+      --_bg: var(--badge-bg, #f1f5f9);
+      --_color: var(--badge-color, #475569);
+      --_border: var(--badge-border, #e2e8f0);
+
+      background: var(--_bg);
+      color: var(--_color);
+      border: 1px solid var(--_border);
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .badge-success {
+      --badge-bg: #dcfce7;
+      --badge-color: #166534;
+      --badge-border: #86efac;
+    }
+
+    .badge-error {
+      --badge-bg: #fee2e2;
+      --badge-color: #991b1b;
+      --badge-border: #fca5a5;
+    }
+
+    .badge-info {
+      --badge-bg: #dbeafe;
+      --badge-color: #1e40af;
+      --badge-border: #93c5fd;
+    }
+
+    .hint {
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    `} />
+
+## 詳細解説
+
+- [パターンカタログ](./pattern-catalog.mdx) — インタラクティブなデモ付きのCSSカスタムプロパティパターンの包括的なコレクション
+- [テーマレシピ](./theming-recipes.mdx) — ライト/ダークモード、ブランドテーマ、コンポーネントライブラリのための完全なテーマシステムレシピ
+
+## 参考リンク
+
+- [Using CSS custom properties (variables) - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascading_variables/Using_custom_properties)
+- [The CSS Custom Property Toggle Trick - CSS-Tricks](https://css-tricks.com/the-css-custom-property-toggle-trick/)
+- [The --var: ; hack to toggle multiple values with one custom property - Lea Verou](https://lea.verou.me/blog/2020/10/the-var-space-hack-to-toggle-multiple-values-with-one-custom-property/)
+- [A Complete Guide to Custom Properties - CSS-Tricks](https://css-tricks.com/a-complete-guide-to-custom-properties/)
+- [Cyclic Dependency Space Toggles - kizu.dev](https://kizu.dev/cyclic-toggles/)

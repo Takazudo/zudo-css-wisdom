@@ -65,17 +65,17 @@ export default defineConfig(
           items: [
             {
               label: "Tight Token Strategy",
-              href: "/docs/methodology/design-systems/tight-token-strategy",
+              href: "/docs/design-tokens/tight-token-strategy",
               locales: { ja: { label: "タイトトークン戦略" } },
             },
             {
               label: "Component First Strategy",
-              href: "/docs/methodology/architecture/component-first-strategy",
+              href: "/docs/architecture/component-first-strategy",
               locales: { ja: { label: "コンポーネントファースト戦略" } },
             },
             {
               label: "Three-Tier Color Strategy",
-              href: "/docs/styling/color/three-tier-color-strategy",
+              href: "/docs/color/three-tier-color-strategy",
               locales: { ja: { label: "3層カラー戦略" } },
             },
           ],
@@ -83,14 +83,64 @@ export default defineConfig(
       ],
       copyright: `Copyright © ${new Date().getFullYear()} <a href="https://x.com/Takazudo">Takazudo</a>. Built with <a href="https://zudo-doc.takazudomodular.com/">zudo-doc</a>. Enjoy synth on <a href="https://takazudomodular.com/">Takazudo Modular</a>.`,
     },
+    // Grouped nav (epic #196): group parents get `label` + `path` only (path = their
+    // first child's path) and MUST NOT carry `categoryMatch` — getCategoryOrder
+    // (dist/nav-scope/index.js) flattens the parent's match AND every child's into
+    // one list, so a parent repeating its first child's match would double-count
+    // that category. Direct items and every child carry `categoryMatch` equal to
+    // their top-level content directory name.
     headerNav: [
       { label: "Overview", path: "/docs/overview", categoryMatch: "overview" },
-      { label: "Methodology", path: "/docs/methodology", categoryMatch: "methodology" },
-      { label: "Layout", path: "/docs/layout", categoryMatch: "layout" },
-      { label: "Typography", path: "/docs/typography", categoryMatch: "typography" },
-      { label: "Styling", path: "/docs/styling", categoryMatch: "styling" },
+      {
+        label: "Layout",
+        path: "/docs/flexbox-and-grid",
+        children: [
+          { label: "Flexbox & Grid", path: "/docs/flexbox-and-grid", categoryMatch: "flexbox-and-grid" },
+          { label: "Positioning", path: "/docs/positioning", categoryMatch: "positioning" },
+          { label: "Sizing", path: "/docs/sizing", categoryMatch: "sizing" },
+          { label: "Media", path: "/docs/media", categoryMatch: "media" },
+          { label: "Document Layout", path: "/docs/document-layout", categoryMatch: "document-layout" },
+        ],
+      },
+      {
+        label: "Typography",
+        path: "/docs/font-sizing",
+        children: [
+          { label: "Font Sizing", path: "/docs/font-sizing", categoryMatch: "font-sizing" },
+          { label: "Fonts", path: "/docs/fonts", categoryMatch: "fonts" },
+          { label: "Text Control", path: "/docs/text-control", categoryMatch: "text-control" },
+        ],
+      },
+      {
+        label: "Styling",
+        path: "/docs/color",
+        children: [
+          { label: "Color", path: "/docs/color", categoryMatch: "color" },
+          { label: "Effects", path: "/docs/effects", categoryMatch: "effects" },
+          { label: "Shadows & Borders", path: "/docs/shadows-and-borders", categoryMatch: "shadows-and-borders" },
+        ],
+      },
       { label: "Responsive", path: "/docs/responsive", categoryMatch: "responsive" },
-      { label: "Interactive", path: "/docs/interactive", categoryMatch: "interactive" },
+      {
+        label: "Interactive",
+        path: "/docs/states-and-transitions",
+        children: [
+          { label: "States & Transitions", path: "/docs/states-and-transitions", categoryMatch: "states-and-transitions" },
+          { label: "Selectors", path: "/docs/selectors", categoryMatch: "selectors" },
+          { label: "Scroll", path: "/docs/scroll", categoryMatch: "scroll" },
+          { label: "Accessibility", path: "/docs/accessibility", categoryMatch: "accessibility" },
+        ],
+      },
+      {
+        label: "Methodology",
+        path: "/docs/architecture",
+        children: [
+          { label: "Architecture", path: "/docs/architecture", categoryMatch: "architecture" },
+          { label: "Design Tokens", path: "/docs/design-tokens", categoryMatch: "design-tokens" },
+          { label: "Custom Properties", path: "/docs/custom-properties", categoryMatch: "custom-properties" },
+          { label: "Design Principles", path: "/docs/design-principles", categoryMatch: "design-principles" },
+        ],
+      },
       { label: "Claude", path: "/docs/claude", categoryMatch: "claude" },
     ],
     headerRightItems: [

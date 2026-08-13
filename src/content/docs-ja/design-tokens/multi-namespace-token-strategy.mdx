@@ -1,0 +1,953 @@
+---
+title: マルチネームスペーストークン戦略
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+小さなウェブサイトから始まったとします — 記事ページを持つブログです。デザインチームは単一のネームスペースの下にトークンを作成します。
+
+```css
+@theme {
+  /* myweb- namespace: article-focused design */
+  --spacing-myweb-hsp-sm: 20px;
+  --spacing-myweb-hsp-md: 40px;
+  --spacing-myweb-vsp-sm: 24px;
+  --spacing-myweb-vsp-md: 48px;
+
+  --font-size-myweb-body: 1.125rem;
+  --font-size-myweb-h1: 2.5rem;
+  --font-size-myweb-h2: 1.75rem;
+  --font-size-myweb-caption: 0.875rem;
+}
+```
+
+これはうまく機能します。スペーシングは可読性のために余裕を持たせてあり、フォントサイズは長文コンテンツ向けに最適化されています。すべてのコンポーネントが同じデザイン言語を共有しています。
+
+やがてサイトは成長します。ログインページが追加され、続いてユーザー設定パネル、そしてデータテーブルや高密度なツールバー、コンパクトなナビゲーションを持つ管理ダッシュボードが追加されます。管理画面には、より狭いスペーシング、より小さいフォントサイズ、より高密度なレイアウトが必要です — 記事用トークンが提供するものとは正反対です。
+
+ここでありがちな判断は、同じネームスペースにトークンを追加していくことです。
+
+```css
+@theme {
+  /* Original article tokens */
+  --spacing-myweb-hsp-sm: 20px;
+  --spacing-myweb-hsp-md: 40px;
+  --spacing-myweb-vsp-sm: 24px;
+  --spacing-myweb-vsp-md: 48px;
+
+  /* ...now add admin-density tokens into the same namespace */
+  --spacing-myweb-hsp-dense-sm: 8px;
+  --spacing-myweb-hsp-dense-md: 16px;
+  --spacing-myweb-vsp-dense-sm: 6px;
+  --spacing-myweb-vsp-dense-md: 12px;
+
+  --font-size-myweb-body: 1.125rem;
+  --font-size-myweb-body-dense: 0.8125rem;
+  --font-size-myweb-h1: 2.5rem;
+  --font-size-myweb-h1-dense: 1.25rem;
+  --font-size-myweb-h2: 1.75rem;
+  --font-size-myweb-h2-dense: 1rem;
+  --font-size-myweb-caption: 0.875rem;
+  --font-size-myweb-caption-dense: 0.75rem;
+}
+```
+
+トークンセットは倍に膨れ上がります。すべての軸に「記事用」と「高密度用」の両方のバリアントが存在するようになり、開発者はスペーシングを決定するたびに `hsp-sm` と `hsp-dense-sm` のどちらを使うか選ばなければなりません。選択肢を絞り込むために設計されたはずのタイトなトークン戦略が、今では以前の倍の選択肢を提供してしまっています。
+
+サイトにさらにコンテキスト（マーケティングのランディングページ、メールテンプレート、埋め込みウィジェットなど）が加わるにつれて、この問題は悪化していきます。単一のネームスペースがあらゆるデザインコンテキストに対応しようとした結果、トークンセットはバリエーションが膨れ上がったリストになってしまいます。
+
+<CssPreview client:load
+  title="単一ネームスペース: コンテキストが増えるほど膨れ上がるトークン"
+  height={360}
+  html={`    <div class="bloat-demo">
+      <div class="bloat-demo__section">
+        <div class="bloat-demo__label">Single namespace — all contexts mixed</div>
+        <div class="bloat-demo__namespace">myweb-</div>
+      </div>
+      <div class="bloat-demo__grid">
+        <div class="bloat-demo__col">
+          <div class="bloat-demo__col-label">Spacing tokens</div>
+          <div class="bloat-demo__tokens">
+            <code class="bloat-demo__token bloat-demo__token--article">hsp-sm: 20px</code>
+            <code class="bloat-demo__token bloat-demo__token--article">hsp-md: 40px</code>
+            <code class="bloat-demo__token bloat-demo__token--article">vsp-sm: 24px</code>
+            <code class="bloat-demo__token bloat-demo__token--article">vsp-md: 48px</code>
+            <code class="bloat-demo__token bloat-demo__token--admin">hsp-dense-sm: 8px</code>
+            <code class="bloat-demo__token bloat-demo__token--admin">hsp-dense-md: 16px</code>
+            <code class="bloat-demo__token bloat-demo__token--admin">vsp-dense-sm: 6px</code>
+            <code class="bloat-demo__token bloat-demo__token--admin">vsp-dense-md: 12px</code>
+          </div>
+        </div>
+        <div class="bloat-demo__col">
+          <div class="bloat-demo__col-label">Font-size tokens</div>
+          <div class="bloat-demo__tokens">
+            <code class="bloat-demo__token bloat-demo__token--article">body: 1.125rem</code>
+            <code class="bloat-demo__token bloat-demo__token--article">h1: 2.5rem</code>
+            <code class="bloat-demo__token bloat-demo__token--article">h2: 1.75rem</code>
+            <code class="bloat-demo__token bloat-demo__token--article">caption: 0.875rem</code>
+            <code class="bloat-demo__token bloat-demo__token--admin">body-dense: 0.8125rem</code>
+            <code class="bloat-demo__token bloat-demo__token--admin">h1-dense: 1.25rem</code>
+            <code class="bloat-demo__token bloat-demo__token--admin">h2-dense: 1rem</code>
+            <code class="bloat-demo__token bloat-demo__token--admin">caption-dense: 0.75rem</code>
+          </div>
+        </div>
+      </div>
+      <div class="bloat-demo__verdict">8 spacing tokens + 8 font tokens = 16 total. Each new context doubles the count.</div>
+    </div>`}
+  css={`.bloat-demo {
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .bloat-demo__section {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .bloat-demo__label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .bloat-demo__namespace {
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: hsl(215 16% 90%);
+      color: hsl(215 16% 35%);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .bloat-demo__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .bloat-demo__col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .bloat-demo__col-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: hsl(215 16% 47%);
+    }
+    .bloat-demo__tokens {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .bloat-demo__token {
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .bloat-demo__token--article {
+      background: hsl(210 40% 93%);
+      color: hsl(210 50% 35%);
+      border: 1px solid hsl(210 30% 82%);
+    }
+    .bloat-demo__token--admin {
+      background: hsl(30 70% 93%);
+      color: hsl(30 60% 30%);
+      border: 1px solid hsl(30 50% 80%);
+    }
+    .bloat-demo__verdict {
+      font-size: 0.7rem;
+      color: hsl(0 60% 40%);
+      background: hsl(0 80% 95%);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border-left: 3px solid hsl(0 60% 50%);
+      line-height: 1.4;
+    }`} />
+
+## 解決方法
+
+トークンを**別々のネームスペース**に分割します。デザインコンテキストごとに1つです。各ネームスペースは、ちょうど1種類の UI にのみ対応する、絞り込まれた最小限のトークンセットを持ちます。
+
+```css
+/* ── Article/content context ── */
+@theme {
+  --spacing-myweb-hsp-sm: 20px;
+  --spacing-myweb-hsp-md: 40px;
+  --spacing-myweb-vsp-sm: 24px;
+  --spacing-myweb-vsp-md: 48px;
+
+  --font-size-myweb-body: 1.125rem;
+  --font-size-myweb-h1: 2.5rem;
+  --font-size-myweb-h2: 1.75rem;
+  --font-size-myweb-caption: 0.875rem;
+}
+
+/* ── Admin/dashboard context ── */
+@theme {
+  --spacing-myadmin-hsp-sm: 8px;
+  --spacing-myadmin-hsp-md: 16px;
+  --spacing-myadmin-vsp-sm: 6px;
+  --spacing-myadmin-vsp-md: 12px;
+
+  --font-size-myadmin-body: 0.8125rem;
+  --font-size-myadmin-h1: 1.25rem;
+  --font-size-myadmin-h2: 1rem;
+  --font-size-myadmin-caption: 0.75rem;
+}
+```
+
+トークンの総数は同じですが、構造が異なります。
+
+- 各ネームスペースは、ちょうど4つのスペーシングトークンと4つのフォントサイズトークンを持ちます — 単一コンテキストのプロジェクトと同じくらいタイトな制約です
+- 記事ページを担当する開発者は `myweb-` トークンだけを扱います
+- 管理ダッシュボードを担当する開発者は `myadmin-` トークンだけを扱います
+- どのトークンを使うべきかという曖昧さはありません — ネームスペースがコンテキストを教えてくれます
+
+### ファイル構成
+
+別々のネームスペースは、それぞれが独自の CSS ファイルに収まっているときに最も機能します。
+
+```
+styles/
+├── tokens-myweb.css      /* Article/content tokens */
+├── tokens-myadmin.css    /* Admin/dashboard tokens */
+├── tokens-shared.css     /* Color, font-family, breakpoints — shared */
+└── app.css               /* Imports all token files */
+```
+
+すべてのコンテキストに共通する共有トークン（色、フォントファミリー、ブレークポイント）は共有ファイルにまとめます。コンテキスト固有のトークン（スペーシング、フォントサイズ）だけをネームスペースに分割します。
+
+```css
+/* app.css */
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+@import "./tokens-shared.css";
+@import "./tokens-myweb.css";
+@import "./tokens-myadmin.css";
+```
+
+<CssPreview client:load
+  title="分離されたネームスペース: 各コンテキストが独自の絞り込まれたトークンセットを持つ"
+  height={380}
+  html={`    <div class="sep-demo">
+      <div class="sep-demo__section">
+        <div class="sep-demo__label">Separated namespaces — each context is focused</div>
+      </div>
+      <div class="sep-demo__grid">
+        <div class="sep-demo__ns">
+          <div class="sep-demo__ns-header sep-demo__ns-header--article">
+            <span class="sep-demo__ns-name">myweb-</span>
+            <span class="sep-demo__ns-desc">Article / Content</span>
+          </div>
+          <div class="sep-demo__tokens">
+            <code class="sep-demo__token sep-demo__token--article">hsp-sm: 20px</code>
+            <code class="sep-demo__token sep-demo__token--article">hsp-md: 40px</code>
+            <code class="sep-demo__token sep-demo__token--article">vsp-sm: 24px</code>
+            <code class="sep-demo__token sep-demo__token--article">vsp-md: 48px</code>
+            <code class="sep-demo__token sep-demo__token--article">body: 1.125rem</code>
+            <code class="sep-demo__token sep-demo__token--article">h1: 2.5rem</code>
+            <code class="sep-demo__token sep-demo__token--article">h2: 1.75rem</code>
+            <code class="sep-demo__token sep-demo__token--article">caption: 0.875rem</code>
+          </div>
+          <div class="sep-demo__count">8 tokens — clean, focused</div>
+        </div>
+        <div class="sep-demo__ns">
+          <div class="sep-demo__ns-header sep-demo__ns-header--admin">
+            <span class="sep-demo__ns-name">myadmin-</span>
+            <span class="sep-demo__ns-desc">Admin / Dashboard</span>
+          </div>
+          <div class="sep-demo__tokens">
+            <code class="sep-demo__token sep-demo__token--admin">hsp-sm: 8px</code>
+            <code class="sep-demo__token sep-demo__token--admin">hsp-md: 16px</code>
+            <code class="sep-demo__token sep-demo__token--admin">vsp-sm: 6px</code>
+            <code class="sep-demo__token sep-demo__token--admin">vsp-md: 12px</code>
+            <code class="sep-demo__token sep-demo__token--admin">body: 0.8125rem</code>
+            <code class="sep-demo__token sep-demo__token--admin">h1: 1.25rem</code>
+            <code class="sep-demo__token sep-demo__token--admin">h2: 1rem</code>
+            <code class="sep-demo__token sep-demo__token--admin">caption: 0.75rem</code>
+          </div>
+          <div class="sep-demo__count">8 tokens — clean, focused</div>
+        </div>
+      </div>
+      <div class="sep-demo__shared">
+        <div class="sep-demo__shared-label">Shared across both</div>
+        <div class="sep-demo__shared-tokens">
+          <code class="sep-demo__token sep-demo__token--shared">colors</code>
+          <code class="sep-demo__token sep-demo__token--shared">font-family</code>
+          <code class="sep-demo__token sep-demo__token--shared">breakpoints</code>
+        </div>
+      </div>
+      <div class="sep-demo__verdict">Same total tokens, but each context stays tight and unambiguous.</div>
+    </div>`}
+  css={`.sep-demo {
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .sep-demo__section {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sep-demo__label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .sep-demo__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .sep-demo__ns {
+      border: 1px solid hsl(214 32% 91%);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .sep-demo__ns-header {
+      padding: 0.35rem 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sep-demo__ns-header--article {
+      background: hsl(210 40% 93%);
+    }
+    .sep-demo__ns-header--admin {
+      background: hsl(30 60% 93%);
+    }
+    .sep-demo__ns-name {
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: monospace;
+    }
+    .sep-demo__ns-desc {
+      font-size: 0.75rem;
+      color: hsl(215 16% 47%);
+    }
+    .sep-demo__tokens {
+      padding: 0.4rem 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sep-demo__token {
+      font-size: 0.75rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .sep-demo__token--article {
+      background: hsl(210 40% 96%);
+      color: hsl(210 50% 35%);
+    }
+    .sep-demo__token--admin {
+      background: hsl(30 60% 96%);
+      color: hsl(30 60% 30%);
+    }
+    .sep-demo__token--shared {
+      background: hsl(270 30% 94%);
+      color: hsl(270 30% 35%);
+    }
+    .sep-demo__count {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+      color: hsl(142 50% 30%);
+      background: hsl(142 50% 95%);
+      border-top: 1px solid hsl(214 32% 91%);
+    }
+    .sep-demo__shared {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sep-demo__shared-label {
+      font-size: 0.75rem;
+      color: hsl(215 16% 47%);
+      font-weight: 600;
+    }
+    .sep-demo__shared-tokens {
+      display: flex;
+      gap: 4px;
+    }
+    .sep-demo__verdict {
+      font-size: 0.7rem;
+      color: hsl(142 50% 30%);
+      background: hsl(142 50% 93%);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border-left: 3px solid hsl(142 50% 40%);
+      line-height: 1.4;
+    }`} />
+
+## デモ
+
+### ビジュアル対比: 記事 UI と管理画面 UI
+
+同じページの構造を、2つの異なるトークンネームスペースでレンダリングした例です。記事用トークンは余裕のある読みやすいスペーシングを生み出します。管理画面用トークンは高密度で効率的なレイアウトを生み出します。
+
+<CssPreview client:load
+  title="記事コンテキスト (myweb-) vs 管理画面コンテキスト (myadmin-)"
+  height={420}
+  html={`    <div class="ctx-demo">
+      <div class="ctx-demo__col">
+        <div class="ctx-demo__heading">myweb- tokens</div>
+        <div class="ctx-demo__card ctx-demo__card--article">
+          <div class="ctx-demo__card-header ctx-demo__card-header--article">
+            <h2 class="ctx-demo__title ctx-demo__title--article">Getting Started</h2>
+          </div>
+          <div class="ctx-demo__card-body ctx-demo__card-body--article">
+            <p class="ctx-demo__text ctx-demo__text--article">This guide walks through the initial setup process for new users.</p>
+            <div class="ctx-demo__meta ctx-demo__meta--article">
+              <span class="ctx-demo__tag ctx-demo__tag--article">Guide</span>
+              <span class="ctx-demo__tag ctx-demo__tag--article">Setup</span>
+            </div>
+          </div>
+          <div class="ctx-demo__card-footer ctx-demo__card-footer--article">
+            <span class="ctx-demo__caption ctx-demo__caption--article">Updated 2 days ago</span>
+          </div>
+        </div>
+        <div class="ctx-demo__note">Generous spacing for reading comfort</div>
+      </div>
+      <div class="ctx-demo__col">
+        <div class="ctx-demo__heading">myadmin- tokens</div>
+        <div class="ctx-demo__card ctx-demo__card--admin">
+          <div class="ctx-demo__card-header ctx-demo__card-header--admin">
+            <h2 class="ctx-demo__title ctx-demo__title--admin">User Management</h2>
+          </div>
+          <div class="ctx-demo__card-body ctx-demo__card-body--admin">
+            <div class="ctx-demo__table">
+              <div class="ctx-demo__row ctx-demo__row--header">
+                <span>Name</span><span>Role</span><span>Status</span>
+              </div>
+              <div class="ctx-demo__row">
+                <span>Alice</span><span>Admin</span><span class="ctx-demo__status ctx-demo__status--active">Active</span>
+              </div>
+              <div class="ctx-demo__row">
+                <span>Bob</span><span>Editor</span><span class="ctx-demo__status ctx-demo__status--active">Active</span>
+              </div>
+              <div class="ctx-demo__row">
+                <span>Carol</span><span>Viewer</span><span class="ctx-demo__status ctx-demo__status--inactive">Inactive</span>
+              </div>
+            </div>
+          </div>
+          <div class="ctx-demo__card-footer ctx-demo__card-footer--admin">
+            <span class="ctx-demo__caption ctx-demo__caption--admin">3 users total</span>
+          </div>
+        </div>
+        <div class="ctx-demo__note">Tight spacing for data density</div>
+      </div>
+    </div>`}
+  css={`.ctx-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+    }
+    .ctx-demo__col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .ctx-demo__heading {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+      font-family: monospace;
+    }
+    .ctx-demo__card {
+      border: 1px solid hsl(214 32% 91%);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    /* ── Article context ── */
+    .ctx-demo__card-header--article {
+      padding: 24px 20px 0;
+    }
+    .ctx-demo__title--article {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .ctx-demo__card-body--article {
+      padding: 24px 20px;
+    }
+    .ctx-demo__text--article {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin: 0 0 16px 0;
+      color: hsl(215 16% 35%);
+    }
+    .ctx-demo__meta--article {
+      display: flex;
+      gap: 12px;
+    }
+    .ctx-demo__tag--article {
+      font-size: 0.75rem;
+      background: hsl(210 40% 93%);
+      color: hsl(210 50% 35%);
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+    .ctx-demo__card-footer--article {
+      padding: 12px 20px;
+      border-top: 1px solid hsl(214 32% 91%);
+      background: hsl(210 20% 98%);
+    }
+    .ctx-demo__caption--article {
+      font-size: 0.8rem;
+      color: hsl(215 16% 55%);
+    }
+    /* ── Admin context ── */
+    .ctx-demo__card-header--admin {
+      padding: 6px 8px 0;
+    }
+    .ctx-demo__title--admin {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .ctx-demo__card-body--admin {
+      padding: 6px 8px;
+    }
+    .ctx-demo__table {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.7rem;
+    }
+    .ctx-demo__row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      padding: 3px 0;
+      border-bottom: 1px solid hsl(214 32% 93%);
+    }
+    .ctx-demo__row--header {
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: hsl(215 16% 47%);
+    }
+    .ctx-demo__status {
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .ctx-demo__status--active {
+      color: hsl(142 50% 35%);
+    }
+    .ctx-demo__status--inactive {
+      color: hsl(0 50% 50%);
+    }
+    .ctx-demo__card-footer--admin {
+      padding: 4px 8px;
+      border-top: 1px solid hsl(214 32% 91%);
+      background: hsl(210 20% 98%);
+    }
+    .ctx-demo__caption--admin {
+      font-size: 0.75rem;
+      color: hsl(215 16% 55%);
+    }
+    .ctx-demo__note {
+      font-size: 0.75rem;
+      color: hsl(215 16% 47%);
+      font-style: italic;
+    }`} />
+
+### 分割の判断基準: どこで線を引くか
+
+すべてのページのバリエーションに専用のネームスペースが必要なわけではありません。分割が意味を持つのは、スペーシングのリズム、フォントサイズのスケール、密度といったデザインルールが、コンテキスト間で根本的に異なる場合です。
+
+<CssPreview client:load
+  title="同一ネームスペース vs 別ネームスペース: 分割すべきタイミング"
+  height={320}
+  html={`    <div class="split-demo">
+      <div class="split-demo__col">
+        <div class="split-demo__heading">Same namespace is fine</div>
+        <div class="split-demo__card">
+          <div class="split-demo__item">
+            <div class="split-demo__check split-demo__check--same">&#10003;</div>
+            <div class="split-demo__desc">
+              <div class="split-demo__item-title">Blog + About page</div>
+              <div class="split-demo__item-reason">Same reading context, same spacing</div>
+            </div>
+          </div>
+          <div class="split-demo__item">
+            <div class="split-demo__check split-demo__check--same">&#10003;</div>
+            <div class="split-demo__desc">
+              <div class="split-demo__item-title">Product list + Product detail</div>
+              <div class="split-demo__item-reason">Same design language, same density</div>
+            </div>
+          </div>
+          <div class="split-demo__item">
+            <div class="split-demo__check split-demo__check--same">&#10003;</div>
+            <div class="split-demo__desc">
+              <div class="split-demo__item-title">Homepage + Contact page</div>
+              <div class="split-demo__item-reason">Same visual system throughout</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="split-demo__col">
+        <div class="split-demo__heading">Separate namespace helps</div>
+        <div class="split-demo__card">
+          <div class="split-demo__item">
+            <div class="split-demo__check split-demo__check--split">&#9654;</div>
+            <div class="split-demo__desc">
+              <div class="split-demo__item-title">Blog + Admin dashboard</div>
+              <div class="split-demo__item-reason">Different density, different font scale</div>
+            </div>
+          </div>
+          <div class="split-demo__item">
+            <div class="split-demo__check split-demo__check--split">&#9654;</div>
+            <div class="split-demo__desc">
+              <div class="split-demo__item-title">Marketing site + App UI</div>
+              <div class="split-demo__item-reason">Marketing: generous. App: compact.</div>
+            </div>
+          </div>
+          <div class="split-demo__item">
+            <div class="split-demo__check split-demo__check--split">&#9654;</div>
+            <div class="split-demo__desc">
+              <div class="split-demo__item-title">Docs + Data-heavy tools</div>
+              <div class="split-demo__item-reason">Reading vs scanning — opposite needs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`}
+  css={`.split-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+    }
+    .split-demo__col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .split-demo__heading {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .split-demo__card {
+      background: hsl(0 0% 100%);
+      border: 1px solid hsl(214 32% 91%);
+      border-radius: 8px;
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .split-demo__item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .split-demo__check {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .split-demo__check--same {
+      background: hsl(210 40% 93%);
+      color: hsl(210 50% 40%);
+    }
+    .split-demo__check--split {
+      background: hsl(30 60% 93%);
+      color: hsl(30 60% 35%);
+    }
+    .split-demo__desc {
+      min-width: 0;
+    }
+    .split-demo__item-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .split-demo__item-reason {
+      font-size: 0.75rem;
+      color: hsl(215 16% 55%);
+      line-height: 1.3;
+    }`} />
+
+### コンポーネントでのネームスペース利用
+
+各ネームスペースは独自の Tailwind ユーティリティクラスのセットを生成します。特定のコンテキストで作業する開発者は、そのコンテキストのネームスペースプレフィックスだけを使います。
+
+<CssPreview client:load
+  title="Tailwind ユーティリティクラスにおけるネームスペースプレフィックス"
+  height={300}
+  html={`    <div class="usage-demo">
+      <div class="usage-demo__section">
+        <div class="usage-demo__label">Article page component</div>
+        <div class="usage-demo__code">
+          <code>&lt;article class="<span class="usage-demo__hl usage-demo__hl--article">px-myweb-hsp-sm</span> <span class="usage-demo__hl usage-demo__hl--article">py-myweb-vsp-md</span>"&gt;</code>
+          <code>  &lt;h1 class="<span class="usage-demo__hl usage-demo__hl--article">text-myweb-h1</span>"&gt;Title&lt;/h1&gt;</code>
+          <code>  &lt;p class="<span class="usage-demo__hl usage-demo__hl--article">text-myweb-body</span>"&gt;Content...&lt;/p&gt;</code>
+          <code>&lt;/article&gt;</code>
+        </div>
+      </div>
+      <div class="usage-demo__section">
+        <div class="usage-demo__label">Admin dashboard component</div>
+        <div class="usage-demo__code">
+          <code>&lt;div class="<span class="usage-demo__hl usage-demo__hl--admin">px-myadmin-hsp-sm</span> <span class="usage-demo__hl usage-demo__hl--admin">py-myadmin-vsp-sm</span>"&gt;</code>
+          <code>  &lt;h2 class="<span class="usage-demo__hl usage-demo__hl--admin">text-myadmin-h2</span>"&gt;Users&lt;/h2&gt;</code>
+          <code>  &lt;table class="<span class="usage-demo__hl usage-demo__hl--admin">text-myadmin-body</span>"&gt;...&lt;/table&gt;</code>
+          <code>&lt;/div&gt;</code>
+        </div>
+      </div>
+      <div class="usage-demo__note">The namespace prefix acts as built-in documentation — you always know which design context you are in.</div>
+    </div>`}
+  css={`.usage-demo {
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .usage-demo__section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .usage-demo__label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .usage-demo__code {
+      background: hsl(222 47% 11%);
+      color: hsl(210 20% 80%);
+      padding: 0.5rem 0.6rem;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .usage-demo__code code {
+      font-size: 0.75rem;
+      font-family: monospace;
+      line-height: 1.5;
+      white-space: pre;
+    }
+    .usage-demo__hl {
+      font-weight: 700;
+    }
+    .usage-demo__hl--article {
+      color: hsl(210 80% 70%);
+    }
+    .usage-demo__hl--admin {
+      color: hsl(30 80% 70%);
+    }
+    .usage-demo__note {
+      font-size: 0.75rem;
+      color: hsl(142 50% 30%);
+      background: hsl(142 50% 93%);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border-left: 3px solid hsl(142 50% 40%);
+      line-height: 1.4;
+    }`} />
+
+## 共有トークンとコンテキスト固有トークン
+
+すべてのトークンカテゴリがネームスペースの分割を必要とするわけではありません。ルールはこうです — **密度とスケール**（スペーシング、フォントサイズ）を定義するトークンは分割し、**アイデンティティ**（色、フォントファミリー、ボーダー半径）を定義するトークンは共有のままにします。
+
+| トークンカテゴリ | 分割 or 共有? | 理由 |
+| --- | --- | --- |
+| スペーシング (hsp, vsp) | コンテキストごとに分割 | コンテキストが異なれば必要な密度も異なる |
+| フォントサイズ | コンテキストごとに分割 | 記事のテキストとダッシュボードのテキストではスケールが異なる |
+| 色 | 共有 | ブランドアイデンティティはコンテキストをまたいで一貫させる |
+| フォントファミリー | 共有 | タイポグラフィの選択はブランドの意思決定事項 |
+| ボーダー半径 | 共有 | ビジュアルスタイルはコンテキストをまたいで一貫している |
+| ブレークポイント | 共有 | レスポンシブの挙動は同じビューポートのルールに従う |
+| `light-dark()` によるスキーム切り替え | ネームスペースごとの判断 | 画面専用の chrome はデフォルトで使う。印刷優先のネームスペースは使わない |
+
+```css
+/* tokens-shared.css — applies everywhere */
+@theme {
+  --color-brand: oklch(55.5% 0.163 48.998);
+  --color-surface: hsl(0 0% 100%);
+  --color-text: hsl(222 47% 11%);
+  --color-muted: hsl(215 16% 47%);
+  --color-border: hsl(214 32% 91%);
+
+  --font-sans: system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+```
+
+### 印刷優先ネームスペースは `light-dark()` を使わない
+
+パレット自体が共有されている場合でも、1つの色の決定はネームスペースごとに変わります — それは、トークンが `light-dark()` を経由するかどうかです。アプリの chrome 用ネームスペースは画面上でのみレンダリングされるため、パレットはデフォルトで `light-dark()` を使います — 1つのトークンが両方のスキームに対応します。一方、スライドや請求書、証明書のような印刷優先のネームスペースは、画面上と紙の上で同一にレンダリングされる必要があります。印刷パイプラインはライトの `color-scheme` を強制するため、`light-dark()` トークンは紙の上ではライトの値に解決される一方、画面上のプレビューではダークの値が表示されることがあります — プレビューと印刷されたページが食い違ってしまうのです。印刷優先のパレットは、`light-dark()` もスキーム切り替えも使わない、プレーンな値として定義します。
+
+```css
+/* ── App-chrome namespace: screen-only, scheme-aware ── */
+:root {
+  color-scheme: light dark; /* required — without it light-dark() always picks the first value */
+}
+
+@theme {
+  --color-mychrome-surface: light-dark(hsl(0 0% 100%), hsl(222 20% 12%));
+  --color-mychrome-text: light-dark(hsl(222 47% 11%), hsl(210 20% 88%));
+}
+
+/* ── Print-first namespace: identical on screen and paper ── */
+@theme {
+  --color-myslides-surface: hsl(0 0% 100%);
+  --color-myslides-text: hsl(222 47% 11%);
+  --color-myslides-accent: hsl(30 80% 45%);
+}
+```
+
+## 「階層の順序」の命名トラップ
+
+ネームスペースはしばしば、二層構造のトークン構造を使います — 実際の値を保持する生のパレット層と、それを意味にマッピングするセマンティック層です（強制の仕組み側については [Design Token Lint](./design-token-lint.mdx) を参照してください）。この2つの層は、ネームスペースを**逆の順序**で綴ります。この逆転は見落としやすいポイントです。
+
+生の層はプレフィックスが先に来ます。これは `@theme` の外側にあるプレーンなカスタムプロパティで構成されます — ユーティリティを生成しないため、衝突を防ぐためにネームスペースを先頭に置きます。
+
+```css
+/* Raw tier — prefix-first: --myns-palette-* */
+:root {
+  --myns-palette-accent-4: hsl(30 80% 50%);
+  --myns-palette-neutral-2: hsl(215 15% 88%);
+}
+```
+
+フレームワーク向けのセマンティック層はカテゴリが先に来ます。Tailwind はカテゴリプレフィックスを基準にユーティリティ生成を行うためです — `--color-*` は `bg-*` や `text-*` のユーティリティを生成します。
+
+```css
+/* Semantic tier — category-first: --color-myns-* */
+@theme {
+  --color-myns-accent: var(--myns-palette-accent-4);
+  --color-myns-border: var(--myns-palette-neutral-2);
+}
+```
+
+`myns` は生の層では先頭に来て、セマンティック層ではカテゴリの後に続きます。記憶を頼りに書かれたコードは、どちらの層にも一致しない第三の綴りを発明しがちです。
+
+```css
+/* NG — a third spelling: connects to neither tier */
+.myns-chrome__panel {
+  border-color: var(--myns-color-accent); /* nothing ever defines this */
+}
+```
+
+第三の綴りは、切り離されたネームスペースを意味します。実際にあったレビューでは、chrome の CSS が `--myns-color-accent` を参照している一方で、セマンティック層は `--color-myns-accent` を定義していました — パネルに関するトークンの調整はすべて静かに機能しなくなっていたのです。chrome が、誰も書き込んでいない変数を読んでいたためです。CSS は未定義のカスタムプロパティを許容するため、エラーは発生しません。スタイルがトークン層に反応しなくなるだけです。
+
+逆順の綴りをドリフトチェックとして grep します。
+
+```bash
+# Drift check — the reversed spelling must return zero hits
+grep -rn -- "--myns-color-" src/    # 0 hits expected
+grep -rn -- "--color-myns-" src/    # semantic tier (legitimate)
+grep -rn -- "--myns-palette-" src/  # raw tier (legitimate)
+```
+
+## クイックリファレンス
+
+| シナリオ | アプローチ |
+| --- | --- |
+| 単一のデザインコンテキスト（ブログ、マーケティングサイト） | ネームスペース1つ — 分割は不要 |
+| 明確に異なる2つの UI 密度（コンテンツ + 管理画面） | コンテキストごとに1つずつ、合計2つのネームスペース |
+| 3つ以上のコンテキスト（コンテンツ + 管理画面 + 埋め込みウィジェット） | コンテキストごとに1つのネームスペース、共有トークンは共通ファイルに |
+| 色、フォントファミリー、ボーダー半径 | 共有ネームスペースに置く — これらは密度ではなくアイデンティティを定義するもの |
+| スペーシングとフォントサイズ | コンテキストごとに分割 — これらは密度とスケールを定義するもの |
+| チームの所有境界（フロントエンドチーム vs 管理画面チーム） | 明確な所有権のためにネームスペースをチーム境界に合わせる |
+| 印刷向けコンテキスト（スライド、請求書、証明書） | プレーンな色の値を持つ専用ネームスペース — `light-dark()` は使わない |
+| 二層トークン（生のパレット + セマンティック） | 生の層はプレフィックスが先（`--myns-palette-*`）、セマンティック層はカテゴリが先（`--color-myns-*`） |
+| ネームスペース立ち上げ時の検証 | ビルド後の CSS を grep する — ユーティリティが生成され、トークンが消費されているか |
+
+## AIがよくやるミス
+
+- **異なるネームスペースのトークンを1つのコンポーネントで混在させる** — あるコンポーネントが水平方向のパディングに `px-myweb-hsp-sm` を、フォントサイズに `text-myadmin-body` を使っている場合、それは2つのデザインコンテキストから引っ張ってきていることになります。各コンポーネントはちょうど1つのネームスペースのトークンだけを使うべきです
+- **ページごとにネームスペースを作る** — ネームスペースはデザインコンテキスト（コンテンツ vs 管理画面）を表すものであり、個々のページを表すものではありません。ブログ記事とAboutページは同じデザインコンテキストを共有します
+- **色をネームスペースに分割する** — 色はブランドアイデンティティを定義するものであり、共有のままにすべきです。密度に関わるトークン（スペーシング、フォントサイズ）だけがネームスペースの分割を必要とします
+- **ネームスペースプレフィックスなしの汎用的なトークン名を使う** — マルチネームスペースのプロジェクトでは `hsp-sm` は曖昧です。常に完全なプレフィックス（`myweb-hsp-sm` や `myadmin-hsp-sm`）を使ってください
+- **事前にネームスペースを作る** — まず1つのネームスペースから始め、実際に異なる密度要件を持つ本当に異なるデザインコンテキストが現れたときにだけ分割しましょう
+- **第三のネームスペースの綴りを発明する** — 生の層はプレフィックスが先（`--myns-palette-accent-4`）、セマンティック層はカテゴリが先（`--color-myns-accent`）です。記憶頼りの `--myns-color-accent` はどちらの層にもつながらず、それへの参照はすべて静かに機能しなくなります
+- **ソースだけを見てトークンの配線を検証する** — theme が定義していないトークンを参照するユーティリティは、エラーなしに CSS を一切出力しません。ビルド後のスタイルシートを grep して、ユーティリティとトークンが実際に出力に現れているか確認してください
+
+## 使い分け
+
+### 適している場合
+
+- **明確に異なる UI コンテキストを持つサイト** — コンテンツ中心のサイトに管理ダッシュボードが追加される場合や、マーケティングサイトにアプリケーション UI が追加される場合
+- **所有権が分かれた大規模チーム** — 記事チームと管理画面チームが独立して作業する場合、別々のネームスペースはデザイン判断の相互汚染を防ぎます
+- **タイトトークン戦略を使っているプロジェクト** — 単一のネームスペースにバリアントが増えすぎたとき、ネームスペースの分割は自然な拡張です
+
+### 不要な場合
+
+- **単一コンテキストのウェブサイト** — ブログ、ドキュメントサイト、ポートフォリオには複数のネームスペースは不要です
+- **小規模なプロジェクト** — トークンセットが小さく管理しやすい場合、複数ネームスペースの複雑さは利益なしにオーバーヘッドを増やすだけです
+- **開発初期のプロジェクト** — まず1つのネームスペースから始め、実際に2つ目のデザインコンテキストが現れたときに分割しましょう
+
+### 他のトークン戦略との対比
+
+この戦略はタイトトークン戦略の上に成り立っています。それを置き換えるものではなく、マルチコンテキストのプロジェクト向けに拡張するものです。
+
+| 戦略 | スコープ | いつ使うか |
+| --- | --- | --- |
+| [タイトトークン戦略](./tight-token-strategy/index.mdx) | 単一ネームスペース、制約されたトークン | すべてのプロジェクトのデフォルト |
+| [2階層サイズ戦略](./two-tier-size-strategy.mdx) | 幅・高さ用のテーマトークン + 任意の値 | どのネームスペース内であっても要素のサイズ指定を行うとき |
+| **マルチネームスペーストークン戦略** | 異なる UI コンテキスト向けの複数ネームスペース | プロジェクトが根本的に異なるデザインコンテキストを提供するとき |
+
+## ビルド時の強制
+
+マルチネームスペースのトークンシステムには、単一ネームスペースのシステムと同じ強制の仕組みが必要です — むしろそれ以上に重要とも言えます。ネームスペースが増えるごとに、生の値が紛れ込む余地のある表面積が広がるためです。コンポーネントコード内の生のリテラルを検出し、セマンティックトークンが `var()` 経由でパレットトークンを参照していることを検証する、マルチパスのリンターパターンについては [Design Token Lint](./design-token-lint.mdx) を参照してください。
+
+### ビルド後の CSS を監査する。ソースだけでは不十分
+
+2つの失敗モードは、ソースレビューでは見えず、出力されたスタイルシートにしか現れません。1つ目は、ユーティリティクラスが静かに何もしなくなるケースです。タイトな theme では、theme が `--tracking-widest` を定義していない場合、マークアップ中の `tracking-widest` は CSS を一切出力しません。クラスはマークアップ上では意図的に見えますが、Tailwind は何も生成せず、エラーも発生しません。2つ目は、セマンティックトークンが定義されていても一切消費されないケースです — これは前述の「切り離されたネームスペース」のケースで、コンポーネントが第三の綴りを参照し、本当のトークンはどこにも供給されません。
+
+ビルド後の grep を、ネームスペース立ち上げ時の手順に組み込みましょう。
+
+```bash
+# 1. Every utility used in markup must appear in the built CSS
+grep -o "tracking-widest" dist/assets/*.css | wc -l
+# 0 = the class no-ops: the theme lacks --tracking-widest,
+#     so Tailwind generated no rule for it
+
+# 2. Every semantic token must be defined AND consumed
+grep -o -- "--color-myns-accent" dist/assets/*.css | wc -l
+# 1 = defined once, referenced nowhere — dead or disconnected
+# (grep -o counts occurrences — minified CSS puts everything on one line)
+```
+
+トークンリントはコンポーネントコード内の生のリテラルを検出しますが、theme が定義していないトークンを参照するユーティリティは検出できません。そのマークアップの中には「生の値」は何もなく、ユーティリティが単に未定義であるだけであり、それはビルド後の出力にしか現れません。この2つのチェックは異なる失敗のクラスをカバーしており、互いを代替するものではありません。
+
+## 参考文献
+
+- [Tailwind CSS v4 Theme Configuration](https://tailwindcss.com/docs/theme)
+- [Tailwind CSS v4 @theme Directive](https://tailwindcss.com/docs/functions-and-directives#theme-directive)

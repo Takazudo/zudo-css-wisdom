@@ -1,0 +1,463 @@
+---
+title: タイトトークン戦略
+sidebar_position: 6
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+Tailwind CSS はデフォルトで膨大なトークンセットを提供しています。しかも v4 以降、spacing スケールは固定されたリストですらありません。スペーシング系のユーティリティは `--spacing` という単一の変数から計算されます — `padding: calc(var(--spacing) * <number>)` で、`--spacing` のデフォルトは `0.25rem` です。任意の数値の倍数がそのまま有効で、`p-4` はもちろん `p-13`、`p-17`、`gap-21` も設定ファイルを触ることなく使えます。（v3 では約33ステップの固定スケールでしたが、v4 でこの上限はなくなりました。）この上限のないスペーシングの軸にカラー、フォントサイズ、border-radius などのカテゴリを掛け合わせれば、利用可能なユーティリティの空間は事実上無限です。
+
+実際には、チームの誰もがいつでも好きな値を選べるということを意味します。ある人は `p-4` を書き、別の人は `p-5` を使い、さらに別の人が `p-6` を選ぶ — すべて「中くらいのパディング」のつもりです。すべての値が有効なので間違いはありませんが、結果として一貫性のない、ずれていくUIが生まれます。デザインレビューはどの数値ステップが「正しい」かの議論になり、後からスペーシングをリファクタリングするにはコードベース全体に散らばった何百ものユーティリティクラスを監査する必要があります。
+
+根本的な原因は、Tailwind のデフォルトトークンが**汎用的な数値スケール**であり、**セマンティックなデザイン判断**ではないということです。「どれくらい」は分かっても「なぜ」が分かりません。
+
+## 解決方法
+
+**すべて**の Tailwind デフォルトを小さく意図的なセマンティックトークン（semantic token）のセットに置き換えます。Tailwind CSS v4 の `@theme` ディレクティブは、ワイルドカードパターンですべてのビルトイントークンをリセットし、プロジェクトが実際に必要なトークンのみを定義できるようにします。
+
+この戦略には2つの重要なアイデアがあります：
+
+1. **すべてをリセットする** — `--spacing-*: initial;`、`--color-*: initial;` などのワイルドカードを使ってすべてのデフォルト値を削除します。この後、`p-4` や `bg-gray-500` のようなユーティリティはもう存在しません。使おうとするとビルドエラーになります。まさにそれが狙いです — 無効なトークンはコードレビューではなくビルド時に検出されます。
+2. **セマンティックな軸を定義する** — 単一の数値スペーシングスケールの代わりに、目的ごとに異なるスケールを定義します。プロダクション向けのアプローチとして、スペーシングを2つの軸に分割します：
+- **hsp**（horizontal spacing）：インラインのギャップ、水平方向のパディング、水平方向のマージン用
+- **vsp**（vertical spacing）：セクション間の垂直ギャップ、垂直方向のパディング、ブロックレベルのマージン用
+
+各軸には `2xs` から `2xl` までの限られたスケールがあり、チームには軸ごとにちょうど7つの選択肢が与えられます。`0` と `1px` のユーティリティ値と合わせて、これがプロジェクトのスペーシング語彙のすべてです。
+
+### トークン一覧表
+
+**水平スペーシング（hsp）**：
+
+| トークン | 値 | 用途 |
+| --- | --- | --- |
+| `hsp-2xs` | 5px | タイトなインラインスペーシング |
+| `hsp-xs` | 12px | 小さなパディング |
+| `hsp-sm` | 20px | デフォルトの水平パディング |
+| `hsp-md` | 40px | 中セクション |
+| `hsp-lg` | 60px | 大セクション |
+| `hsp-xl` | 100px | 特大スペーシング |
+| `hsp-2xl` | 250px | ヒーロー / フィーチャースペーシング |
+
+**垂直スペーシング（vsp）**：
+
+| トークン | 値 | 用途 |
+| --- | --- | --- |
+| `vsp-2xs` | 4px | 最小ギャップ |
+| `vsp-xs` | 8px | タイトなコンポーネントギャップ |
+| `vsp-sm` | 20px | デフォルトの垂直ギャップ |
+| `vsp-md` | 35px | セクションギャップ |
+| `vsp-lg` | 50px | 大セクションギャップ |
+| `vsp-xl` | 65px | ページセクションギャップ |
+| `vsp-2xl` | 80px | ヒーロー / 主要セクションギャップ |
+
+## コード例
+
+### デフォルトをリセットする2つのアプローチ
+
+Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあります。どちらもプロジェクトのトークンのみが存在する状態を作りますが、仕組みが異なります。
+
+#### アプローチA: `--*: initial` による明示的リセット
+
+すべてをインポートし、`@theme` 内で不要なものをリセットします：
+
+```css
+@import "tailwindcss";
+
+@theme {
+  /* Tailwindのデフォルトをすべてリセット */
+  --spacing-*: initial;
+  --color-*: initial;
+  --font-size-*: initial;
+  --font-family-*: initial;
+  --font-weight-*: initial;
+  --line-height-*: initial;
+  --letter-spacing-*: initial;
+  --border-radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --breakpoint-*: initial;
+
+  /* この後にトークンを定義... */
+}
+```
+
+これは動作しますが、生成されるCSSにはデフォルトテーマレイヤーの内部変数が残ります。
+
+#### アプローチB: デフォルトテーマをスキップ（推奨）
+
+必要なレイヤーのみをインポートし、デフォルトテーマを完全にスキップします：
+
+```css
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+
+@theme {
+  /* リセット不要 — デフォルトテーマは読み込まれていない */
+
+  /* トークンを直接定義... */
+}
+```
+
+`@import "tailwindcss"` は3つのレイヤーのインポートと等価です：`tailwindcss/preflight`（ブラウザリセット）、`tailwindcss/theme`（全デフォルトトークン）、`tailwindcss/utilities`（ユーティリティクラスエンジン）。preflight + utilities のみをインポートすることで、デフォルトテーマは単純に読み込まれません。
+
+**アプローチBを推奨する理由：**
+
+- 記述量が少ない — `--*: initial` リセットブロックが不要
+- CSS出力がわずかに小さい（約1KB減）— Tailwindの内部変数が出力されない
+- メンタルモデルがクリーン — ゼロにリセットするのではなく、ゼロから始める
+
+#### アプローチBで失われるもの（アプローチAとの比較）
+
+`tailwindcss/theme` をスキップすると、以下のTailwind内部変数が生成CSSに出力されなくなります：
+
+| 変数 | 用途 | 必要か？ |
+| --- | --- | --- |
+| `--default-transition-duration` | `transition` ユーティリティのデフォルト duration | `transition` クラスを使う場合は `@theme` に `--default-transition-duration: 0.15s;` を追加 |
+| `--default-transition-timing-function` | `transition` ユーティリティのデフォルト easing | 必要なら `--default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);` を追加 |
+| `--default-font-family` | `html` の `font-family` フォールバック | `--font-sans` を定義するか自分で `font-family` を設定していれば不要 |
+| `--default-mono-font-family` | `code`/`pre` のフォントフォールバック | `--font-mono` を定義していれば不要 |
+| `--animate-spin` | `animate-spin` のキーフレーム定義 | `animate-spin` を使う場合は手動で追加 |
+| `--ease-in-out` | 名前付きイージングカーブ | 参照する場合は手動で追加 |
+| `--container-*` | コンテナクエリの幅 | `@container` サイズユーティリティを使わなければ不要 |
+
+実際には、`transition-colors` などの transition ユーティリティを使う場合、`@theme` に以下の2行を追加してください：
+
+```css
+@theme {
+  --default-transition-duration: 0.15s;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ...トークン... */
+}
+```
+
+### 完全な例（アプローチB）
+
+プロジェクトのメインCSSファイル（例：`app.css`）に配置します：
+
+```css
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+
+@theme {
+  /* ========================================
+   * プロジェクトトークンのみを定義 — Spacing
+   * ======================================== */
+  --spacing-0: 0;
+  --spacing-1px: 1px;
+
+  /* Horizontal spacing */
+  --spacing-hsp-2xs: 5px;
+  --spacing-hsp-xs: 12px;
+  --spacing-hsp-sm: 20px;
+  --spacing-hsp-md: 40px;
+  --spacing-hsp-lg: 60px;
+  --spacing-hsp-xl: 100px;
+  --spacing-hsp-2xl: 250px;
+
+  /* Vertical spacing */
+  --spacing-vsp-2xs: 4px;
+  --spacing-vsp-xs: 8px;
+  --spacing-vsp-sm: 20px;
+  --spacing-vsp-md: 35px;
+  --spacing-vsp-lg: 50px;
+  --spacing-vsp-xl: 65px;
+  --spacing-vsp-2xl: 80px;
+}
+```
+
+この設定後：
+
+- `p-4` — **ビルドエラー**（`--spacing-4` トークンが存在しない）
+- `bg-gray-500` — **ビルドエラー**（`--color-gray-500` トークンが存在しない）
+- `px-hsp-sm` — **動作する**（`padding-inline: 20px` に解決される）
+- `py-vsp-md` — **動作する**（`padding-block: 35px` に解決される）
+
+### コンポーネントでの使い方
+
+タイトトークンセットを使うと、Tailwind のクラスは自己文書化されます。クラス名から直接意図を読み取ることができます：
+
+```html
+<section class="px-hsp-sm py-vsp-lg">
+  <h1 class="pb-vsp-xs">Page Title</h1>
+  <p class="pb-vsp-sm">Introductory paragraph with standard vertical spacing below.</p>
+  <div class="flex gap-x-hsp-xs gap-y-vsp-xs">
+    <div class="px-hsp-xs py-vsp-2xs">Card A</div>
+    <div class="px-hsp-xs py-vsp-2xs">Card B</div>
+  </div>
+</section>
+```
+
+すべてのスペーシング値が、その軸（水平 vs 垂直）とスケール内での相対的なサイズを伝えます。
+
+### デモ：セマンティックトークン vs 任意の値
+
+以下のデモは、同じカードレイアウトを2通りの方法で構築しています。左のカードはタイトなセマンティックトークンアプローチを使用し、右のカードは任意の数値スペーシング値を使用しています。あらゆる値が許可されている場合にどのように不整合が生じるかをシミュレートしています。
+
+<CssPreview client:load
+  title="セマンティックトークン vs 任意の値"
+  html={`    <div class="demo-container">
+      <div class="demo-column">
+        <div class="label">Semantic tokens</div>
+        <div class="card-semantic">
+          <div class="card-header-semantic">Article Title</div>
+          <div class="card-body-semantic">
+            Body text with consistent spacing defined by design tokens.
+          </div>
+          <div class="card-footer-semantic">
+            <span class="tag-semantic">Tag A</span>
+            <span class="tag-semantic">Tag B</span>
+          </div>
+        </div>
+      </div>
+      <div class="demo-column">
+        <div class="label">Arbitrary values</div>
+        <div class="card-arbitrary">
+          <div class="card-header-arbitrary">Article Title</div>
+          <div class="card-body-arbitrary">
+            Body text where each developer picked different padding values.
+          </div>
+          <div class="card-footer-arbitrary">
+            <span class="tag-arbitrary-a">Tag A</span>
+            <span class="tag-arbitrary-b">Tag B</span>
+          </div>
+        </div>
+      </div>
+    </div>`}
+  css={`/* shared */
+    .demo-container {
+      display: flex;
+      gap: 20px;
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+    }
+    .demo-column { flex: 1; }
+    .label {
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    /* ── Semantic token card ── */
+    .card-semantic {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .card-header-semantic {
+      padding: 8px 20px;       /* vsp-xs / hsp-sm */
+      font-weight: 700;
+      font-size: 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .card-body-semantic {
+      padding: 20px 20px;      /* vsp-sm / hsp-sm */
+      color: #334155;
+      line-height: 1.6;
+    }
+    .card-footer-semantic {
+      padding: 8px 20px;       /* vsp-xs / hsp-sm */
+      display: flex;
+      gap: 12px;               /* hsp-xs */
+      border-top: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+    .tag-semantic {
+      background: #3b82f6;
+      color: #fff;
+      padding: 4px 12px;       /* vsp-2xs / hsp-xs */
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* ── Arbitrary value card ── */
+    .card-arbitrary {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .card-header-arbitrary {
+      padding: 10px 16px;      /* dev A picked 10/16 */
+      font-weight: 700;
+      font-size: 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .card-body-arbitrary {
+      padding: 14px 24px;      /* dev B picked 14/24 */
+      color: #334155;
+      line-height: 1.6;
+    }
+    .card-footer-arbitrary {
+      padding: 12px 18px;      /* dev C picked 12/18 */
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+    .tag-arbitrary-a {
+      background: #3b82f6;
+      color: #fff;
+      padding: 6px 10px;       /* dev A */
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .tag-arbitrary-b {
+      background: #3b82f6;
+      color: #fff;
+      padding: 3px 14px;       /* dev B */
+      border-radius: 4px;
+      font-size: 12px;
+    }`}
+  height={320} />
+
+「Semantic tokens」カードでは、すべてのセクションがトークン一覧表の値を使用しています：ヘッダー/フッターの垂直パディングに `vsp-xs`（8px）、水平パディングに `hsp-sm`（20px）、ボディの垂直パディングに `vsp-sm`（20px）、タグの水平パディングに `hsp-xs`（12px）。結果は明確なリズムを持つ視覚的に一貫したカードです。
+
+「Arbitrary values」カードでは、3人の開発者がそれぞれ微妙に異なるパディング値を選びました — 垂直方向に `10px`、`14px`、`12px`、水平方向に `16px`、`24px`、`18px`。タグの内部パディングも不揃いです。全体的にカードは微妙にバランスが崩れて見えます。この不整合は実際のプロジェクトでは何十ものコンポーネントにわたって蓄積されます。
+
+### デモ：セマンティックスペーシングを使ったページレイアウト
+
+<CssPreview client:load
+  title="タイトトークンを使ったページレイアウト"
+  html={`    <div class="page">
+      <header class="page-header">
+        <span class="logo">AppName</span>
+        <nav class="nav">
+          <a href="#">Docs</a>
+          <a href="#">Blog</a>
+          <a href="#">About</a>
+        </nav>
+      </header>
+      <main class="page-main">
+        <h1 class="page-title">Welcome</h1>
+        <p class="page-intro">This layout uses semantic spacing tokens throughout. Every value is intentional and comes from the project's tight token set.</p>
+        <div class="card-grid">
+          <div class="feature-card">
+            <div class="feature-title">Consistency</div>
+            <div class="feature-desc">Every component uses the same spacing vocabulary.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title">Readability</div>
+            <div class="feature-desc">Class names tell you the intent, not just the number.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title">Guardrails</div>
+            <div class="feature-desc">Invalid tokens cause build errors, not visual bugs.</div>
+          </div>
+        </div>
+      </main>
+    </div>`}
+  css={`.page {
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      color: #1e293b;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 20px;         /* vsp-xs / hsp-sm */
+      background: #1e293b;
+      color: #fff;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .nav {
+      display: flex;
+      gap: 12px;                  /* hsp-xs */
+    }
+    .nav a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13px;
+    }
+    .nav a:hover { color: #fff; }
+
+    /* ── Main ── */
+    .page-main {
+      padding: 35px 20px;        /* vsp-md / hsp-sm */
+    }
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 8px 0;         /* pb: vsp-xs */
+    }
+    .page-intro {
+      color: #475569;
+      line-height: 1.6;
+      margin: 0 0 35px 0;        /* pb: vsp-md */
+      max-width: 600px;
+    }
+
+    /* ── Card grid ── */
+    .card-grid {
+      display: flex;
+      gap: 20px;                  /* hsp-sm */
+      flex-wrap: wrap;
+    }
+    .feature-card {
+      flex: 1;
+      min-width: 160px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px 20px;        /* vsp-sm / hsp-sm */
+    }
+    .feature-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 4px;        /* vsp-2xs */
+    }
+    .feature-desc {
+      color: #64748b;
+      line-height: 1.5;
+      font-size: 13px;
+    }`}
+  height={340} />
+
+このレイアウトのすべてのスペーシング値は、トークン一覧表のトークンに直接対応しています。ヘッダーは `vsp-xs` / `hsp-sm` を使い、メインセクションは `vsp-md` / `hsp-sm` を使い、カードグリッドはギャップに `hsp-sm` を使っています。コード（または実際のプロジェクトの Tailwind クラス）を読めば、各スペーシング値がどのセマンティックスロットに対応しているかがすぐに分かります。
+
+## 使い分け
+
+### 適しているケース
+
+- **大規模チーム** — 複数の開発者が同じコンポーネントに触れる場合、制約されたトークンセットがスペーシングのずれを防ぎます
+- **デザインシステム駆動のプロジェクト** — デザイナーがピクセル値ではなく名前付きトークンでスペーシング仕様を渡す場合
+- **プロダクションアプリケーション** — 視覚的な一貫性がユーザーの信頼やブランド認知に直接影響する場合
+- **長期的なコードベース** — 何年も保守・リファクタリングされるプロジェクトでは、タイトなトークンセットがグローバルなスペーシング変更を容易にします（1つのトークンを更新すれば、アプリ全体が調整されます）
+
+### 不要なケース
+
+- **プロトタイプやハッカソン** — 一貫性よりスピードが重要な場合
+- **小規模な個人プロジェクト** — 1人の開発者が全体のコンテキストを把握している場合
+- **Tailwind 学習プロジェクト** — フルのデフォルトスケールを使うこと自体が学習プロセスの一部である場合
+
+## ビルド時の強制
+
+タイトトークンセットを定義することは仕事の半分です。残りの半分は、コードベースが大きくなる中で生値がコンポーネントコードに紛れ込まないようにすることです。pre-push と CI のタイミングでタイトトークンセットを強制するマルチパス linter のパターンについては、[Design Token Lint](../design-token-lint.mdx) を参照してください。
+
+## 詳細ガイド
+
+各カテゴリの詳細なトークン戦略については以下を参照してください：
+
+- [カラートークンパターン](./color-tokens.mdx) — セマンティックカラースケール、ブランドカラー、ステートカラー、サーフェスレイヤー（基盤となるアーキテクチャについては [3層カラー戦略](../../color/three-tier-color-strategy.mdx) も参照）
+- [タイポグラフィトークンパターン](./typography-tokens.mdx) — フォントサイズ、line-height、font-weight、letter-spacing のトークン戦略
+- [トークンプレビュー](./token-preview.mdx) — 利用可能なすべてのトークンのビジュアルリファレンス
+- [コンポーネントトークンと任意の値](./component-tokens.mdx) — システムトークンと任意の値の使い分け
+- [2層サイズ戦略](../two-tier-size-strategy.mdx) — width/height のサイジングが抽象レイヤーをスキップし、セマンティックなテーマトークンを直接使う理由
+
+## 参考リンク
+
+- [Tailwind CSS v4 Theme Configuration](https://tailwindcss.com/docs/theme)
+- [Tailwind CSS v4 @theme Directive](https://tailwindcss.com/docs/functions-and-directives#theme-directive)

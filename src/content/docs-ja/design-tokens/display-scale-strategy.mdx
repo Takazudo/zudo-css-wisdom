@@ -1,0 +1,439 @@
+---
+title: ディスプレイスケール戦略
+sidebar_position: 5
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+Web 技術で構築されたデスクトップアプリ（Tauri、Electron）は、WebView 内でレンダリングされます。ユーザーはネイティブアプリと同じズーム操作を期待します：Ctrl+スクロールや Ctrl+/- で UI 全体を拡大縮小する機能です。
+
+明白なアプローチはブラウザのネイティブズームを使うことですが、WebView 環境ではネイティブズームは問題を引き起こします：
+
+- **カーソル位置のずれ** — 100% 以外のズームでは、WebView が報告するカーソル位置が実際の画面位置からずれる。ドラッグハンドル、リサイズパネル、クリックターゲットが不整合になる
+- **制御できないスケーリング** — ネイティブズームは*すべて*を均一にスケーリングする。どのスケールでもシャープであるべきヘアラインボーダーやボーダーラディウスの値も含めて
+- **永続化 API がない** — WebView API でズームレベルをセッション間で保存・復元する標準的な方法がない
+
+結果：ユーザーがズームインすると、パネルがドラッグできなくなり、ボタンがクリックできなくなり、アプリの再起動でズームがリセットされます。ユーザビリティを向上させるはずの機能が、アプリを壊れたように感じさせてしまいます。
+
+### なぜ `transform: scale()` ではダメなのか
+
+次に思いつくのは、アプリのルート要素を `transform: scale()` でラップすることです：
+
+```css
+#app-root {
+  transform: scale(var(--zoom));
+  transform-origin: top left;
+}
+```
+
+これはカーソル位置のずれを回避しますが、新たな問題を生みます：
+
+- 要素のレイアウトサイズが変わらない — 拡大されたアプリがコンテナからはみ出す
+- transform された祖先要素の中で fixed/sticky ポジショニングが壊れる
+- 非整数のスケールファクターでテキストがぼやける
+- コンテナに逆数の寸法を計算して適用する必要がある
+
+ネイティブズームも transform スケールも、UI を*外側から*スケーリングしようとしています。ディスプレイスケール戦略は*内側から*スケーリングします。
+
+## 解決方法
+
+ブラウザのズームを単一の CSS カスタムプロパティ — `--display-scale` — に置き換え、すべてのデザイントークンにそれを掛け合わせます：
+
+```css
+:root {
+  --display-scale: 1; /* default: 100% */
+}
+```
+
+ズームに連動すべきすべてのトークンが `calc()` を使います：
+
+```css
+:root {
+  --spacing-md: calc(8px * var(--display-scale));
+  --spacing-lg: calc(12px * var(--display-scale));
+  --font-size-base: calc(14px * var(--display-scale));
+  --toolbar-height: calc(52px * var(--display-scale));
+}
+```
+
+`--display-scale` が `1` から `1.25` に変わると、すべての値が即座に再計算されます。8px のギャップは 10px に、14px のフォントは 17.5px に、ツールバーは 52px から 65px に拡大します。UI 全体が単一の CSS リフローでスムーズかつ比例的にスケーリングされます。JavaScript によるレイアウト再計算は不要です。
+
+### スケールステップの定義
+
+連続的なスケーリングよりも離散的なステップのほうが適しています。事前定義されたセットにより、中途半端なサイズを防ぎ、機能の挙動を予測可能にします：
+
+```typescript
+const VALID_SCALES = [0.75, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0];
+```
+
+ズームイン・アウトでこれらのステップを順に切り替えます。ユーザーは設定画面やキーボードショートカットでスケールを選択し、アプリは選択を永続化して起動時に適用します。
+
+### スケールの適用
+
+JavaScript 側の処理は最小限です。ルート要素に CSS プロパティを1つ設定するだけです：
+
+```typescript
+function applyDisplayScale(scale: number): void {
+  document.documentElement.style.setProperty(
+    "--display-scale",
+    String(scale)
+  );
+}
+```
+
+ネイティブズームが干渉しないよう、デフォルトのズームジェスチャーをインターセプトします：
+
+```typescript
+// Prevent native zoom, dispatch custom events instead
+window.addEventListener("wheel", (e) => {
+  if (e.ctrlKey) {
+    e.preventDefault();
+    dispatchScaleChange(e.deltaY > 0 ? "out" : "in");
+  }
+}, { passive: false });
+```
+
+カスタムイベントがスケールステップのロジックをトリガーし、新しい値を永続化して `applyDisplayScale()` を呼び出します。残りは CSS が処理します。
+
+## トークンアーキテクチャ
+
+重要なデザイン判断は**何をスケーリングし、何をスケーリングしないか**です。
+
+### スケーリングする値
+
+ユーザーが「UI」として認識するものはすべてスケーリングすべきです：
+
+| カテゴリ | 例 | 計算式 |
+| --- | --- | --- |
+| スペーシング | padding、margin、gap | `calc(Npx * var(--display-scale))` |
+| フォントサイズ | 本文、見出し、ラベル | `calc(Npx * var(--display-scale))` |
+| アイコンサイズ | ツールバーアイコン、ステータスアイコン | `calc(Npx * var(--display-scale))` |
+| コンポーネントサイズ | ボタン、チェックボックス、ツールバーの高さ | `calc(Npx * var(--display-scale))` |
+
+### 固定のままにする値
+
+スケールに関係なく一定であるべき値もあります：
+
+| カテゴリ | 固定にする理由 | 例 |
+| --- | --- | --- |
+| 1px ヘアライン | 区切り線やセパレーターはシャープなままであるべき | `--spacing-1px: 1px` |
+| ボーダーラディウス | 角丸はスタイルの選択であり、サイズではない | `--radius-md: 4px` |
+| ボーダー幅 | 細いボーダーはどのスケールでも明瞭さを保つ | `border: 1px solid` |
+| オーバーレイの不透明度 | 暗くする効果はサイズではなく知覚に基づく | `rgba(0, 0, 0, 0.6)` |
+
+判断基準：その値が**どれくらい大きいか**を定義しているならスケーリングする。**どう見えるか**（角丸、ボーダー、不透明度）を定義しているなら固定のままにする。
+
+## デモ
+
+### スケーリングされたトークン vs 固定トークン
+
+このデモは同じ UI を3つの異なるディスプレイスケールで表示しています。スペーシング、テキスト、アイコンが比例的にスケーリングされる一方、ボーダーやボーダーラディウスは固定のままであることに注目してください。
+
+<CssPreview client:load
+  title="Display Scale: 75%, 100%, 125%"
+  height={380}
+  html={`    <div class="scale-demo">
+      <div class="scale-demo__col" style="--ds: 0.75">
+        <div class="scale-demo__badge">75%</div>
+        <div class="scale-demo__card">
+          <div class="scale-demo__toolbar">
+            <div class="scale-demo__icon"></div>
+            <div class="scale-demo__icon"></div>
+            <div class="scale-demo__icon"></div>
+          </div>
+          <div class="scale-demo__body">
+            <div class="scale-demo__title">Document Title</div>
+            <div class="scale-demo__text">Body text scales with the display factor. Borders stay thin.</div>
+          </div>
+          <div class="scale-demo__footer">
+            <button class="scale-demo__btn">Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="scale-demo__col" style="--ds: 1.0">
+        <div class="scale-demo__badge">100%</div>
+        <div class="scale-demo__card">
+          <div class="scale-demo__toolbar">
+            <div class="scale-demo__icon"></div>
+            <div class="scale-demo__icon"></div>
+            <div class="scale-demo__icon"></div>
+          </div>
+          <div class="scale-demo__body">
+            <div class="scale-demo__title">Document Title</div>
+            <div class="scale-demo__text">Body text scales with the display factor. Borders stay thin.</div>
+          </div>
+          <div class="scale-demo__footer">
+            <button class="scale-demo__btn">Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="scale-demo__col" style="--ds: 1.25">
+        <div class="scale-demo__badge">125%</div>
+        <div class="scale-demo__card">
+          <div class="scale-demo__toolbar">
+            <div class="scale-demo__icon"></div>
+            <div class="scale-demo__icon"></div>
+            <div class="scale-demo__icon"></div>
+          </div>
+          <div class="scale-demo__body">
+            <div class="scale-demo__title">Document Title</div>
+            <div class="scale-demo__text">Body text scales with the display factor. Borders stay thin.</div>
+          </div>
+          <div class="scale-demo__footer">
+            <button class="scale-demo__btn">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>`}
+  css={`.scale-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+      align-items: start;
+    }
+    .scale-demo__col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+    .scale-demo__badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: hsl(221 83% 53%);
+      background: hsl(210 40% 96%);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .scale-demo__card {
+      background: hsl(230 15% 18%);
+      border: 1px solid hsl(230 15% 28%);
+      border-radius: 4px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .scale-demo__toolbar {
+      display: flex;
+      gap: calc(6px * var(--ds));
+      padding: calc(6px * var(--ds)) calc(8px * var(--ds));
+      border-bottom: 1px solid hsl(230 15% 28%);
+      background: hsl(230 15% 15%);
+    }
+    .scale-demo__icon {
+      width: calc(16px * var(--ds));
+      height: calc(16px * var(--ds));
+      background: hsl(215 16% 55%);
+      border-radius: 3px;
+    }
+    .scale-demo__body {
+      padding: calc(8px * var(--ds)) calc(10px * var(--ds));
+      display: flex;
+      flex-direction: column;
+      gap: calc(4px * var(--ds));
+    }
+    .scale-demo__title {
+      font-size: calc(13px * var(--ds));
+      font-weight: 600;
+      color: hsl(0 0% 93%);
+    }
+    .scale-demo__text {
+      font-size: calc(11px * var(--ds));
+      color: hsl(215 16% 65%);
+      line-height: 1.4;
+    }
+    .scale-demo__footer {
+      padding: calc(6px * var(--ds)) calc(10px * var(--ds));
+      border-top: 1px solid hsl(230 15% 28%);
+      display: flex;
+      justify-content: flex-end;
+    }
+    .scale-demo__btn {
+      font-size: calc(11px * var(--ds));
+      padding: calc(3px * var(--ds)) calc(10px * var(--ds));
+      background: hsl(221 83% 53%);
+      color: hsl(0 0% 100%);
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: 600;
+    }`} />
+
+### 固定値 vs スケーリング値
+
+このデモは、スケーリングされる値と固定のままの値の違いを示しています。ボーダー、ボーダーラディウス、区切り線の太さは一定のまま — コンテンツの寸法だけが変わります。
+
+<CssPreview client:load
+  title="What Scales vs What Stays Fixed"
+  height={300}
+  html={`    <div class="fixed-demo">
+      <div class="fixed-demo__section">
+        <div class="fixed-demo__label">Scales with --display-scale</div>
+        <div class="fixed-demo__items">
+          <div class="fixed-demo__item">
+            <div class="fixed-demo__bar" style="width: 40px; height: 8px; background: hsl(221 83% 53%)"></div>
+            <span>spacing (8px → 10px → 12px)</span>
+          </div>
+          <div class="fixed-demo__item">
+            <span style="font-size: 11px; font-weight: 600">Aa</span>
+            <span>font-size (14px → 17.5px → 21px)</span>
+          </div>
+          <div class="fixed-demo__item">
+            <div class="fixed-demo__bar" style="width: 16px; height: 16px; background: hsl(142 50% 40%); border-radius: 3px"></div>
+            <span>icon size (16px → 20px → 24px)</span>
+          </div>
+          <div class="fixed-demo__item">
+            <div class="fixed-demo__bar" style="width: 60px; height: 12px; background: hsl(262 50% 55%); border-radius: 3px"></div>
+            <span>button/toolbar height</span>
+          </div>
+        </div>
+      </div>
+      <div class="fixed-demo__section">
+        <div class="fixed-demo__label fixed-demo__label--fixed">Stays fixed (not scaled)</div>
+        <div class="fixed-demo__items">
+          <div class="fixed-demo__item">
+            <div class="fixed-demo__bar" style="width: 40px; height: 1px; background: hsl(215 16% 55%)"></div>
+            <span>1px dividers — always crisp</span>
+          </div>
+          <div class="fixed-demo__item">
+            <div class="fixed-demo__bar" style="width: 20px; height: 20px; border: 1px solid hsl(215 16% 55%); border-radius: 4px"></div>
+            <span>border-radius — style, not size</span>
+          </div>
+          <div class="fixed-demo__item">
+            <div class="fixed-demo__bar" style="width: 20px; height: 20px; border: 1px solid hsl(215 16% 55%)"></div>
+            <span>border-width — stays thin</span>
+          </div>
+          <div class="fixed-demo__item">
+            <div class="fixed-demo__bar" style="width: 40px; height: 20px; background: hsl(0 0% 0% / 0.5); border-radius: 3px"></div>
+            <span>overlay opacity — perception</span>
+          </div>
+        </div>
+      </div>
+    </div>`}
+  css={`.fixed-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+    }
+    .fixed-demo__section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .fixed-demo__label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(221 83% 53%);
+    }
+    .fixed-demo__label--fixed {
+      color: hsl(215 16% 47%);
+    }
+    .fixed-demo__items {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .fixed-demo__item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: hsl(215 25% 35%);
+    }
+    .fixed-demo__bar {
+      flex-shrink: 0;
+    }`} />
+
+## Tailwind v4 との統合
+
+[タイトトークン戦略](./tight-token-strategy/index.mdx)を使う Tailwind v4 プロジェクトでは、`@theme` でベース値を宣言し、`:root` でスケーリングされた値でオーバーライドします：
+
+```css
+/* tokens.css */
+@theme {
+  /* Base values — used by Tailwind for class generation */
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+
+  --spacing-icon-sm: 12px;
+  --spacing-icon-md: 16px;
+  --spacing-icon-lg: 20px;
+}
+
+:root {
+  --display-scale: 1;
+
+  /* Runtime overrides — multiply by display-scale */
+  --spacing-sm: calc(6px * var(--display-scale));
+  --spacing-md: calc(8px * var(--display-scale));
+  --spacing-lg: calc(12px * var(--display-scale));
+  --spacing-xl: calc(16px * var(--display-scale));
+
+  --font-size-sm: calc(12px * var(--display-scale));
+  --font-size-base: calc(14px * var(--display-scale));
+  --font-size-lg: calc(16px * var(--display-scale));
+
+  --spacing-icon-sm: calc(12px * var(--display-scale));
+  --spacing-icon-md: calc(16px * var(--display-scale));
+  --spacing-icon-lg: calc(20px * var(--display-scale));
+}
+```
+
+`@theme` ブロックは Tailwind がクラス生成に必要なベース値を提供します。`:root` ブロックはそれらをランタイムでスケーリングされたバージョンでオーバーライドします。`p-lg`、`text-base`、`w-icon-md` などの Tailwind クラスは自動的にスケーリングされた値を使用します。コンポーネントコードの変更は不要です。
+
+### 一回限りのスケーリング値
+
+トークンセットにないコンポーネント固有の寸法には、任意の値で `calc()` を直接使います：
+
+```html
+<!-- Scaled arbitrary value -->
+<div class="w-[calc(240px*var(--display-scale))]">Sidebar</div>
+
+<!-- Or define a component token -->
+<style>
+  .sidebar { width: calc(240px * var(--display-scale)); }
+</style>
+```
+
+## よくある間違い
+
+- **ボーダーラディウスをスケーリングする** — 4px の角丸はどのスケールでも適切に見える。125% で 5px にスケーリングしても価値はなく、異なるスケールの要素を比較したときに不整合が生じる
+- **1px ボーダーをスケーリングする** — ヘアラインボーダーは非整数スケールでぼやける。1px のままにすることで視覚的な明瞭さを維持する
+- **ネイティブズームの防止を忘れる** — Ctrl+スクロールや Ctrl+/- をインターセプトしないと、ネイティブズームとカスタムスケールの両方がトリガーされ、二重スケーリングになる
+- **連続的なスケールを使う** — 自由形式のスケール値（例：1.137）はピクセル丸めのアーティファクトを生む。代わりに事前定義されたステップセットを使う
+- **スケーリングされた値とされていない値を混在させる** — 1つのコンポーネントで `var(--spacing-lg)` の代わりに `gap: 12px` を使うと一貫性が崩れる。ディスプレイスケールを採用したら、*すべての*スペーシングがシステムを通る必要がある
+- **`transform: scale()` でスケーリングする** — 要素のレイアウトサイズが変わらず、fixed/sticky ポジショニングが壊れ、テキストがぼやける。トークンベースのスケーリングの代替にはならない
+
+## いつ使うか
+
+- **デスクトップ Web アプリ** — Tauri、Electron、またはユーザーがズーム機能を期待する WebView ベースのデスクトップアプリケーション
+- **ドラッグ・リサイズ操作のあるアプリ** — ネイティブズームはドラッグハンドル、パネルリサイザー、キャンバス操作のカーソル位置を壊す
+- **タイトトークンを持つデザインシステム** — すべての値が CSS カスタムプロパティを通っていれば、ディスプレイスケールは自然に統合される
+- **UI 密度をユーザーが設定できるアプリ** — 同じメカニズムがアクセシビリティズーム、コンパクトモード、大きなテキストモードをサポートする
+
+### 使わないほうがよい場合
+
+- **通常のブラウザで表示される Web サイト** — 標準的な Web コンテキストではブラウザのズームが正しく動作する。カスタムズームを追加すると体験が悪化する
+- **静的コンテンツサイト** — ブログ、ドキュメント、マーケティングページにはドラッグ操作がなく、ネイティブズーム＋レスポンシブデザインの恩恵を受ける
+- **全体的に `rem` を使っているアプリ** — すべての値が `rem` ベースなら、ルートの `font-size` を変更することでより簡単に同様の効果を得られる
+
+## 参考資料
+
+- [CSS `calc()` — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/calc)
+- [CSS Custom Properties — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties)
+- [Tauri — Build Desktop Apps with Web Technology](https://tauri.app/)
