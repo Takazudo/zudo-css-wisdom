@@ -10,7 +10,7 @@ import CssPreview from '@/components/CssPreview';
 
 スライド、埋め込みプレゼンテーションステージ、固定アスペクト比のプレビューカード — これらは**固定コンポジション**のサーフェスです。デザインはひとつの基準サイズ（例: 1280×720）で作られ、どのサイズで表示されてもその構図の忠実な縮小・拡大であるべきです。ステージ幅の 6.85% で置かれたテキストは、どのサイズでも 6.85% のまま — PowerPoint、reveal.js、Marp の挙動です。
 
-標準的な fluid type のガイダンス — `rem` 項が優位な加算型 `clamp()` トークン（[Container Queries → rem 項を優位に保つ](../../responsive/container-queries.mdx#keep-the-rem-term-dominant)参照）— は、これを積極的に壊します。`rem` フロアのせいで、ステージがデザイン幅の一定割合を下回るとテキストが縮まなくなり、狭いステージではキャンバスに対して文字が肥大化し、折り返し、フッターと衝突し、ステージの `overflow: hidden` で切り取られます。
+標準的な fluid type のガイダンス — `rem` 項が優位な加算型 `clamp()` トークン（[Container Queries → rem 項を優位に保つ](../../responsive/container-queries.mdx#トークンスケールとしてのコンテナクエリ単位-rem項を優位に保つ)参照）— は、これを積極的に壊します。`rem` フロアのせいで、ステージがデザイン幅の一定割合を下回るとテキストが縮まなくなり、狭いステージではキャンバスに対して文字が肥大化し、折り返し、フッターと衝突し、ステージの `overflow: hidden` で切り取られます。
 
 rem 優位トークンを使った実際のスライドシステムでの計測値（タイトルはステージ幅の 6.85% でデザイン）:
 
@@ -195,7 +195,7 @@ for (const width of [1600, 480]) {
 - 基準デザインサイズで作られる固定アスペクトの埋め込み（動画オーバーレイのローワーサード、証明書/領収書プレビュー、ソーシャルカードレンダラー）
 - 「ひとつの構図のスケール画像」が正直なメンタルモデルであるあらゆるサーフェス
 
-以下は加算型 rem 優位トークン（[Container Queries](../../responsive/container-queries.mdx#container-query-units-as-a-token-scale) のデフォルト）のままにします:
+以下は加算型 rem 優位トークン（[Container Queries](../../responsive/container-queries.mdx#トークンスケールとしてのコンテナクエリ単位) のデフォルト）のままにします:
 
 - スケールではなくリフローするカード、ウィジェット、コンポーネント
 - テキストのみズームのアクセシビリティが優先されるフロー文書内のすべて
@@ -203,7 +203,7 @@ for (const width of [1600, 480]) {
 
 ## 参考資料
 
-- [Container Queries — Container Query Units as a Token Scale](../../responsive/container-queries.mdx#container-query-units-as-a-token-scale)
+- [Container Queries — Container Query Units as a Token Scale](../../responsive/container-queries.mdx#トークンスケールとしてのコンテナクエリ単位)
 - [Fluid Font Sizing with clamp()](./fluid-font-sizing.mdx)
 - [Container Query Units — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries#container_query_length_units)
 - [reveal.js — Presentation Size](https://revealjs.com/presentation-size/)
