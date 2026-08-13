@@ -10,7 +10,7 @@ import CssPreview from '@/components/CssPreview';
 
 A slide, an embedded presentation stage, a fixed-aspect preview card — these are **fixed-composition** surfaces: the design is authored at one canonical size (say 1280×720), and every rendering is meant to be a faithful miniature or enlargement of that composition. Text at 6.85% of the stage width should stay 6.85% of the stage width at every size, the way PowerPoint, reveal.js, and Marp behave.
 
-The standard fluid-type guidance — additive `clamp()` tokens with a dominant `rem` term (see [Container Queries → Keep the rem Term Dominant](../../responsive/container-queries.mdx#keep-the-rem-term-dominant)) — actively breaks this. The `rem` floor stops text from shrinking once the stage drops below a fraction of the design width, so on a narrow stage the type balloons relative to its canvas, wraps, collides with the footer, and gets clipped by the stage's `overflow: hidden`.
+The standard fluid-type guidance — additive `clamp()` tokens with a dominant `rem` term (see [Container Queries → Keep the rem Term Dominant](../../responsive/container-queries.mdx#container-query-units-as-a-token-scale-keep-the-rem-term-dominant)) — actively breaks this. The `rem` floor stops text from shrinking once the stage drops below a fraction of the design width, so on a narrow stage the type balloons relative to its canvas, wraps, collides with the footer, and gets clipped by the stage's `overflow: hidden`.
 
 Measured on a real slide system with rem-dominant tokens (title designed at 6.85% of stage width):
 
