@@ -1,0 +1,396 @@
+---
+title: "Spacing Philosophy: Proximity Grouping"
+description: "Space between groups must clearly exceed space within a group, or the layout reads as the wrong hierarchy — no matter how \"correct\" each individual value is."
+sidebar_position: 1
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+Spacing communicates structure. Readers do not parse a page by reading its DOM tree — they parse it by eye, and the eye groups elements by how close together they are. This is the Gestalt law of proximity: elements placed near each other are perceived as related; elements placed farther apart are perceived as separate.
+
+Token systems and lint rules — see [Design Token Lint](../design-tokens/design-token-lint.mdx) and [Two-Tier Size Strategy](../design-tokens/two-tier-size-strategy.mdx) — enforce that spacing values come from an approved scale. They cannot enforce that two adjacent values, placed next to each other, produce a legible grouping. A layout can use nothing but valid tokens and still read as the wrong hierarchy, because the failure is not in any single value — it is in the **ratio** between the gap within a group and the gap between groups.
+
+Consider a spacing scale with steps at 8px, 12px, 16px, 24px, and 32px. Every one of these is a "correct" token. But using 12px for the space between related items and 16px for the space before the next section is a mistake the lint layer will never catch: 16px is only 1.33× larger than 12px, which is too weak a signal to read as a boundary. The eye blurs the two groups into one.
+
+## The Solution
+
+Make the gap **between** groups clearly larger than the gap **within** a group — as a rule of thumb, at least roughly double. The absolute values matter less than the ratio between them. Two spacing values are both valid tokens and still describe two different structures depending on how they relate to each other.
+
+On a dense scale, make the rule mechanical rather than a judgment call. Find the ×2 ladders inside your scale — a scale with steps 4/6/8/12/16/24/32/48 contains two, `4→8→16→32` and `6→12→24→48` — and pick both gaps of any boundary **from the same ladder, one rung apart**. Same ladder, one rung up is exactly 2×, by construction. Adjacent scale steps (12 and 16, 16 and 20) are for different jobs in different places, not the two sides of one grouping boundary. In one measured migration of roughly 3,000 spacing usages, every boundary whose gaps were *authored* was fixed by re-pairing alone — no scale step renamed or deleted. Boundaries whose within-group rhythm was intrinsic needed a different mechanism; see the next section, and [Spacing Architecture for Dense Desktop-Class Web Apps](../design-tokens/app-spacing-architecture.mdx).
+
+<CssPreview client:load
+  title="Ratio Over Absolute Value — Same Token Scale, Different Grouping"
+  html={`
+<div class="ratio-demo">
+  <div class="ratio-demo__col">
+    <p class="ratio-demo__label">Weak ratio — 12px / 16px (1.33×)</p>
+    <div class="ratio-demo__group">
+      <div class="ratio-demo__item">Product A</div>
+      <div class="ratio-demo__item">Product B</div>
+      <div class="ratio-demo__item">Product C</div>
+    </div>
+    <p class="ratio-demo__footer ratio-demo__footer--weak">3 items in stock</p>
+  </div>
+  <div class="ratio-demo__col">
+    <p class="ratio-demo__label">Strong ratio — 12px / 32px (2.67×)</p>
+    <div class="ratio-demo__group">
+      <div class="ratio-demo__item">Product A</div>
+      <div class="ratio-demo__item">Product B</div>
+      <div class="ratio-demo__item">Product C</div>
+    </div>
+    <p class="ratio-demo__footer ratio-demo__footer--strong">3 items in stock</p>
+  </div>
+</div>
+  `}
+  css={`
+  .ratio-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .ratio-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .ratio-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .ratio-demo__group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ratio-demo__item {
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: hsl(24, 70%, 45%);
+    color: hsl(0, 0%, 100%);
+    font-size: 0.85rem;
+  }
+  .ratio-demo__footer {
+    font-size: 0.75rem;
+    color: hsl(220, 10%, 45%);
+  }
+  .ratio-demo__footer--weak {
+    margin-top: 16px;
+  }
+  .ratio-demo__footer--strong {
+    margin-top: 32px;
+  }
+  `}
+  height={260}
+/>
+
+Both columns use the same 12px value for spacing within the group of three products. The left column pairs it with a 16px gap before the footer — a valid token, but too close to 12px to read as a boundary, so the footer looks like a fourth member of the list. The right column pairs the same 12px with 32px — the footer now clearly reads as separate from the product group. No value here is "wrong" in isolation. The ratio is what decides the reading.
+
+For the mechanics of producing these gaps — `gap` versus `margin`, and when each applies — see [gap vs margin](../flexbox-and-grid/gap-vs-margin.mdx). This article is about deciding *how much* space to put on each side of a boundary; that one is about *which property* creates it.
+
+### When the within-group gap is not yours to set
+
+The ratio rule assumes you control both gaps. Sometimes the within-group rhythm is **intrinsic** — the line-height of stacked text inside a card, the natural rhythm of an icon+label row. You cannot shrink it without harming readability, and out-ratioing it (2× a 24px line rhythm = 48px between every card) wastes the space the layout exists to conserve.
+
+When that happens, stop fighting with proximity and switch Gestalt principles: use **common region**. Give each group a bounded box — border, radius, fill — and a modest gap between boxes. A bounded region groups its contents regardless of internal rhythm, so a 16px inter-card gap reads cleanly against a 24px internal line rhythm that would have required 48px by ratio alone.
+
+The diagnostic: if "fix the ratio" implies either shrinking text line-height or doubling a gap that is already generous, the layout is asking for a bounded region (common region), not more spacing. One measured case — a timeline whose between-card gap (~25px) matched its within-card line rhythm (~24px), fusing eight cards into one list — was resolved with the internal rhythm left byte-identical, adding only border, radius, and a 16px gap.
+
+## A Separator Has No Side of Its Own
+
+HTML defines `<hr>` as a thematic break — nothing more. The spec does not say which section the line belongs to, how much space it deserves, or whether it opens what follows or closes what precedes. The element supplies a line; **the spacing around it supplies the meaning.** This makes separators the easiest place for proximity grouping to go wrong, because the markup feels self-explanatory while the rendering says something else.
+
+The failure that motivated this article was exactly this simple:
+
+<CssPreview client:load
+  title="The Disappearing Divider — hr Gaps Tighter Than the Paragraph Rhythm"
+  html={`
+<div class="hr-demo">
+  <div class="hr-demo__col">
+    <p class="hr-demo__label">Broken — hr margins 8px vs 24px paragraph rhythm</p>
+    <div class="hr-demo__page">
+      <p class="hr-demo__p">The first topic continues through this paragraph.</p>
+      <p class="hr-demo__p">It wraps up with a short closing thought here.</p>
+      <hr class="hr-demo__hr hr-demo__hr--tight" />
+      <p class="hr-demo__p">A second, unrelated topic begins at this point.</p>
+      <p class="hr-demo__p">It carries on with its own line of argument.</p>
+    </div>
+  </div>
+  <div class="hr-demo__col">
+    <p class="hr-demo__label">Fixed — hr margins 48px, double the 24px rhythm</p>
+    <div class="hr-demo__page">
+      <p class="hr-demo__p">The first topic continues through this paragraph.</p>
+      <p class="hr-demo__p">It wraps up with a short closing thought here.</p>
+      <hr class="hr-demo__hr hr-demo__hr--boundary" />
+      <p class="hr-demo__p">A second, unrelated topic begins at this point.</p>
+      <p class="hr-demo__p">It carries on with its own line of argument.</p>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .hr-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .hr-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .hr-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .hr-demo__page {
+    background: hsl(30, 30%, 97%);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .hr-demo__p {
+    font-size: 0.8rem;
+    color: hsl(220, 15%, 25%);
+    margin: 0 0 24px;
+  }
+  .hr-demo__p:last-child {
+    margin-bottom: 0;
+  }
+  .hr-demo__hr {
+    border: none;
+    border-top: 1px solid hsl(30, 15%, 60%);
+  }
+  .hr-demo__hr--tight {
+    margin: 8px 0;
+  }
+  .hr-demo__hr--boundary {
+    margin: 48px 0;
+  }
+  `}
+  height={380}
+/>
+
+In the broken version the paragraphs sit 24px apart, but the `<hr>` carries only 8px above and below. The total gap across the "separator" is *smaller* than the gap between related paragraphs — so the two paragraphs it was supposed to divide read as **more** connected than any other pair on the page, and the line itself reads as text decoration. In the fixed version the paragraph rhythm is untouched; only the `<hr>` margins grew to 48px — double the within-group gap — and the page falls into two clean groups. Same ratio rule as above, applied across a divider.
+
+### Decide the separator's role, then space it
+
+Because the element carries no meaning of its own, the first step is a decision, not a value: what do you want this separator to be?
+
+| Intended role | Spacing shape | Typical use |
+| --- | --- | --- |
+| Symmetric boundary | Equal, large space on both sides (≥2× the within-group gap) | Thematic break between prose blocks |
+| Opener — binds forward | Large space before, small space after | A rule that introduces the next section, like a heading rule |
+| Closer — binds backward | Small space before, large space after | A rule that closes a block — a totals line, a signature rule |
+
+All three are legitimate. What is not legitimate is not choosing: a separator whose two gaps are accidental — near-equal-and-small, or produced by whatever margins happened to collapse — reads as a random line. Whichever role you pick, the ratio rule governs it: the separating side(s) must clearly exceed the within-group gap, and a binding side (if any) must be clearly smaller.
+
+### The `border-t` + `padding-top` trap
+
+The opener role has a common accidental inversion. Tailwind's `border-t` + `pt-*` pattern applies the top border and the top padding to the same element — the section that comes *after* the divider:
+
+```css
+/* The line sits at the very top of the box.
+   padding-top lands BELOW the line, not above it. */
+.section-next {
+  border-top: 1px dashed hsl(30, 15%, 55%);
+  padding-top: 2rem;
+}
+```
+
+The border is drawn at the top edge of the box; `padding-top` is space *inside* the box, below that line. If nothing supplies space before the box (no `margin-top` on it, no `margin-bottom` on what precedes it), the line sits flush against the previous section — visually joining it — while the generous padding pushes the next section's content away from its own separator.
+
+<CssPreview client:load
+  title="The border-top + padding-top Trap"
+  html={`
+<div class="trap-demo">
+  <div class="trap-demo__col">
+    <p class="trap-demo__label">Broken — space lands below the line</p>
+    <div class="trap-demo__page">
+      <p class="trap-demo__text">Previous section content ends here.</p>
+      <div class="trap-demo__divider trap-demo__divider--broken">
+        <p class="trap-demo__next">Next section starts here.</p>
+      </div>
+    </div>
+  </div>
+  <div class="trap-demo__col">
+    <p class="trap-demo__label">Fixed — space moved above the line</p>
+    <div class="trap-demo__page">
+      <p class="trap-demo__text">Previous section content ends here.</p>
+      <div class="trap-demo__divider trap-demo__divider--fixed">
+        <p class="trap-demo__next">Next section starts here.</p>
+      </div>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .trap-demo {
+    display: flex;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .trap-demo__col {
+    flex: 1;
+    min-width: 0;
+  }
+  .trap-demo__label {
+    font-size: 0.75rem;
+    color: hsl(20, 40%, 45%);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .trap-demo__page {
+    background: hsl(30, 30%, 97%);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .trap-demo__text,
+  .trap-demo__next {
+    font-size: 0.85rem;
+    color: hsl(220, 15%, 25%);
+    margin: 0;
+  }
+  .trap-demo__divider--broken {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    padding-top: 32px;
+    margin-top: 0;
+  }
+  .trap-demo__divider--fixed {
+    border-top: 1px dashed hsl(30, 15%, 55%);
+    padding-top: 8px;
+    margin-top: 32px;
+  }
+  `}
+  height={260}
+/>
+
+In the broken version the line has almost no space above it, so it visually clumps with the previous paragraph — the two read as one group, and "Next section starts here" floats disconnected below its own separator. In the fixed version the large `margin-top` on the divider pushes the line away from the previous section, and the small `padding-top` keeps the next section's text close beneath the line. The line now reads as intended: the opener of the next section. The trap generalizes — whenever a separator misreads, check which side of the line the visible space physically landed on before touching any values.
+
+## The Squint Test
+
+A fast, reliable review heuristic: blur your vision (or literally squint) at the layout and ask which elements clump together. Fine details — text content, icon shapes, exact colors — disappear under blur. What remains is pure spatial grouping: the same signal a reader's peripheral vision and first-glance scan pick up before they read a single word.
+
+Compare the result against the intended outline. If a boundary element — a divider, a heading, a label — clumps with the wrong neighbor, the fix is to adjust the **gap ratio** around it, not to restyle the element itself. A divider that reads as attached to the wrong section is a spacing bug, not a border-color or line-weight bug.
+
+In an app with a user-controlled display scale (see [Display Scale Strategy](../design-tokens/display-scale-strategy.mdx)), run the squint pass at the scale extremes too — 0.75× and 1.5×/2.0×. Fractional scales surface rounding and hairline bugs that are invisible at 1.0×: sub-2px smears, half-pixel bars, and components never wired to the multiplier drifting out of alignment with everything around them.
+
+<CssPreview client:load
+  title="Squint Test — Toggle Blur to Check Grouping"
+  html={`
+<div class="squint-demo">
+  <input type="checkbox" id="squint-toggle" class="squint-demo__toggle" />
+  <label for="squint-toggle" class="squint-demo__toggle-label">Squint (blur the layout)</label>
+  <div class="squint-demo__content">
+    <div class="squint-demo__group">
+      <div class="squint-demo__item">Filters</div>
+      <div class="squint-demo__item">Sort</div>
+      <div class="squint-demo__item">View</div>
+    </div>
+    <div class="squint-demo__group squint-demo__group--secondary">
+      <div class="squint-demo__item squint-demo__item--muted">24 results</div>
+    </div>
+  </div>
+</div>
+  `}
+  css={`
+  .squint-demo {
+    font-family: system-ui, sans-serif;
+    padding: 24px;
+  }
+  .squint-demo__toggle {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .squint-demo__toggle-label {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: hsl(24, 70%, 45%);
+    color: hsl(0, 0%, 100%);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  .squint-demo__toggle:focus-visible + .squint-demo__toggle-label {
+    outline: 2px solid hsl(24, 70%, 45%);
+    outline-offset: 2px;
+  }
+  .squint-demo__content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    transition: filter 0.15s ease;
+  }
+  .squint-demo__toggle:checked ~ .squint-demo__content {
+    filter: blur(5px);
+  }
+  .squint-demo__group {
+    display: flex;
+    gap: 10px;
+  }
+  .squint-demo__item {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: hsl(220, 15%, 90%);
+    color: hsl(220, 20%, 25%);
+    font-size: 0.8rem;
+  }
+  .squint-demo__item--muted {
+    background: transparent;
+    color: hsl(220, 10%, 50%);
+    padding: 8px 0;
+  }
+  `}
+  height={230}
+/>
+
+Toggle the checkbox above. At full clarity, "24 results" reads as ordinary text below a toolbar. Blurred, the large gap above it and its lack of a background box read clearly as "not part of the toolbar group" — the grouping intent survives the blur. If it did not — if the blurred shapes fused into a single blob — that would be the signal to widen the gap between groups.
+
+## Quick Reference
+
+| Scenario | Technique |
+| --- | --- |
+| Related items in a list or toolbar | Small, uniform gap (`gap` on the container) |
+| Boundary between unrelated sections | Gap roughly 2× or more the within-group gap |
+| Any separator (`<hr>`, border, label) | Decide its role first — symmetric boundary, opener, or closer — then set the spacing to express it |
+| Separator that must read as a boundary | Space on the separating side(s) clearly larger than the within-group gap — never smaller |
+| Reviewing a shipped layout for grouping errors | Squint/blur the page; check clumping against the intended outline |
+| Auditing spacing values for hierarchy bugs | Compare the *ratio* between adjacent gaps, not each value in isolation |
+
+## Common AI Mistakes
+
+- **Treating "valid token" as "correct usage."** A spacing scale only constrains which values are allowed, not which value belongs at which boundary. Picking adjacent scale steps (e.g., 12px and 16px) for within-group and between-group spacing produces a legal but illegible layout.
+- **Giving a separator less space than the content rhythm around it.** If the gaps across an `<hr>` are smaller than the paragraph-to-paragraph gaps, the "separator" makes its two sides read as *more* related than ordinary paragraphs — the original failure that motivated this article.
+- **Applying `border-t` + `pt-*` to the section that follows a divider without adding `margin-top` before it.** The padding lands below the line, not above it, so an intended opener silently becomes a closer for the previous section.
+- **Reviewing spacing by checking each value against the design system, not by looking at the rendered result.** A lint pass or token audit cannot catch a proximity-grouping error — only visual inspection (ideally the squint test) can.
+- **Increasing a single gap in isolation to "fix" a spacing complaint.** If a boundary reads wrong, the fix is the *ratio* between the two adjacent gaps, not an arbitrary bump to one value.
+- **Assuming a divider element is self-explanatory regardless of surrounding space.** HTML defines `<hr>` only as a thematic break — it communicates nothing about which section it belongs to on its own. The spacing around it does that work, and which role it plays (boundary, opener, closer) is the author's decision, not the element's.
+
+## When to Use
+
+### Apply the ratio rule
+
+Whenever a layout has more than one level of grouping — a list of items inside a card, a card inside a page section, a section inside a page. Check that each level's "between" gap is clearly larger than the level below it's "within" gap.
+
+### Run the squint test
+
+After any layout is built or restyled, before shipping. It is a fast, tool-free way to catch grouping errors that a token/lint audit will not surface, because it checks the *relationship* between values, not the values themselves.
+
+### Watch the `border-t` + `pt-*` pattern specifically
+
+Any time a divider or top border is applied to the element that starts a new section rather than to a dedicated separator element. Confirm which side of the line the visible space actually lands on.

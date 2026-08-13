@@ -1,0 +1,297 @@
+---
+title: 論理プロパティ（Logical Properties）
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+CSSは当初、物理的な方向（`top`、`right`、`bottom`、`left`）で設計されました。これは左から右（LTR）の言語では機能しますが、アラビア語やヘブライ語のような右から左（RTL）の言語や、日本語のような縦書きモードでは崩れます。AIエージェントは論理的な代替手段がある場合でも、ほぼ常に物理プロパティ（`margin-left`、`padding-right`、`border-top`）を生成します。これにより、国際化（i18n）のために手動でミラーリングが必要なレイアウトが作られ、エラーが起きやすく重複したCSSが生まれます。
+
+## 解決方法
+
+CSS論理プロパティは、物理的な画面方向ではなくコンテンツの流れに基づいてスペーシング、サイジング、ポジショニングを定義します：
+
+- **インライン軸（Inline axis）** — テキストが流れる方向（LTR/RTLでは水平、縦書きモードでは垂直）
+- **ブロック軸（Block axis）** — ブロックが積み重なる方向（LTR/RTLでは垂直、縦書きモードでは水平）
+
+`margin-inline`、`padding-block`、`border-inline-start` などのプロパティを使うことで、レイアウトはどの書字方向にも自動的に適応します。
+
+## コード例
+
+### 物理プロパティと論理プロパティの対応
+
+```css
+/* Physical (LTR-only) */
+.card-physical {
+  margin-left: 1rem;
+  margin-right: 1rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  border-left: 3px solid blue;
+}
+
+/* Logical (all writing directions) */
+.card-logical {
+  margin-inline: 1rem;
+  padding-block: 2rem;
+  border-inline-start: 3px solid blue;
+}
+```
+
+LTRでは同じ結果になります。RTLでは、論理バージョンはボーダーを自動的に右側（RTLでのインライン軸の開始側）に配置します。
+
+<CssPreview client:load
+  title="margin-inline と margin-left/right の比較"
+  html={`    <div class="demo">
+      <div class="label">margin-left + margin-right (physical):</div>
+      <div class="outer">
+        <div class="box physical">margin-left: 40px; margin-right: 40px</div>
+      </div>
+
+      <div class="label">margin-inline: 40px (logical):</div>
+      <div class="outer">
+        <div class="box logical">margin-inline: 40px</div>
+      </div>
+
+      <div class="label">margin-inline in RTL (auto-adapts):</div>
+      <div class="outer" dir="rtl">
+        <div class="box logical rtl-box">margin-inline: 40px (RTL text here)</div>
+      </div>
+    </div>`}
+  css={`.demo {
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+      padding: 8px;
+    }
+    .label {
+      font-weight: 600;
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .outer {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 8px 0;
+      margin-bottom: 12px;
+    }
+    .box {
+      padding: 12px 16px;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .physical {
+      background: #3b82f6;
+      margin-left: 40px;
+      margin-right: 40px;
+    }
+    .logical {
+      background: #22c55e;
+      margin-inline: 40px;
+    }
+    .rtl-box {
+      background: #8b5cf6;
+    }`} />
+
+### 完全なプロパティ対応表
+
+| 物理プロパティ | 論理プロパティ |
+| --- | --- |
+| `margin-top` | `margin-block-start` |
+| `margin-bottom` | `margin-block-end` |
+| `margin-left` | `margin-inline-start` |
+| `margin-right` | `margin-inline-end` |
+| `padding-top` | `padding-block-start` |
+| `padding-bottom` | `padding-block-end` |
+| `padding-left` | `padding-inline-start` |
+| `padding-right` | `padding-inline-end` |
+| `width` | `inline-size` |
+| `height` | `block-size` |
+| `min-width` | `min-inline-size` |
+| `max-height` | `max-block-size` |
+| `top` | `inset-block-start` |
+| `bottom` | `inset-block-end` |
+| `left` | `inset-inline-start` |
+| `right` | `inset-inline-end` |
+| `border-top` | `border-block-start` |
+| `border-bottom` | `border-block-end` |
+| `text-align: left` | `text-align: start` |
+| `text-align: right` | `text-align: end` |
+| `float: left` | `float: inline-start` |
+
+### ショートハンドプロパティ
+
+```css
+.box {
+  /* Sets both inline-start and inline-end */
+  margin-inline: 1rem;        /* same as margin-left + margin-right in LTR */
+
+  /* Sets both block-start and block-end */
+  padding-block: 2rem;        /* same as padding-top + padding-bottom in LTR */
+
+  /* Two-value syntax: start and end */
+  margin-inline: 1rem 2rem;   /* inline-start: 1rem, inline-end: 2rem */
+  padding-block: 1rem 0;      /* block-start: 1rem, block-end: 0 */
+}
+```
+
+### margin-inline: auto でのセンタリング
+
+```css
+.centered-block {
+  max-inline-size: 800px;
+  margin-inline: auto;
+}
+```
+
+これは `max-width: 800px; margin-left: auto; margin-right: auto` の論理的な等価物です。すべての書字モードで正しく機能します。
+
+### 論理スペーシングによるナビゲーション
+
+```css
+.nav-item {
+  padding-inline: 1rem;
+  padding-block: 0.5rem;
+  border-inline-end: 1px solid #e5e7eb;
+}
+
+.nav-item:last-child {
+  border-inline-end: none;
+}
+```
+
+LTRではボーダーが各アイテムの右側に表示されます。RTLでは自動的に左側に表示されます。
+
+### 論理マージン付きアイコン
+
+```css
+.button-icon {
+  margin-inline-end: 0.5rem;
+}
+```
+
+```html
+<button>
+  <svg class="button-icon"><!-- icon --></svg>
+  Submit
+</button>
+```
+
+LTRではアイコンにテキストと区切るための右マージンがあります。RTLではマージンが自動的に左側に移動します。
+
+### inset による論理ポジショニング
+
+```css
+.dropdown {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 0;
+}
+```
+
+これはドロップダウンを親の下（LTRでは `top: 100%`）に配置し、開始端に揃えます（LTRでは `left: 0`、RTLでは `right: 0`）。
+
+### inline-size と block-size の使用
+
+```css
+.sidebar {
+  inline-size: 250px;    /* width in horizontal writing modes */
+  block-size: 100%;      /* height in horizontal writing modes */
+}
+
+.hero {
+  min-block-size: 100vh; /* min-height in horizontal writing modes */
+  inline-size: 100%;     /* width in horizontal writing modes */
+}
+```
+
+<CssPreview client:load
+  title="padding-block の使用例"
+  html={`    <div class="demo">
+      <div class="box">
+        <div class="inner">
+          padding-block: 2rem (top and bottom padding)
+        </div>
+      </div>
+      <div class="box inline">
+        <div class="inner">
+          padding-inline: 2rem (left and right padding)
+        </div>
+      </div>
+      <div class="box both">
+        <div class="inner">
+          padding-block: 1rem; padding-inline: 2rem
+        </div>
+      </div>
+    </div>`}
+  css={`.demo {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+    }
+    .box {
+      background: #dbeafe;
+      border-radius: 8px;
+      padding-block: 2rem;
+    }
+    .box.inline {
+      background: #dcfce7;
+      padding-block: 0;
+      padding-inline: 2rem;
+    }
+    .box.both {
+      background: #fef3c7;
+      padding-block: 1rem;
+      padding-inline: 2rem;
+    }
+    .inner {
+      background: #3b82f6;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+    }`} />
+
+## AIがよくやるミス
+
+- **常に物理プロパティを使っている。** AIエージェントは、すでに論理プロパティを使用しているプロジェクトやi18nサポートが必要なプロジェクトでも、`margin-left`、`padding-top`、`border-right` などをデフォルトで使います。プロジェクトが論理プロパティを採用したら、新しいCSSはすべて一貫させるべきです。
+- **同じ要素で物理プロパティと論理プロパティを混在させている。** これは混乱しやすく、保守が難しいCSSを作ります。`margin-inline` を使うなら、同じ要素で `margin-left` も使ってはいけません。
+- **センタリングに `margin-inline: auto` を使っていない。** `margin: 0 auto` は副作用として垂直方向のマージンを0にリセットします。`margin-inline: auto` はインライン軸のみに作用し、既存のブロック軸マージンを保持します。
+- **`text-align: start` の代わりに `text-align: left` を使っている。** RTLコンテキストでは `left` は反転しません。フロー相対の配置には `start` と `end` を使いましょう。
+- **論理プロパティを「i18n専用」として扱っている。** LTR限定のプロジェクトでも、論理プロパティはより読みやすく将来性があります。`padding-block` は水平書字モードにおいて「垂直方向のパディング」を、読者が「top と bottom」を頭の中で対応させる必要なく明確に伝えます。
+- **`inline-size` と `block-size` がより明確な場合に `width` と `height` を使っている。** コンテンツの流れに関連するレイアウトプロパティでは、論理的な等価物の方が意図をよく伝えます。
+
+## 使い分け
+
+### 常に論理プロパティを優先すべき場面
+
+- プロジェクトがRTL言語（アラビア語、ヘブライ語、ペルシャ語）をサポートしている、またはサポートする可能性がある場合
+- プロジェクトが縦書きモードを使用している場合（CJKコンテンツ）
+- すでに論理プロパティを使用しているプロジェクトで新しいCSSを書く場合
+- auto マージンでのセンタリング（`margin-inline: auto` は `margin: 0 auto` よりクリーン）
+
+### 物理プロパティで問題ない場面
+
+- プロパティが物理的な画面位置に本当に関連している場合（例：画面の視覚的な上部に固定された fixed 要素）
+- プロジェクトにi18n要件がなく、チームがまだ論理プロパティを採用していない場合
+- 物理的なポジショニングが意図的な `position: fixed` コンテキストでの `top`/`left` の使用
+
+### 段階的に採用する
+
+- 新しいコンポーネントから始めて、既存のコンポーネントは時間をかけてリファクタリング
+- Stylelintルール（例：`liberty/use-logical-spec`）を使って新しいコードで論理プロパティを強制
+- 優先順位：使用頻度の高いコンポーネント、ナビゲーション、フォーム、デザインシステムトークン
+
+## 参考リンク
+
+- [CSS Logical Properties and Values - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_logical_properties_and_values)
+- [Logical Properties - web.dev](https://web.dev/learn/css/logical-properties)
+- [Logical properties for margins, borders, and padding - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_logical_properties_and_values/Margins_borders_padding)
+- [From margin-left to margin-inline: Why Logical CSS Properties Matter - Brett Dorrans](https://lapidist.net/articles/2025/from-margin-left-to-margin-inline-why-logical-css-properties-matter/)

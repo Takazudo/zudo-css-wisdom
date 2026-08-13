@@ -1,0 +1,457 @@
+---
+title: Design Token Lint
+sidebar_position: 1
+description: Build-time enforcement of a design token system — forbid raw color literals, raw z-index integers, and zone-aware misuse, with a documented escape hatch.
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+Methodology articles document *what tokens to define*. They stop short of *how to enforce them at build time*. Without enforcement, a token system decays:
+
+- Raw `#0066ff` literals creep into component CSS, slipping past code review.
+- `z-index: 99` shortcuts bypass the [tier system](./z-index-strategy.mdx). Once one slips in, the next contributor sees `99` and writes `100`.
+- Token names drift between docs and CSS as the codebase grows. The `--shadow-modal` documented in the design-system page no longer matches the `--modal-shadow` actually used in three components.
+- "We agreed not to use raw oklch in components" survives in code review for about six months. After that, it survives only in the heads of two people, neither of whom is reviewing today's PR.
+
+A token system without enforcement is a code-review hope, not a guarantee. AI-assisted refactoring makes the rotation worse: tokens move faster, contributors change more often, and the rules that "everyone knows" get re-learned by every new agent and contributor.
+
+## The Solution
+
+Run a **multi-pass linter** at pre-push and CI time that scans component code and CSS for known anti-patterns. Each pass enforces a different rule. New rules can be added as the design system grows.
+
+The minimal pattern, in three passes:
+
+| Pass | Scans | Forbids | Allows |
+| --- | --- | --- | --- |
+| **Pass 1** | Component class lists / CSS values | Raw color literals (`#rrggbb`, `oklch(...)`, `rgb(...)`, default Tailwind colors) | Semantic tokens (`bg-surface`, `text-fg`), arbitrary values inside escape hatch |
+| **Pass 2** | Zone-defining blocks (`:root`, `@theme`, `[data-theme="..."]`) | Semantic-tier tokens that embed literals directly | Semantic-tier tokens that reference palette tokens via `var()` / `color-mix()` |
+| **Pass 3** | Component CSS | Raw `z-index: <integer>` | `var(--z-*)`, `calc(... var(--z-*) ...)`, keywords (`auto`, `inherit`, `initial`) |
+
+Pass 1 is the most common — it is what `@takazudo/zudo-design-token-lint` ships today for Tailwind class names. Pass 2 and Pass 3 are the conceptual extensions that grow naturally from the same pattern.
+
+<Note title="Pass 3 status">
+
+Pass 3 (raw `z-index` integers) is **planned**, not shipped. It will land alongside the [Z-Index Strategy](./z-index-strategy.mdx) article's tier system. Track upstream status at [zudo-pattern-gen#942](https://github.com/zudolab/zudo-pattern-gen/issues/942). Document the rule now so the contract is clear; ship the implementation when the upstream is ready.
+
+</Note>
+
+## Pass 1: forbid raw values in component code
+
+The simplest pass. Scan every file that produces visible UI. Flag any literal that should be a token.
+
+```css
+/* component.css — caught by Pass 1 */
+.alert {
+  background: #ffe4e4;          /* raw hex literal */
+  color: oklch(45% 0.18 27);    /* raw oklch literal */
+  padding: 12px 16px;           /* raw spacing literal */
+}
+```
+
+```css
+/* component.css — passes Pass 1 */
+.alert {
+  background: var(--color-alert-bg);
+  color: var(--color-alert-fg);
+  padding: var(--space-sm) var(--space-md);
+}
+```
+
+For Tailwind-class projects, the same rule applies to numeric utilities and default colors:
+
+```tsx
+// Caught by Pass 1
+<div className="p-4 bg-gray-500 text-blue-600">
+```
+
+```tsx
+// Passes Pass 1
+<div className="p-hgap-sm bg-surface text-fg">
+```
+
+The point is not the specific syntax — it is that every raw literal in component code is a violation by default. The violation can be excused with an escape hatch, but it cannot be silent.
+
+<CssPreview client:load
+  title="Before / After: Raw Literal vs Token"
+  height={300}
+  html={`    <div class="dtl-demo">
+      <div class="dtl-demo__col">
+        <div class="dtl-demo__heading">Before — caught by Pass 1</div>
+        <div class="dtl-demo__alert dtl-demo__alert--bad">
+          Pre-deployment alert
+        </div>
+        <pre class="dtl-demo__code"><code>{".alert {\\n  background: hsl(0 95% 92%);\\n  color: hsl(0 60% 30%);\\n}"}</code></pre>
+        <div class="dtl-demo__verdict dtl-demo__verdict--bad">Renders fine. Lint fails. Hidden cost: every other contributor copies the literal.</div>
+      </div>
+      <div class="dtl-demo__col">
+        <div class="dtl-demo__heading">After — passes Pass 1</div>
+        <div class="dtl-demo__alert dtl-demo__alert--good">
+          Pre-deployment alert
+        </div>
+        <pre class="dtl-demo__code"><code>{".alert {\\n  background: var(--color-alert-bg);\\n  color: var(--color-alert-fg);\\n}"}</code></pre>
+        <div class="dtl-demo__verdict dtl-demo__verdict--good">Renders identically. Token is the only public interface; the palette can shift without touching this file.</div>
+      </div>
+    </div>`}
+  css={`    .dtl-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.875rem;
+    }
+    .dtl-demo__col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .dtl-demo__heading {
+      font-weight: 600;
+      font-size: 0.8125rem;
+      color: hsl(0 0% 25%);
+    }
+    .dtl-demo__alert {
+      padding: 0.625rem 0.875rem;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .dtl-demo__alert--bad,
+    .dtl-demo__alert--good {
+      background: hsl(0 95% 92%);
+      color: hsl(0 60% 30%);
+    }
+    .dtl-demo__code {
+      margin: 0;
+      padding: 0.5rem 0.75rem;
+      background: hsl(220 15% 96%);
+      border: 1px solid hsl(220 15% 88%);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      font-family: ui-monospace, monospace;
+      white-space: pre;
+    }
+    .dtl-demo__verdict {
+      font-size: 0.75rem;
+      line-height: 1.4;
+      padding: 0.375rem 0.5rem;
+      border-radius: 4px;
+    }
+    .dtl-demo__verdict--bad {
+      background: hsl(0 80% 95%);
+      color: hsl(0 60% 30%);
+    }
+    .dtl-demo__verdict--good {
+      background: hsl(140 50% 92%);
+      color: hsl(140 60% 25%);
+    }
+    @media (max-width: 640px) {
+      .dtl-demo { grid-template-columns: 1fr; }
+    }
+  `}
+/>
+
+### The exact allow/ban boundary for Tailwind utilities
+
+"No bare numeric utilities" is easy to over-read. In one project, an AI agent implementing this lint policy read the rule as "ban everything with a number" and flagged Tailwind's **fraction** utilities (`w-1/2`, `w-1/3`) alongside the freedom-scale ones the rule was meant to catch — breaking every proportional-width layout in the codebase until a human caught the mistake. A fraction expresses a proportion; it is not part of the numeric freedom scale the rule targets.
+
+Ban the default numeric **scale** and default color **palette**; everything explicit (tokens, arbitrary `[...]`, fractions, keywords) is allowed.
+
+| Category | Verdict | Examples |
+| --- | --- | --- |
+| Numeric spacing scale | Ban | `p-4`, `m-8`, `gap-6`, `inset-2`, ... |
+| Numeric sizing scale | Ban | `w-24`, `h-3`, `size-2`, `min-w-4`, `max-w-8`, ... |
+| Default color palette | Ban | `bg-gray-500`, `text-blue-600`, `border-red-400`, ... |
+| Semantic tokens | Allow | `px-hsp-sm`, `py-vsp-md`, `bg-surface`, `text-ink` |
+| Arbitrary values (escape hatch for one-off, component-specific values) | Allow | `w-[30px]`, `p-[6px]`, `grid-cols-[120px_1fr]`, `bg-[hsl(...)]` |
+| Fractions (proportional, NOT the freedom scale) | Allow | `w-1/2`, `w-1/3`, `basis-2/3` |
+| Keywords | Allow | `w-full`, `h-screen`, `max-w-prose`, `min-w-0` |
+| Zero | Allow | `p-0`, `w-0` |
+
+The numeric sizing scale is banned in policy, but the current reference implementation cannot safely enforce any of it yet — see the tooling-gap note in the Reference implementation section below.
+
+## Pass 2: zone awareness for semantic tokens
+
+Pass 1 alone is too broad. Some files **must** contain raw literals — that is the whole point of a `:root` block:
+
+```css
+:root {
+  /* Palette: literal oklch is correct here. */
+  --p0: oklch(98% 0 0);
+  --p15: oklch(15% 0 0);
+}
+```
+
+If Pass 1 flagged every literal in `:root`, the palette layer could not exist.
+
+The fix is **zone awareness**. Mark `:root`, `@theme`, and `[data-theme="..."]` as **token-definition zones**. Inside a zone, palette-tier tokens (`--p0` … `--p15`) may embed literals. Semantic-tier tokens defined in the same zone must still reference palette tokens via `var(...)` / `color-mix(...)`. They cannot embed literals directly.
+
+```css
+:root {
+  /* Pass 1 allows literals in this zone. */
+  --p0:  oklch(98% 0 0);
+  --p15: oklch(15% 0 0);
+
+  /* Pass 2 catches this. The token name --shadow-modal */
+  /* is semantic, but it embeds a raw oklch literal.    */
+  --shadow-modal: 0 12px 32px oklch(15% 0 0 / 0.4);
+}
+```
+
+```css
+:root {
+  --p0:  oklch(98% 0 0);
+  --p15: oklch(15% 0 0);
+
+  /* Passes Pass 2 — the semantic shadow references the palette. */
+  --shadow-modal: 0 12px 32px color-mix(in oklch, var(--p15), transparent 60%);
+}
+```
+
+The distinction is what makes "raw oklch in `:root`" still a lint failure when the variable being defined is a semantic token. Without Pass 2, a `:root` block becomes a back door: any literal can hide behind any name.
+
+How does the linter know the difference? By naming convention. Palette tokens use a reserved prefix (`--p0` … `--p15`, `--p-blue-500`, whatever the project chooses). Anything else defined in a token zone is treated as semantic and must reference the palette. The convention has to be explicit and documented; the linter does not guess.
+
+<Tip title="Convention before enforcement">
+
+Pass 2 only works if the project has a clear naming convention for palette tokens. Document it once in the design-system page, then encode it in the linter config. If the convention is fuzzy, the lint rule will be too.
+
+</Tip>
+
+## Pass 3: forbid raw z-index integers
+
+Raw `z-index: <integer>` in component CSS undermines the [Z-Index Strategy](./z-index-strategy.mdx) tier system. Pass 3 forbids them.
+
+```css
+/* component.css — caught by Pass 3 */
+.modal {
+  position: fixed;
+  z-index: 100;
+}
+
+.toast {
+  position: fixed;
+  z-index: 9999;
+}
+```
+
+```css
+/* component.css — passes Pass 3 */
+.modal {
+  position: fixed;
+  z-index: var(--z-modal);
+}
+
+.toast {
+  position: fixed;
+  z-index: var(--z-toast);
+}
+```
+
+Allowed forms:
+
+- `z-index: var(--z-modal);` — direct token reference
+- `z-index: calc(var(--z-modal) + 1);` — token-derived calc
+- `z-index: auto;` / `inherit;` / `initial;` — keyword values
+- Raw integer with a documented escape hatch (next section)
+
+Forbidden: bare integers, no exceptions, no escape hatch. `z-index: 100;` in component CSS is a Pass 3 failure.
+
+The companion [Z-Index Strategy](./z-index-strategy.mdx) article documents the tier-token system that Pass 3 enforces. Pass 3 status: planned at [zudo-pattern-gen#942](https://github.com/zudolab/zudo-pattern-gen/issues/942).
+
+## Escape hatches
+
+Some violations are legitimate: a one-off third-party widget integration, a debugging colour, an experimental layer. Block by default — but never block forever. Document the escape hatch and require a comment.
+
+The canonical syntax exposed by `@takazudo/zudo-design-token-lint` is:
+
+```tsx
+{/* design-token-lint-ignore */}
+<div className="p-4 bg-gray-500">
+```
+
+```css
+/* design-token-lint-ignore */
+.legacy-widget {
+  background: #0066ff;
+}
+```
+
+```ts
+// design-token-lint-ignore
+const className = `p-4 bg-${shade}-500`;
+```
+
+The escape hatch is one **line-level** comment that suppresses violations on the next code line. Three forms exist for the three comment syntaxes a project will encounter (JSX, CSS, JS/TS line). They are aliases of the same rule.
+
+Two anti-patterns to watch for:
+
+- **Escape hatches without a comment.** `/* design-token-lint-ignore */` on its own is a smell. The rule is "block by default, allow with a documented reason." Without the reason, the next reader has no way to evaluate whether the exception is still valid.
+- **File-level escape hatches.** A whole-file ignore is almost always a mistake — it silently exempts every future raw literal added to that file. If a file genuinely needs to opt out, a `.design-token-lint.json` `ignore` glob is more honest because it appears in the project's lint config rather than being hidden in a CSS comment.
+
+```css
+/* Legacy: this colour matches the old brand asset PNG that finance still uses. */
+/* Tracked at #1234 — remove once the asset is regenerated.                     */
+/* design-token-lint-ignore */
+.invoice-banner {
+  background: #0066ff;
+}
+```
+
+The lint config also supports `allowed`, `ignore`, and `prohibited` fields for project-wide rules — use those for stable exceptions and let the line-level comment carry the per-occurrence reason.
+
+## The ratchet-allowlist migration pattern
+
+Everything above assumes a codebase that is already clean, or close to it. Turning a strict rule on in a **mature** codebase — where most adoptions actually start — fails in both naive forms: "fix everything first" never lands, and "warn-only" is ignored forever. The pattern that works is a **per-area ratchet**:
+
+1. **Land the rule plus a full current-violation baseline, green on day one.** Every existing violation goes into an allowlist keyed by file → exact class string, **plus an occurrence count**. Keying on file+string alone leaves a hole: a second identical violation added to the same file later matches the existing entry and passes silently. Count or fingerprint the occurrences so the ratchet only loosens deliberately. CI enforces "no *new* violations" from the first commit, while the backlog is paid down incrementally.
+2. **One allowlist file per rollout area, not one central file.** Each area's migration shrinks only its own file, so parallel branches never write the same line. A central allowlist is a merge-conflict magnet that serializes an otherwise parallel migration.
+3. **Auto-accept the golden path by pattern, not by entry.** When an escape form is *always* sanctioned, encode it in the rule itself: bracket values built on `var(--display-scale)` or `var(--spacing-*)`, `env()`/vh/vw/% viewport math, 1px structural hairlines, and `min()`/`max()` wrappers of those pass without an allowlist line. Match the **whole expression**, not the presence of a substring — a "contains `var()`" test admits `calc(999px + var(--spacing-sm))`, a raw literal wearing a token as a disguise. If every correct escape needed an entry, the allowlist would grow at exactly the rate the codebase improves.
+4. **Consolidate and lock.** When the rollouts finish, move the handful of survivors into a single documented permanent-exception file and flip the rule to a hard error.
+
+This introduces a third escape-hatch shape alongside the line-level comment and the config glob: **pattern-based acceptance**. Line comments are for exceptions; patterns are for contracts. A sanctioned form that must be annotated at every site is not a contract — it is friction that teaches people to reach for the ignore comment.
+
+Measured in one migration of roughly 3,000 spacing usages: 31 baseline entries across five area files → **2** permanent survivors (both `mx-[0.25em]`, em-based inline nudges that are exempt by principle), lint clean across 1,042 files, and zero allowlist merge conflicts across six parallel worktrees. See [Spacing Architecture for Dense Desktop-Class Web Apps](./app-spacing-architecture.mdx) for the surrounding architecture.
+
+## Reference implementation
+
+[`@takazudo/zudo-design-token-lint`](https://github.com/Takazudo/zudo-design-token-lint) is the working reference implementation. It currently ships **Pass 1 for Tailwind class names**:
+
+- Forbids numeric spacing utilities (`p-4`, `m-8`, `gap-6`, `mt-16`, `space-x-4`, `inset-2`, ...) — note that the shipped `inset` coverage is affected by the fraction conflict below (`inset-1/2` is a valid fraction), so a v1.0.0 config should keep `inset-{n}` off a bare ban list (see the Warning)
+- Does not yet forbid any numeric sizing utility (`w-{n}`, `h-{n}`, `size-{n}`, `min-w-{n}`, `max-w-{n}`, `min-h-{n}`, `max-h-{n}`, `basis-{n}`) — see the tooling-gap note below for why
+- Forbids default Tailwind colors (`bg-gray-500`, `text-blue-600`, `border-red-300`, `ring-indigo-500`, ...)
+- Allows semantic tokens (`bg-surface`, `text-fg`, `p-hgap-sm`), arbitrary values (`w-[28px]`), zero values (`p-0`), fractions (`w-1/2`), and any non-default colour name
+- Static-analysis based: scans `className=`, `class=`, `cn(...)`, `clsx(...)`, `classNames(...)`, `twMerge(...)` and Astro `class:list` expressions
+
+<Warning title="Fraction vs. opacity-modifier conflict (v1.0.0)">
+
+`@takazudo/zudo-design-token-lint` v1.0.0 strips everything after `/` as a Tailwind opacity modifier before matching a class against its ban rules. That normalization turns `w-1/2` into `w-1`, and `w-1` matches a `w-{n}` ban rule — the valid fraction is flagged as if it were the freedom-scale utility `w-1`. This is the exact failure mode from the motivating incident above, at the tooling level.
+
+Tailwind opacity modifiers (`bg-black/50`) apply only to **color** utilities. They do not exist for sizing utilities — a trailing `/N` on `w`, `h`, `size`, `min-w`, `max-w`, `min-h`, `max-h`, or `basis` is always a fraction, never an opacity value. In Tailwind v4, every one of those prefixes accepts fraction syntax — `size-1/2`, `min-w-1/3`, `max-h-2/3` are all real, valid utilities, not just `w-1/2` / `h-1/3` / `basis-2/3`. A bare `{prefix}-{n}` ban rule risks the same false positive on all of them, not only on `w` / `h` / `basis`. The fix direction is for the linter to strip a trailing `/N` as an opacity modifier only when the base utility is a color utility; for sizing utilities, `1/2` would then never match a bare-number pattern and every fraction would correctly pass.
+
+Until that lands upstream, the numeric sizing scale cannot be safely banned by a bare `{prefix}-{n}` rule for any of these prefixes — banning any of `w-{n}`, `h-{n}`, `size-{n}`, `min-w-{n}`, `max-w-{n}`, `min-h-{n}`, `max-h-{n}`, or `basis-{n}` with the current v1.0.0 matcher would false-positive a real fraction built on that prefix. The core numeric spacing scale (`p-{n}`, `m-{n}`, `gap-{n}`, `space-x-{n}`, …) has no fraction syntax in Tailwind and remains safely bannable today — with one exception: `inset-{n}` sits on the spacing scale but does accept fractions (`inset-1/2` is a valid positioning utility), so it carries the same false-positive risk and must stay off a bare `{prefix}-{n}` ban list alongside the sizing prefixes.
+
+</Warning>
+
+<Warning title="Digit-prefixed token names break naive numeric bans">
+
+A scale whose token names start with a digit — `2xs`, `2xl`, `3xl`, `4xl`, `5xl` — collides with a `{prefix}-{value}` numeric ban unless the value pattern is anchored to **pure numbers only**:
+
+```text
+^-?\d+(\.\d+)?$
+```
+
+With that anchor, `p-2` is flagged (a freedom-scale utility) while `p-2xs` and `gap-3xl` pass (trailing letters mean a named token). Without it, a rule that merely looks for a leading digit flags every `2xl` in the codebase.
+
+This is a required regex condition, not a heuristic — it is hit on the first day the rule runs against any scale using digit-prefixed names, which is the common Tailwind naming convention for steps beyond `xs`/`xl`.
+
+</Warning>
+
+The same package is vendored in [zudo-pattern-gen `packages/design-token-lint`](https://github.com/zudolab/zudo-pattern-gen/tree/main/packages/design-token-lint) — the pgen project consumes it as a workspace package, which is one of three legitimate adoption strategies:
+
+1. **Install from npm** — `pnpm add -D @takazudo/zudo-design-token-lint`. Simplest, follows upstream releases.
+2. **Vendor as a workspace package** — what pgen does. Useful when the project needs project-specific rules that have not yet upstreamed.
+3. **Use as a reference design** — re-implement the multi-pass pattern with a project-specific rule set and CLI. Useful when the project's token rules diverge enough that fork is cleaner than configure.
+
+Pass 2 (zone-aware semantic tokens) and Pass 3 (raw z-index integers) are conceptual extensions. The upstream may grow into them; a vendored copy can implement them sooner. Either path, the multi-pass shape is the same: scan, classify, report, exit non-zero on violations.
+
+## Worked example: end-to-end
+
+A component CSS file with two violations and one legitimate escape:
+
+```css
+/* src/components/legacy-toast.css */
+
+.legacy-toast {
+  position: fixed;
+  z-index: 9999;                  /* Pass 3: raw z-index integer */
+  background: #ffaa00;            /* Pass 1: raw hex literal */
+  color: var(--color-toast-fg);
+}
+
+/* Brand-mandated exact colour for the legacy yellow toast — tracked at #5678. */
+/* design-token-lint-ignore */
+.legacy-toast--brand {
+  background: #ffaa00;
+}
+```
+
+Running the linter (output format is illustrative — the exact format depends on the implementation):
+
+```text
+$ pnpm design-token-lint
+
+src/components/legacy-toast.css
+  3:11  error  Raw z-index integer "9999" — use a --z-* token
+  4:15  error  Raw color literal "#ffaa00" — use a semantic color token
+
+✖ 2 errors
+
+Suggestions:
+  - Replace "z-index: 9999" with "z-index: var(--z-toast)" (see Z-Index Strategy)
+  - Replace "#ffaa00" with a semantic token from the design system
+```
+
+The escape-hatched `.legacy-toast--brand` block does not appear in the output — Pass 1 is suppressed for the next rule, and the comment above it documents why.
+
+Wire it into the project's pre-push hook so violations cannot reach origin:
+
+```bash
+# scripts/run-b4push.sh
+set -euo pipefail
+
+step "Type check"
+pnpm check
+
+step "Build"
+pnpm build
+
+step "Design token lint"
+pnpm design-token-lint
+```
+
+CI runs the same script. If lint fails, the push fails; if a developer pushes from a different shell, the PR check catches it. The redundancy is intentional — the local hook is for fast feedback, the CI gate is the actual contract.
+
+## Anti-patterns
+
+- **Adding the linter without wiring it into b4push / CI.** A linter that runs only when someone remembers to run it does not enforce anything. The wiring is the enforcement.
+- **Running only the design-token rules and skipping component-CSS imports of unrelated literals.** Transparent gradients, `currentColor` chains, and one-off SVG fills also drift. The same multi-pass infrastructure can host other rules cheaply once it exists.
+- **Escape hatches without comments.** Block by default; allow with a documented reason. A bare `/* design-token-lint-ignore */` becomes load-bearing tech debt within months.
+- **Treating Pass 1 as the whole pattern.** Pass 1 catches obvious raw values. Pass 2 catches the subtle "token name with literal value inside `:root`" rotation. Without Pass 2, the design system slowly migrates raw literals into the token-definition zone.
+- **Lint-failing examples inside `<CssPreview>` demos.** Raw `#ff0000` in a `css={...}` payload would violate the project's own demo conventions (every CSS value should be a valid `hsl()`/`oklch()` already, not a literal that "demonstrates the bug"). Keep lint-failing examples in fenced code blocks; reserve `<CssPreview>` for shipped, lint-clean code.
+
+### What this rule set does not check
+
+A green design-token lint proves values, not layouts. Two defect classes ship straight through it, for different reasons.
+
+**Proximity and ratio failures** are structurally out of reach — every value is legal and the *relationship* is what broke. A rule that checks values in isolation cannot see that a card list's between-card gap equals its within-card rhythm, so the list passes every rule while reading as one fused blob (see [Spacing Philosophy](../design-principles/spacing-philosophy.mdx)).
+
+**Fixed-px sizing arbitraries that opt out of zoom** are a policy gap, not a blind spot. In a display-scaled app, `w-[28px]` freezes that dimension at every zoom level — but it is statically detectable, and a project that wants to ban it can. The shipped rule allows it *by design*, because the [Two-Tier](./two-tier-size-strategy.mdx) contract treats sizing arbitraries as legitimate. One audited project's lint was green across 1,042 files while 41 non-scaling close-button literals shipped: the tool was doing exactly what it was configured to do.
+
+Pair the lint gate with computed-style verification predicates and a squint pass at multiple display scales. The lint is a floor, not a ceiling — it proves nobody wrote a value the config forbids, which is a much weaker claim than "the UI is correct."
+
+## When to Use
+
+### Good fit
+
+- **Any project with a token system that has grown past a small number of components.** The system needs an enforcement boundary; the lint pass is that boundary.
+- **Multi-contributor teams.** Code review catches first-time mistakes; the linter catches the second and third. Without it, the third one ships.
+- **AI-assisted codebases.** AI agents copy from neighbouring files. If one neighbour has a raw `oklch()`, every subsequent generation tends to repeat it. The linter is the first reader that does not copy.
+- **Long-lived design systems.** Tokens evolve. The linter documents the current contract in machine-readable form so it survives across refactors.
+
+### Not needed
+
+- **Prototypes and one-off pages.** The token system is not yet stable; encoding rules now is premature.
+- **Single-developer projects with no token system.** There is nothing to enforce.
+
+## References
+
+- [`@takazudo/zudo-design-token-lint`](https://github.com/Takazudo/zudo-design-token-lint) — reference implementation (Tailwind class lint, Pass 1)
+- [zudo-pattern-gen `packages/design-token-lint`](https://github.com/zudolab/zudo-pattern-gen/tree/main/packages/design-token-lint) — vendored example
+- [zudo-pattern-gen #942](https://github.com/zudolab/zudo-pattern-gen/issues/942) — z-index Pass 3 status (planned)
+- [Z-Index Strategy](./z-index-strategy.mdx) — companion methodology article (Pass 3's tier system)
+- [Tight Token Strategy](./tight-token-strategy/index.mdx) — the token convention that Pass 1 enforces
+- [Multi-Namespace Token Strategy](./multi-namespace-token-strategy.mdx) — naming for projects with several design contexts

@@ -1,0 +1,311 @@
+---
+title: position fixed の包含ブロック
+sidebar_position: 4
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+`position: fixed` は要素をビューポートにピン留めするためのものです。普段はそう動作します。しかし、[スタッキングコンテキスト](./stacking-context.mdx)を作成するのと同じプロパティ群 ―― `transform`、`filter`、`backdrop-filter`、`perspective`、`will-change`、`contain`、`content-visibility` ―― は、**`position: fixed` の子孫に対する包含ブロック（containing block）**も作成します。これが起きると、`top` / `left` / `right` / `bottom` はビューポートではなくその祖先のボックスに対して解決されます。要素はサイレントに `position: absolute` のような振る舞いをします。
+
+このバグはスティッキーヘッダー、ドラッグ＆ドロップライブラリ、モーダルのポータル、ドロップダウンのポップオーバー、すりガラス風ツールバー、そして閉じ込められたサブツリー内にあるアンカーから `getBoundingClientRect()` を読むポップオーバーライブラリで発生します。ポップオーバーは本来あるべき位置から大きくずれて描画され、ビューポートの外に飛んでしまうことも多く、ユーザーから見ると「何も起きない」状態になります。
+
+このバグはスタッキングコンテキスト・バグの“沈黙の双子”です。同じトリガープロパティ群、異なる壊れ方。スタッキングコンテキストは `z-index` の解決を壊します。包含ブロックはビューポートへのピン留めを壊します。
+
+## 解決方法
+
+`position: fixed` をビューポートにピン留めしたい場合、その fixed 要素（およびその座標計算に関わるもの ―― ポップオーバーのアンカーなど）の祖先には、fixed 用の包含ブロックを作成するプロパティを持つ要素があってはいけません。標準的な修正方法は、**要素を `<body>` にポータル（portal）する**ことです。これによりルートとの間にトラップとなる祖先がなくなります。
+
+ポップオーバーライブラリがアンカー要素を計測して座標を計算する場合、**アンカー自体**もトラップの外にある必要があります。ポップオーバーだけをポータルしても不十分です。
+
+## `position: fixed` の包含ブロックを作るもの
+
+トリガーリストはスタッキングコンテキストとほぼ同じですが、完全に同じではありません。`opacity` と `isolation` はスタッキングコンテキストのみを作成し、包含ブロックは作成しません。
+
+| プロパティ | スタッキングコンテキスト | fixed の包含ブロック |
+| --- | --- | --- |
+| `transform` ≠ `none` | あり | あり |
+| `perspective` ≠ `none` | あり | あり |
+| `filter` ≠ `none` | あり | あり |
+| `backdrop-filter` ≠ `none` | あり | あり |
+| `will-change: transform`（filter、perspective なども） | あり | あり |
+| `contain: paint` / `layout` / `strict` / `content` | あり | あり |
+| `content-visibility: auto` / `hidden` | あり | あり |
+| `opacity` < 1 | あり | なし |
+| `isolation: isolate` | あり | なし |
+| `mix-blend-mode` ≠ `normal` | あり | なし |
+
+最初の7行は1つのリストとして覚えてください。「このリストのプロパティが fixed 要素の上の祖先にあれば、トラップされる」と考えます。
+
+## コード例
+
+### 基本のトラップ
+
+```css
+.parent {
+  transform: translateZ(0);
+}
+
+.parent .pinned {
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+```
+
+`.pinned` はビューポートの右上に配置されるはずです。`.parent` に `transform` があるため、`.pinned` は `.parent` のボックスの右上に配置されます。
+
+<CssPreview client:load
+  title="包含ブロックのトラップ：親の transform"
+  html={`    <div class="trap">
+      <div class="trap-label">Parent with transform: translateZ(0)</div>
+      <div class="pinned">position: fixed; top: 0; right: 0 — pinned to PARENT, not iframe</div>
+    </div>`}
+  css={`    body {
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+    }
+    .trap {
+      transform: translateZ(0);
+      margin: 60px 40px;
+      padding: 16px;
+      background: hsl(30, 90%, 60%);
+      color: hsl(30, 60%, 15%);
+      border-radius: 8px;
+      min-height: 140px;
+    }
+    .trap-label {
+      font-weight: 600;
+    }
+    .pinned {
+      position: fixed;
+      top: 0;
+      right: 0;
+      padding: 8px 12px;
+      background: hsl(0, 70%, 50%);
+      color: hsl(0, 0%, 100%);
+      border-radius: 0 0 0 8px;
+      max-width: 220px;
+      line-height: 1.4;
+    }`}
+  height={260} />
+
+### 修正：トラップを取り除く
+
+```css
+.parent {
+  /* No transform — fixed children pin to the viewport */
+}
+
+.parent .pinned {
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+```
+
+<CssPreview client:load
+  title="トラップがなければ fixed はビューポートにピン留めされる"
+  html={`    <div class="ok">
+      <div class="ok-label">Parent with no trap properties</div>
+      <div class="pinned">position: fixed; top: 0; right: 0 — pinned to iframe</div>
+    </div>`}
+  css={`    body {
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+    }
+    .ok {
+      margin: 60px 40px;
+      padding: 16px;
+      background: hsl(140, 50%, 60%);
+      color: hsl(140, 60%, 15%);
+      border-radius: 8px;
+      min-height: 140px;
+    }
+    .ok-label {
+      font-weight: 600;
+    }
+    .pinned {
+      position: fixed;
+      top: 0;
+      right: 0;
+      padding: 8px 12px;
+      background: hsl(220, 80%, 50%);
+      color: hsl(0, 0%, 100%);
+      border-radius: 0 0 0 8px;
+      max-width: 220px;
+      line-height: 1.4;
+    }`}
+  height={260} />
+
+### `backdrop-filter` のトラップ
+
+`backdrop-filter: blur()` を使ったすりガラス風ツールバーは無害に見えますが、`position: fixed` の子孫 ―― ポップオーバー、ツールチップ、モーダル ―― はビューポートではなくツールバーのボックスにピン留めされます。
+
+```css
+.toolbar {
+  position: sticky;
+  bottom: 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: hsl(0, 0%, 100% / 0.5);
+}
+
+.toolbar .popover {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  /* Trapped: pins to toolbar's coordinate space, not the viewport */
+}
+```
+
+<CssPreview client:load
+  title="ツールバーの backdrop-filter が fixed のポップオーバーをトラップ"
+  html={`    <div class="page">
+      <div class="bg-text">Page content behind the frosted toolbar</div>
+      <div class="toolbar">
+        <span class="toolbar-label">Frosted toolbar (backdrop-filter)</span>
+        <div class="popover">Popover: position: fixed; top: 0 — but stuck inside the toolbar</div>
+      </div>
+    </div>`}
+  css={`    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+      background: linear-gradient(135deg, hsl(280, 60%, 70%), hsl(200, 70%, 60%));
+      min-height: 100vh;
+    }
+    .page {
+      min-height: 100vh;
+      padding: 16px;
+      color: hsl(0, 0%, 100%);
+    }
+    .bg-text {
+      margin-bottom: 80px;
+      font-size: 14px;
+    }
+    .toolbar {
+      position: sticky;
+      bottom: 16px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: hsl(0, 0%, 100% / 0.3);
+      border-radius: 12px;
+      color: hsl(0, 0%, 10%);
+    }
+    .toolbar-label {
+      font-weight: 600;
+    }
+    .popover {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      background: hsl(0, 70%, 50%);
+      color: hsl(0, 0%, 100%);
+      border-radius: 6px;
+      max-width: 240px;
+      line-height: 1.4;
+    }`}
+  height={320} />
+
+ポップオーバーは iframe の上端に表示されるはずですが、ツールバーのボックスの上端に表示されます。トラップは目に見えません ―― ツールバーのCSSには、子孫のジオメトリを変えるという手がかりがどこにもありません。
+
+## ライブラリ／コンポーネント観点
+
+ポップオーバー、ツールチップ、ドロップダウン、モーダル、コマンドパレットはすべて同じ修正方法を共有します。トラップされた祖先の外、理想的には `<body>` の直下に描画することです。
+
+| フレームワーク | ポータル API |
+| --- | --- |
+| React | `createPortal(node, document.body)` |
+| Vue | `<Teleport to="body">` |
+| Svelte | `<svelte:body>` またはサードパーティのポータル |
+| Web Components | ネイティブの `<dialog>`（top layer はすべての包含ブロックを脱出） |
+| Vanilla | `document.body.appendChild(node)` |
+
+ネイティブの `<dialog>` 要素を `showModal()` で開いた場合のみが、包含ブロックのトラップを完全に回避する唯一の手段です。祖先のプロパティに関係なく、すべてのスタッキングコンテキストの上の top layer に描画されます。
+
+## アンカー計測の微妙なバリエーション
+
+ポップオーバーライブラリは典型的に次のように動作します：
+
+1. `getBoundingClientRect()` でアンカー要素を計測する。
+2. ポップオーバーの `top` / `left` を計算する。
+3. `position: fixed` でその座標にポップオーバーを描画する。
+
+ステップ3でポップオーバーを `<body>` にポータルしていても、ステップ1ではアンカーの矩形を読んでおり、`getBoundingClientRect()` はビューポート相対の座標を返すので、見かけ上は正しく見えます。ライブラリはトラップの外にあるポップオーバーに対して `position: fixed; top: rect.top` を設定します。ここまでは順調です。
+
+トラップは、親が `transform`、`backdrop-filter` などを持っており、ライブラリがポップオーバー自身の矩形を再チェックしたり、`containing-block` を意識したオフセットを適用したときに現れます。より一般的には、古いコードパスがポップオーバーをアンカーのツリー**内**に描画していたり、トラップ内にあるポジショニングヘルパーでアンカーをラップしている場合に起きます。どちらの場合も、fixed の座標はトラップのボックスに対して解決されます。
+
+修正は構造的なものです。ポップオーバー**と**座標を計測するラッパーの両方を、トラップの祖先の外に配置することです。レイアウト上の理由でアンカーをその位置に置く必要があるなら、再計測する代わりに元のイベント座標（`event.clientX`、`event.clientY`）を渡すという方法もあります。
+
+## DevTools のヒント
+
+Chrome DevTools と Firefox DevTools は「この要素は fixed の包含ブロックを作る」ことを視覚的にフラグしてくれません。Layers パネルはコンポジットレイヤーを表示しますが、これは包含ブロックと重なる部分はあるものの、同じものではありません。
+
+壊れている要素から祖先を辿りながらコンソールで実行してください。最初に `true` になるものがトラップです：
+
+```js
+let el = document.querySelector('.your-fixed-element');
+while (el && el !== document.body) {
+  el = el.parentElement;
+  const cs = getComputedStyle(el);
+  const trapped =
+    cs.transform !== 'none' ||
+    cs.perspective !== 'none' ||
+    cs.filter !== 'none' ||
+    cs.backdropFilter !== 'none' ||
+    /transform|filter|perspective/.test(cs.willChange) ||
+    cs.contain.includes('paint') ||
+    cs.contain.includes('layout') ||
+    cs.contain.includes('strict') ||
+    cs.contentVisibility === 'auto' ||
+    cs.contentVisibility === 'hidden';
+  if (trapped) {
+    console.log('Trap ancestor:', el, cs);
+    break;
+  }
+}
+```
+
+## AIがよくやるミス
+
+- **`z-index` を上げたり `isolation: isolate` を追加する。** fixed 要素は深さが間違っているのではなく、場所が間違っています。要素はビューポートの完全に外側に描画されているため、z-index の変更では何も起きません。
+- **ポップオーバーを「修正」するために `backdrop-filter` を削除する。** これはすりガラスエフェクトを失わせる視覚的なリグレッションです。修正は親のスタイルを剥がすことではなく、ポップオーバーをポータルすることです。
+- **ポップオーバーだけをポータルし、アンカーをポータルしない。** ポップオーバーライブラリがトラップ内のアンカーから `getBoundingClientRect()` を読むなら、ポップオーバーが配置される前から計算は間違っています。アンカーラッパーもポータルするか、イベント座標を渡してください。
+- **ワークアラウンドとして `position: absolute` を追加する。** これによりポップオーバーは最も近いポジション付き祖先 ―― 大抵はもっと近いトラップ ―― に対する位置になります。バグは推論しやすくなるどころか、より難しくなります。
+- **「パフォーマンスのために」`transform: translateZ(0)` を追加する。** これがトラップを偶発的に持ち込む最も一般的な経路です。`transform`、`will-change`、`contain` は実測の効果がある場合にのみ適用してください。`contain` のキーワードのうち、`layout`、`paint`、`strict`、`content` はトラップを作成します。安全なのは `contain: style` と `contain: size`（単独で使用した場合）のみです。
+
+## 使い分け
+
+### `<body>` にポータルすべき場合
+
+- 任意の親から脱出する必要があるポップオーバー、ツールチップ、ドロップダウン、モーダル、コマンドパレットなどを構築するとき
+- 再利用可能なコンポーネントライブラリを構築するとき（コンシューマがどんなトラッププロパティを適用するか分からない）
+- 要素が `position: fixed` を持ち、ツリーのどこにあってもビューポートにピン留めする必要があるとき
+
+### `<dialog>` を `showModal()` で使うべき場合
+
+- すべての包含ブロックを脱出する真のモーダルが必要なとき（top layer はすべてのスタッキングコンテキストの上、すべての包含ブロックの外側に描画される）
+- 要素がモーダルであり、その背後で入力をブロックする必要があるとき
+
+### 祖先チェーンを監査すべき場合
+
+- `position: fixed` の要素が間違った場所に表示される
+- ポップオーバーライブラリが単独では正しく配置されるが、特定のページセクション内で壊れる
+- `getBoundingClientRect()` から得られる座標は正しく見えるのに、描画された要素と一致しない
+
+## 関連項目
+
+- [スタッキングコンテキスト](./stacking-context.mdx) ―― 兄弟バグ。同じトリガープロパティ群、異なる壊れ方。スタッキングコンテキストは `z-index` の解決を壊し、包含ブロックは `position: fixed` のビューポートへのピン留めを壊します。
+- [Backdrop Filter とグラスモーフィズム](../effects/backdrop-filter-and-glassmorphism.mdx) ―― モダンな UI デザインで最も一般的なトラップの偶発的な発生源。
+
+## 参考リンク
+
+- [CSS Position 仕様 ―― 包含ブロックのルール](https://www.w3.org/TR/CSS21/visudet.html#containing-block-details)
+- [MDN ―― `position: fixed` の包含ブロックに関する注記](https://developer.mozilla.org/ja/docs/Web/CSS/position#fixed_positioning)
+- [MDN ―― `backdrop-filter`](https://developer.mozilla.org/ja/docs/Web/CSS/backdrop-filter)
+- [CSS WG issue 3818 ―― 包含ブロックのトリガーの整理](https://github.com/w3c/csswg-drafts/issues/3818)

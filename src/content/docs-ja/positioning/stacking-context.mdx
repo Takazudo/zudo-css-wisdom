@@ -1,0 +1,355 @@
+---
+title: スタッキングコンテキスト
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+スタッキングコンテキスト（stacking context）はCSSで最も誤解されている概念です。AIエージェントは、要素が他の要素の後ろに表示される理由を理解せずに、`z-index` の値を途方もない数値（99999）に引き上げることを繰り返します。根本的な原因はほぼ常に、要素が異なるスタッキングコンテキストに属しているということであり、z-indexをいくら上げても親のスタッキングコンテキストから抜け出すことはできません。
+
+## 解決方法
+
+スタッキングコンテキストは、独立したレイヤリンググループです。1つのスタッキングコンテキスト内の要素はz-orderの比較対象になりますが、異なるスタッキングコンテキストの要素とは比較されません。何がスタッキングコンテキストを作成するかを理解し、`isolation` プロパティを使って意図的に作成すれば、z-indexの戦いは解消されます。
+
+## スタッキングコンテキストを作るもの
+
+以下のプロパティが要素に新しいスタッキングコンテキストを作成します：
+
+### 常にスタッキングコンテキストを作成するもの
+
+- ルート要素（`<html>`）
+- `position: fixed`
+- `position: sticky`
+
+### 条件を満たすと作成するもの
+
+- `position: relative` または `position: absolute` で **`z-index` が `auto` 以外の場合**
+- `opacity` が `1` 未満
+- `transform` が `none` 以外の値
+- `filter` が `none` 以外の値
+- `backdrop-filter` が `none` 以外の値
+- `perspective` が `none` 以外の値
+- `clip-path` が `none` 以外の値
+- `mask` / `mask-image` / `mask-border` が `none` 以外の値
+- `mix-blend-mode` が `normal` 以外の値
+- `isolation: isolate`
+- 上記のプロパティのいずれかを指定した `will-change`
+- `contain: layout`、`contain: paint`、または `contain: strict`
+
+## コード例
+
+### 典型的な z-index バグ
+
+```css
+.sidebar {
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar .dropdown {
+  position: absolute;
+  z-index: 99999; /* Will NOT appear above .main-content */
+}
+
+.main-content {
+  position: relative;
+  z-index: 2;
+}
+```
+
+この例では、`.dropdown` は `z-index: 99999` を持っていますが、`.main-content` の後ろに表示されます。これは `.sidebar` が `z-index: 1` でスタッキングコンテキストを作成しているためです。ドロップダウンはそのスタッキングコンテキスト内に閉じ込められています。`.main-content`（z-index: 2）の視点からは、`.sidebar` グループ全体のz-indexは1です。
+
+<CssPreview client:load
+  title="スタッキングコンテキスト: z-indexバグ（壊れた状態）"
+  html={`    <div class="container">
+      <div class="sidebar">
+        <div class="sidebar-label">Sidebar (z-index: 1)</div>
+        <div class="dropdown">Dropdown z-index: 99999 — trapped behind main!</div>
+      </div>
+      <div class="main-content">Main Content (z-index: 2) — covers dropdown</div>
+    </div>`}
+  css={`.container {
+      position: relative;
+      height: 200px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+    }
+    .sidebar {
+      position: relative;
+      z-index: 1;
+      background: #f59e0b;
+      color: #fff;
+      padding: 12px;
+      width: 55%;
+      border-radius: 8px;
+    }
+    .sidebar-label {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 99999;
+      background: #ef4444;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      width: 280px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .main-content {
+      position: relative;
+      z-index: 2;
+      background: #3b82f6;
+      color: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: -8px;
+    }`}
+  height={220} />
+
+### 修正: 親のスタッキングコンテキストを取り除く
+
+```css
+.sidebar {
+  position: relative;
+  /* Remove z-index to avoid creating a stacking context */
+}
+
+.sidebar .dropdown {
+  position: absolute;
+  z-index: 10;
+}
+
+.main-content {
+  position: relative;
+  /* No z-index needed */
+}
+```
+
+<CssPreview client:load
+  title="スタッキングコンテキスト: z-indexバグ（修正後）"
+  html={`    <div class="container">
+      <div class="sidebar">
+        <div class="sidebar-label">Sidebar (no z-index)</div>
+        <div class="dropdown">Dropdown z-index: 10 — now appears on top!</div>
+      </div>
+      <div class="main-content">Main Content (no z-index)</div>
+    </div>`}
+  css={`.container {
+      position: relative;
+      height: 200px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+    }
+    .sidebar {
+      position: relative;
+      background: #f59e0b;
+      color: #fff;
+      padding: 12px;
+      width: 55%;
+      border-radius: 8px;
+    }
+    .sidebar-label {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 10;
+      background: #22c55e;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      width: 280px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .main-content {
+      position: relative;
+      background: #3b82f6;
+      color: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: -8px;
+    }`}
+  height={220} />
+
+### isolation プロパティ
+
+`isolation: isolate` はスタッキングコンテキストを作成する最もクリーンな方法です。新しいスタッキングコンテキストを作成するという1つのことだけを行います。副作用なし、視覚的な変化もありません。
+
+```css
+.card {
+  isolation: isolate; /* Creates stacking context */
+}
+
+.card .background {
+  position: absolute;
+  inset: 0;
+  z-index: -1; /* Stays behind card content but inside card's context */
+}
+
+.card .content {
+  position: relative;
+  /* z-index: auto, but still above .background due to DOM order */
+}
+```
+
+```html
+<div class="card">
+  <div class="background"></div>
+  <div class="content">Card text</div>
+</div>
+```
+
+<CssPreview client:load
+  title="スタッキングコンテキスト: isolation: isolate"
+  html={`    <div class="demo-area">
+      <div class="card">
+        <div class="card-bg"></div>
+        <div class="card-content">
+          <strong>isolation: isolate</strong><br/>
+          The purple background uses z-index: -1 but stays inside the card thanks to isolation.
+        </div>
+      </div>
+      <div class="behind-text">This text is behind the card — z-index: -1 does not leak out</div>
+    </div>`}
+  css={`.demo-area {
+      padding: 12px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+    }
+    .card {
+      isolation: isolate;
+      position: relative;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .card-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    }
+    .card-content {
+      position: relative;
+      color: #fff;
+      line-height: 1.5;
+    }
+    .behind-text {
+      color: #64748b;
+      padding: 8px;
+      text-align: center;
+    }`} />
+
+### コンポーネントの漏洩防止
+
+コンポーネントのルート要素に `isolation: isolate` を使い、z-indexが外部に漏れるのを防ぎましょう。
+
+```css
+/* Each component is self-contained */
+.modal-overlay {
+  isolation: isolate;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.tooltip {
+  isolation: isolate;
+  position: absolute;
+}
+
+.dropdown-menu {
+  isolation: isolate;
+  position: absolute;
+}
+```
+
+### 意図しないスタッキングコンテキスト
+
+レイヤリングとは無関係に見えるプロパティが、サイレントにスタッキングコンテキストを作成することがあります。
+
+```css
+/* This creates a stacking context! */
+.fading-element {
+  opacity: 0.99;
+}
+
+/* This also creates a stacking context! */
+.animated-element {
+  transform: translateZ(0); /* Often added for "GPU acceleration" */
+}
+
+/* This too! */
+.blurred-element {
+  filter: blur(0px);
+}
+```
+
+これらのいずれも、子要素のz-index値をその要素のスタッキングコンテキスト内に閉じ込めます。
+
+## スタッキングコンテキストの問題をデバッグする
+
+### ステップバイステップの診断
+
+1. 正しくレイヤリングされていない要素を特定します。
+2. その要素からルートまでDOMツリーを上にたどります。
+3. 各祖先について、スタッキングコンテキストを作成しているかを確認します（上記のリストを使用）。
+4. レイヤリングが崩れるスタッキングコンテキストの境界を見つけます。
+5. 不要なスタッキングコンテキストを取り除くか、既存のコンテキスト内で動作するようにz-index値を再構成します。
+
+### ブラウザ DevTools
+
+Chrome DevToolsでは、Layersパネル（More Tools > Layers）でスタッキングコンテキストを可視化できます。Firefox DevToolsではLayoutパネルにスタッキングコンテキスト情報が表示されます。
+
+## AIがよくやるミス
+
+- **z-indexの値をエスカレーションする。** 要素が最前面に表示されない場合、AIエージェントはz-indexを大きな数値に増やします。これはスタッキングコンテキストの問題を解決しません。修正するには、要素がどのスタッキングコンテキストに属しているかを理解する必要があります。
+- **`opacity`、`transform`、`filter` がスタッキングコンテキストを作成することを知らない。** パフォーマンスのために `opacity: 0.99` や `transform: translateZ(0)` を追加すると、子要素のz-indexの動作が壊れる可能性があります。
+- **位置指定されていない要素にz-indexを使う。** `z-index` は位置指定された要素（`relative`、`absolute`、`fixed`、`sticky`）とflex/gridアイテムにのみ作用します。静的に配置された要素には効果がありません。
+- **コンポーネント境界に `isolation: isolate` を使わない。** 内部でz-indexを使う再利用可能なコンポーネントはすべて、z-index値が親コンテキストに漏れるのを防ぐために `isolation: isolate` を使うべきです。
+- **一般的な「修正」として `position: relative; z-index: 1` を追加する。** これは新しいスタッキングコンテキストを作成し、目の前の問題は解決するかもしれませんが、すべての子孫のz-index値を閉じ込め、別の場所で新たな問題を引き起こします。
+
+## 使い分け
+
+### `isolation: isolate` を使うべき場合
+
+- 内部でz-indexを使う再利用可能なコンポーネントの構築
+- 視覚的な副作用なしでスタッキングコンテキストが必要な場合
+- `z-index: -1` の要素を親要素内に留めたい場合
+- mix-blend-mode が透過するのを防ぎたい場合
+
+### `z-index` を使うべき場合
+
+- 同じスタッキングコンテキスト内の位置指定された要素の順序を制御する場合
+- ページレベルでオーバーレイ、モーダル、ドロップダウンをレイヤリングする場合
+
+### スタッキングコンテキストを監査すべき場合
+
+- z-indexの値が「効かない」場合
+- 高いz-indexを持つ要素が低いz-indexの要素の後ろに表示される場合
+- `opacity`、`transform`、`filter` を追加して予期しないレイヤリングの変化が起きた場合
+
+## 関連項目
+
+- [position: fixed の包含ブロック](./containing-block-for-fixed.mdx) ―― このバグの“沈黙の双子”。ほぼ同じトリガープロパティ群（`transform`、`filter`、`backdrop-filter`、`perspective`、`will-change`、`contain`、`content-visibility`）が `position: fixed` の子孫に対して**新しい包含ブロック**も作成し、子孫がビューポートではなくその祖先のボックスに対してピン留めされるようになります。
+- [Z-Index 戦略](../design-tokens/z-index-strategy.mdx) ―― スタッキングコンテキストの理解が済んだら、z-index 値そのものは単一の真実のソースから生成されるセマンティックトークン（`--z-modal`、`--z-tooltip`、`--z-local-N`）と、生整数を禁ずる lint ルールで管理します。
+
+## 参考リンク
+
+- [Stacking Context - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Stacking_context)
+- [What The Heck, z-index?? - Josh W. Comeau](https://www.joshwcomeau.com/css/stacking-contexts/)
+- [isolation - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/isolation)
+- [Z-index and Stacking Contexts - web.dev](https://web.dev/learn/css/z-index)
+- [CSS isolation property - freeCodeCamp](https://www.freecodecamp.org/news/the-css-isolation-property/)

@@ -1,0 +1,467 @@
+---
+title: Z-Index 戦略
+sidebar_position: 4
+description: セマンティックな z-index トークン、単一の真実のソースからのコード生成、グローバル／ローカル階層の使い分け、生 z-index を禁ずる lint ルール。
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+サイトのオーバーレイが5種類を超えたあたり――モーダル、ドロワー、ポップオーバー、ツールバー、ツールチップ――で、z-index は手作業の宝くじになります。新しいオーバーレイが増えるたびに値が押し上げられていき、`10`、`20`、`99`、`100`、`9999`。1年もすれば、コードベースには `z-index: 1`、`z-index: 21`、`z-index: 100`、`z-index: 99999` が混在し、検証手段のない `/* must be above modal */` というコメントが残ります。
+
+典型的な症状はこうです。
+
+- **マジックナンバーの氾濫。** `z-index:` で grep すると、共通スケールのない数十個のユニーク値が返ってきます。
+- **「とにかく `99999`」反射。** あるレイヤーが他の後ろに表示されると、修正は「自分の数字をもっと大きくする」になります――実際のスタッキングコンテキストは調べません。
+- **再採番の麻痺。** `100`（モーダル）と `200`（トースト）の間に新しい階層を追加するには `150` を選び、コードベース内のどこにも被っていないことを祈るしかありません。
+- **Tailwind の `z-10` / `z-20` / `z-30` スケール。** これは再採番痛への回避策でした――間隔を空けておけば、既存値の間に新しい階層を差し込めます。1つの数値スケールを別の数値スケールに置き換えただけで、今度はどのクラスがどのオーバーレイ役割に対応するかを開発者全員が暗記する必要が出てきました。
+
+再採番痛も暗記税も、AI 時代のリファクタでは溶けてなくなります――モデルなら数百ファイルにまたがる `--z-200` → `--z-toast` の置換は数秒で終わります。数値スケールを駆動していたコストはもう存在しません。
+
+## 解決方法
+
+z-index 階層を、**単一の TypeScript 真実のソース**から生成された**セマンティックかつ単一名前空間のトークン**として定義します。
+
+```css
+:root {
+  /* Generated from z-index-tokens.ts — do not hand-edit */
+  --z-content:           0;
+  --z-toolbar:          10;
+  --z-dropdown:         20;
+  --z-popover:          30;
+  --z-popover-portaled: 40;
+  --z-modal-backdrop:   50;
+  --z-modal:            60;
+  --z-toast:            70;
+  --z-tooltip:          80;
+}
+```
+
+各コンポーネントの CSS は、生の整数ではなく必ず名前付きトークンを使います。
+
+```css
+.modal {
+  position: fixed;
+  z-index: var(--z-modal);
+}
+
+.toast {
+  position: fixed;
+  z-index: var(--z-toast);
+}
+```
+
+これを成立させているのは3つの性質です。
+
+1. **セマンティックな名前** ―― `--z-modal` ならどの層なのか一目で分かります。`--z-200` では分かりません。
+2. **単一名前空間** ―― 機能や文脈で分割しない、フラットな階層リスト1本。（z-index は本質的に1つの順序問題です。文脈ごとに分けるべき密度トークンとは違います。）
+3. **TS 真実のソースからのコード生成** ―― CSS ブロックも、スタイルガイドの表も、TypeScript 定数も、すべて1つのファイルから派生します。ドリフトは構造的に起こり得ません。
+
+<CssPreview client:load
+  title="Semantic Tier Tokens vs Magic Numbers"
+  height={340}
+  html={`    <div class="ztk-demo">
+      <div class="ztk-demo__col">
+        <div class="ztk-demo__heading">Magic numbers (anti-pattern)</div>
+        <pre class="ztk-demo__code ztk-demo__code--bad"><code>{".modal       { z-index: 9999; }\\n.toast       { z-index: 100; }\\n.tooltip     { z-index: 21; }\\n.dropdown    { z-index: 50; }\\n.toolbar     { z-index: 5; }"}</code></pre>
+        <div class="ztk-demo__verdict ztk-demo__verdict--bad">No shared scale. No way to know what \`100\` means without reading it.</div>
+      </div>
+      <div class="ztk-demo__col">
+        <div class="ztk-demo__heading">Semantic tokens</div>
+        <pre class="ztk-demo__code ztk-demo__code--good"><code>{".modal    { z-index: var(--z-modal); }\\n.toast    { z-index: var(--z-toast); }\\n.tooltip  { z-index: var(--z-tooltip); }\\n.dropdown { z-index: var(--z-dropdown); }\\n.toolbar  { z-index: var(--z-toolbar); }"}</code></pre>
+        <div class="ztk-demo__verdict ztk-demo__verdict--good">Each line states intent. Tier order lives in one generated file.</div>
+      </div>
+    </div>`}
+  css={`    .ztk-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+    }
+    .ztk-demo__col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .ztk-demo__heading {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .ztk-demo__code {
+      background: hsl(222 47% 11%);
+      color: hsl(210 20% 85%);
+      padding: 0.55rem 0.7rem;
+      border-radius: 6px;
+      margin: 0;
+      font-size: 0.75rem;
+      font-family: ui-monospace, monospace;
+      line-height: 1.55;
+      overflow-x: auto;
+    }
+    .ztk-demo__code--bad {
+      border-left: 3px solid hsl(0 60% 50%);
+    }
+    .ztk-demo__code--good {
+      border-left: 3px solid hsl(142 50% 40%);
+    }
+    .ztk-demo__verdict {
+      font-size: 0.75rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      line-height: 1.4;
+    }
+    .ztk-demo__verdict--bad {
+      color: hsl(0 60% 30%);
+      background: hsl(0 80% 95%);
+      border-left: 3px solid hsl(0 60% 50%);
+    }
+    .ztk-demo__verdict--good {
+      color: hsl(142 50% 25%);
+      background: hsl(142 50% 93%);
+      border-left: 3px solid hsl(142 50% 40%);
+    }`} />
+
+## なぜ Tailwind 数値スケールではないのか
+
+Tailwind のデフォルト `z-0` / `z-10` / `z-20` / `z-30` / `z-40` / `z-50` スケールが存在する理由は1つだけです――AI 以前の CSS 仕事では、コードベース全体でトークンを再採番するのが苦痛だったからです。間隔（`10`、`20`、`30`...）を空けておけば、既存コードに触れずに新しい階層を間に差し込めました。
+
+| 時代のコスト | AI 以前（手作業リファクタ） | AI 時代のリファクタ |
+| --- | --- | --- |
+| 300 ファイルで `--z-200` → `--z-toast` を置換 | 何時間もの検索置換、壊しやすい | 数秒、構造的なリネーム |
+| 既存値の間に階層を1つ挿入 | 苦痛 ―― 後段の再採番を強いる場合あり | 容易 ―― スケールを再生成し AI が参照を更新 |
+| 「我々のアプリで `z-30` は何を意味するか」を覚える | オンボーディング資料が必要 | 不要 ―― 名前自体が説明的 |
+
+数値スケールを駆動していた2つのコスト――リファクタ痛と暗記税――は、モデルがコードベース全体に渡って自信を持ってリネームできるようになった瞬間に崩壊します。読みやすさ、grep のしやすさ、コードレビュー、オンボーディング、どの軸を取ってもセマンティックな名前が勝ります。
+
+:::tip[マイグレーション手順]
+プロジェクトがすでに Tailwind 数値スケール（`z-10`/`z-20`/...）に乗っている場合は、各数値ユーティリティをセマンティックトークンへマッピングし、AI 支援で1回のリネームパスを通します。コンポーネントを1つずつ移行してはいけません――半分だけ移行されたコードベースは、純粋などちらの状態よりも推論しづらくなります。
+:::
+
+## 単一名前空間か複数名前空間か
+
+密度トークン（スペーシング、フォントサイズ）については、`--spacing-myweb-*` と `--spacing-myadmin-*` のように複数名前空間に分割するのが正解です。記事ページと管理ダッシュボードは本当に異なるスケールを必要とします。詳しくは [Multi Namespace Token Strategy](./multi-namespace-token-strategy.mdx) を参照してください。
+
+z-index はその規則に従い**ません**。ビューポートは1つ、スタッキング宇宙は1つ、順序の問いも1つ――「これはあれより上か下か」だけです。記事文脈のモーダルは、フロー中に管理文脈のツールチップが画面に同居しても、その上に出る必要があります。
+
+| トークンカテゴリ | 名前空間 | 理由 |
+| --- | --- | --- |
+| スペーシング、フォントサイズ | 複数 | デザイン文脈ごとに密度が異なる |
+| 色、フォントファミリー | 単一（共有） | ブランドアイデンティティはグローバル |
+| **Z-index** | **単一（グローバル）** | **アプリ全体で順序宇宙は1つ** |
+
+z-index は単一名前空間に保ちます。`--z-myweb-modal` と `--z-myadmin-modal` を別建てしたくなる衝動は抑えてください――必ず同期させる羽目になり、それは単一トークンが既に提供している性質です。
+
+## 真実のソース: TS → コード生成 → CSS
+
+階層を TypeScript で定義し、CSS ブロックを生成し、スタイルガイドは TS ファイルを直接読みます。
+
+```ts
+// src/styles/z-index-tokens.ts
+export type ZIndexTier = {
+  name: string;       // CSS var name without --z- prefix
+  value: number;      // numeric z-index
+  purpose: string;    // human-readable role
+  kind: "global" | "local";
+};
+
+export const Z_INDEX_TIERS: ZIndexTier[] = [
+  { name: "content",          value:  0, purpose: "Default in-flow content",         kind: "global" },
+  { name: "toolbar",          value: 10, purpose: "Sticky toolbars and headers",     kind: "global" },
+  { name: "dropdown",         value: 20, purpose: "In-flow dropdown menus",          kind: "global" },
+  { name: "popover",          value: 30, purpose: "Inline popovers (not portaled)",  kind: "global" },
+  { name: "popover-portaled", value: 40, purpose: "Popovers rendered via portal",    kind: "global" },
+  { name: "modal-backdrop",   value: 50, purpose: "Modal/drawer backdrop",           kind: "global" },
+  { name: "modal",            value: 60, purpose: "Modal/drawer foreground",         kind: "global" },
+  { name: "toast",            value: 70, purpose: "Transient notifications",         kind: "global" },
+  { name: "tooltip",          value: 80, purpose: "Tooltips (highest UI layer)",     kind: "global" },
+  { name: "local-1",          value:  1, purpose: "Child promotion within parent",   kind: "local"  },
+  { name: "local-2",          value:  2, purpose: "Child promotion within parent",   kind: "local"  },
+  { name: "local-3",          value:  3, purpose: "Child promotion within parent",   kind: "local"  },
+];
+```
+
+コード生成器はメイン CSS ファイル中のマーカーブロックを書き換えます。
+
+```css
+/* GENERATED:Z_INDEX_BEGIN — do not hand-edit; run `pnpm gen:z-index` */
+:root {
+  --z-content:           0;
+  --z-toolbar:          10;
+  --z-dropdown:         20;
+  --z-popover:          30;
+  --z-popover-portaled: 40;
+  --z-modal-backdrop:   50;
+  --z-modal:            60;
+  --z-toast:            70;
+  --z-tooltip:          80;
+  --z-local-1:           1;
+  --z-local-2:           2;
+  --z-local-3:           3;
+}
+/* GENERATED:Z_INDEX_END */
+```
+
+スクリプトを2本配線します。
+
+| スクリプト | 役割 | 実行タイミング |
+| --- | --- | --- |
+| `pnpm gen:z-index` | `Z_INDEX_TIERS` から `App.css` の `GENERATED:Z_INDEX_*` マーカーブロックを書き換える | `z-index-tokens.ts` を編集した後 |
+| `pnpm check:z-index` | 一時ファイルへ再生成して、コミット済み CSS と diff ―― ドリフトがあれば非ゼロ終了 | プリプッシュフック、CI |
+
+スタイルガイドのページは `Z_INDEX_TIERS` を TS ファイルから直接 import し、表をレンダリングします。データの第二コピーが存在しないので、表が古くなることはありません。
+
+:::note[なぜ別 CSS ファイルではなくマーカーブロックなのか]
+生成 CSS を `App.css` のマーカー間に配置すれば、`App.css` の残り部分は手書きのまま保てます。`tokens-z-index.css` を別ファイルに分けても動きますが、マーカー方式はファイル数を抑えつつ、`App.css` を読む人に「このブロックは生成物だ」と一目で伝えます。
+:::
+
+## グローバル vs ローカルトークン
+
+グローバル階層リストが整うと、コンポーネント内に再発するパターンが見えてきます――スタッキングコンテキストを作る親の中で、子に `z-index: 1` を与えて兄弟より上に持ち上げる、というやつです。これらの値はグローバル順序の中の独立した階層では**ありません**――親に対してのみ意味を持ちます。
+
+このケースのために、小さな予約ファミリを定義します：`--z-local-1`、`--z-local-2`、`--z-local-3`。
+
+```css
+.card {
+  position: relative;
+  isolation: isolate;        /* parent creates a stacking context */
+}
+
+.card__background {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-local-1); /* sits above default flow but inside .card */
+}
+
+.card__content {
+  position: relative;
+  z-index: var(--z-local-2); /* sits above .card__background */
+}
+```
+
+`--z-local-N` を使う規則：
+
+> `--z-local-N` を使うのは、(a) 親がスタッキングコンテキストを作っており、かつ (b) 子が他のコンポーネントと比較されるのではなく兄弟の上へ昇格されるだけの場合**のみ**です。
+
+子が無関係な UI（例：ページツールバーの上に出るべきポップオーバー）の上にレンダリングされる必要があるなら、それはローカルではありません――グローバル階層であり、名前付きスケールに置くべきです。
+
+<CssPreview client:load
+  title="Local Promotion Inside a Stacking Context"
+  height={300}
+  html={`    <div class="zlocal-demo">
+      <div class="zlocal-demo__card">
+        <div class="zlocal-demo__bg"></div>
+        <div class="zlocal-demo__body">
+          <div class="zlocal-demo__title">Card Title</div>
+          <div class="zlocal-demo__text">Background uses --z-local-1, content uses --z-local-2. Both stay inside the card's stacking context.</div>
+        </div>
+      </div>
+      <div class="zlocal-demo__caption">The card's isolation: isolate seals the local layers — they cannot interfere with global tiers.</div>
+    </div>`}
+  css={`    .zlocal-demo {
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+    }
+    .zlocal-demo__card {
+      position: relative;
+      isolation: isolate;
+      border-radius: 12px;
+      overflow: hidden;
+      min-height: 140px;
+      box-shadow: 0 4px 16px hsl(222 47% 11% / 0.12);
+      --z-local-1: 1;
+      --z-local-2: 2;
+    }
+    .zlocal-demo__bg {
+      position: absolute;
+      inset: 0;
+      z-index: var(--z-local-1);
+      background: linear-gradient(135deg, hsl(220 80% 50%), hsl(260 70% 45%));
+    }
+    .zlocal-demo__body {
+      position: relative;
+      z-index: var(--z-local-2);
+      color: hsl(0 0% 100%);
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .zlocal-demo__title {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .zlocal-demo__text {
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .zlocal-demo__caption {
+      font-size: 0.75rem;
+      color: hsl(215 16% 47%);
+      font-style: italic;
+    }`} />
+
+:::note[--z-local-N は再利用可能]
+同じ `--z-local-1` トークンが、すべての isolated な親に対して通用します。`--z-card-bg` や `--z-modal-content` のようなローカル個別トークンは不要です――ローカル階層は匿名のヘルパーであり、コンポーネントごとのセマンティック値ではありません。
+:::
+
+<CssPreview client:load
+  title="Sibling-Ordered Global Overlays"
+  height={320}
+  html={`    <div class="zsib-demo">
+      <div class="zsib-demo__content">Page content (no z-index)</div>
+      <div class="zsib-demo__toolbar">Toolbar — var(--z-toolbar)</div>
+      <div class="zsib-demo__modal">Modal — var(--z-modal)</div>
+      <div class="zsib-demo__tooltip">Tooltip — var(--z-tooltip)</div>
+    </div>`}
+  css={`    .zsib-demo {
+      position: relative;
+      height: 280px;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      background: hsl(210 20% 96%);
+      border-radius: 8px;
+      overflow: hidden;
+      --z-toolbar: 10;
+      --z-modal: 60;
+      --z-tooltip: 80;
+    }
+    .zsib-demo__content {
+      position: absolute;
+      inset: 1rem;
+      padding: 0.6rem;
+      background: hsl(0 0% 100%);
+      border: 1px solid hsl(214 32% 88%);
+      color: hsl(215 16% 35%);
+      border-radius: 6px;
+    }
+    .zsib-demo__toolbar {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      right: 1rem;
+      z-index: var(--z-toolbar);
+      padding: 0.5rem 0.75rem;
+      background: hsl(220 80% 50%);
+      color: hsl(0 0% 100%);
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .zsib-demo__modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: var(--z-modal);
+      padding: 1rem 1.5rem;
+      background: hsl(280 60% 45%);
+      color: hsl(0 0% 100%);
+      border-radius: 8px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px hsl(222 47% 11% / 0.25);
+    }
+    .zsib-demo__tooltip {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: var(--z-tooltip);
+      padding: 0.4rem 0.6rem;
+      background: hsl(0 0% 10%);
+      color: hsl(0 0% 100%);
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }`} />
+
+## Lint による強制
+
+強制されないトークンシステムは腐っていくトークンシステムです。コンポーネント CSS で生の `z-index: <integer>` を禁止する lint ルールを追加します。
+
+| 許可 | 禁止 |
+| --- | --- |
+| `z-index: var(--z-modal);` | `z-index: 100;` |
+| `z-index: calc(var(--z-modal) + 1);` | `z-index: 999;` |
+| `z-index: auto;` / `inherit;` / `initial;` | `z-index: 9999;` |
+| `/* design-token-lint-ignore */` 付きの生整数（エスケープハッチ） | エスケープコメントなしの裸の生整数 |
+
+エスケープハッチは重要です。正当なケース（一度きりの第三者ウィジェット統合、実験的なレイヤーなど）は、理由を説明するコードコメントとともに生整数が必要になります――デフォルトはブロック、ただし永久には縛らない、という設計にします。
+
+マルチパス linter パターン（生のカラーリテラル、ゾーン認識セマンティックトークン、他のトークンファミリー向けのマッチする強制ルール）の全体像については [Design Token Lint](./design-token-lint.mdx) を参照してください。Pass 3 が、上記で文書化した生 z-index ルールをカバーします。
+
+:::info[プリプッシュ配線]
+`pnpm check:z-index`（コード生成のドリフト）と lint ルール（生 `z-index:` 整数）の両方をプリプッシュフックに追加します。ドリフトチェックは古い生成 CSS を捕まえ、lint チェックは新規違反を捕まえます。両者の組み合わせで PR 間の腐敗を防ぎます。
+:::
+
+## 判断ツリー: 新しいオーバーレイはどこに属するか
+
+```
+Is the new layer a stacking promotion *inside* a parent that has its own
+stacking context (isolation: isolate, position+z-index, transform, etc.)?
+│
+├── YES → use --z-local-1 / --z-local-2 / --z-local-3
+│         (No global tier needed. The parent's stacking context contains it.)
+│
+└── NO  → it is a global UI layer
+          │
+          ├── Does it already match a tier? (modal, toast, tooltip, popover, ...)
+          │   │
+          │   ├── YES → use that tier's token
+          │   │
+          │   └── NO  → add a new tier to z-index-tokens.ts, run pnpm gen:z-index,
+          │              then use the new token. Update the styleguide automatically.
+          │
+          └── If you find yourself adding more than 1-2 tiers per quarter, the tier
+              list is probably too granular — review whether existing tiers cover it.
+```
+
+### Portal vs インラインの判断
+
+ボタンにアンカーされたポップオーバーは、インライン（ボタンの DOM サブツリー内）にも、ポータル（`<body>` に追加）にもレンダーできます。選択により適用すべきトークンが変わります。
+
+| 状況 | レンダーモード | トークン |
+| --- | --- | --- |
+| アンカー要素から `<html>` までの間にスタッキングコンテキスト祖先がない | インライン | `--z-popover` |
+| アンカーがスタッキングコンテキスト（モーダル、isolated カード、transform 親）の中にあり、ポップオーバーが脱出する必要 | `<body>` へポータル | `--z-popover-portaled` |
+| ポップオーバーが常にモーダルの上に出るべき | ポータル | `--z-popover-portaled`（スケール上で `--z-modal` より上に配置） |
+
+アンカーから DOM をルートまで遡り、いずれかの祖先がスタッキングコンテキストを作っていれば、インラインのポップオーバーはその中に閉じ込められます。スタッキングコンテキストを作るプロパティの完全リストは [Stacking Context](../positioning/stacking-context.mdx) を参照してください。
+
+## AIがよくやるミス
+
+- **数値スケール（`--z-50`、`--z-100`、`--z-200`）を定義する。** これはカスタムプロパティ構文で Tailwind 数値問題を再現しているだけです。名前は大きさではなく役割を表すべきです。
+- **「とにかく大きく」と `z-index: 100` をハードコードする。** レイヤリングバグの修正は、ほぼ決して大きい数字ではありません――要素がどのスタッキングコンテキストに住んでいるかを理解することです。[Stacking Context](../positioning/stacking-context.mdx) を参照。
+- **スタッキングコンテキストの外で `--z-local-N` を使う。** isolated な親がなければ `--z-local-1` はルートのスタッキングコンテキストに参加し、グローバル階層と競合します。親に `isolation: isolate` を付けるか、グローバル階層を使ってください。
+- **`--z-emergency: 99999` を定義する。** "緊急" 階層はバグであって修正ではありません。レイヤーが親から脱出する必要があるならスタッキングコンテキストを直し、本当に新しい階層が必要なら名前付きスケールの正しい位置に追加します。
+- **z-index を文脈別名前空間に分割する（`--z-myweb-modal`、`--z-myadmin-modal`）。** ビューポートは1つの順序宇宙です。複数名前空間は密度トークンには有効ですが z-index にはふさわしくありません。
+- **生成 CSS のマーカーブロックを手で編集する。** `z-index-tokens.ts` を編集して `pnpm gen:z-index` を再実行してください。手編集は次回のコード生成で消され、CI の `pnpm check:z-index` が落ちます。
+- **lint ルールをスキップする。** 強制なしでは生の `z-index: 100` が1スプリント以内に再出現し、システムはゆっくりとマジックナンバーの混沌に戻ります。
+
+## 使い分け
+
+### 適している場合
+
+- **オーバーレイが5種類以上あるプロジェクト** ―― モーダル、ドロワー、ポップオーバー、ツールチップ、トースト、固定ツールバーが共存し始めると、その場限りの数字はスケールしません
+- **複数チームのコードベース** ―― 共有のセマンティックスケールが、あるチームの `z-index: 100` が別チームの `z-index: 200` と衝突するのを防ぎます
+- **スタイルガイド／デザインシステムページのあるプロジェクト** ―― 生成された表が、デザイナーと開発者にとっての正典になります
+
+### 不要な場合
+
+- **プロトタイプや単一オーバーレイのサイト** ―― モバイルメニュー1個だけのマーケティングランディングに階層システムは不要です
+- **静的コンテンツサイト** ―― メニュー以外にオーバーレイのないブログ／ドキュメントサイトは `z-index: 1` で済みます
+- **一度きりの社内ツール** ―― アプリ全体で z-index 値が3個しかないなら、階層システムはオーバーヘッドです
+
+## 参考リンク
+
+- [Stacking Context](../positioning/stacking-context.mdx) ―― スタッキングコンテキストを作るものとレイヤリングバグのデバッグ
+- [Multi Namespace Token Strategy](./multi-namespace-token-strategy.mdx) ―― 密度トークン（スペーシング、フォントサイズ）のための姉妹戦略。z-index の単一名前空間ルールとの対比
+- [pgen worked example (zudo-pattern-gen #940)](https://github.com/zudolab/zudo-pattern-gen/issues/940) ―― マジックナンバーから階層トークンシステムへの具体的なマイグレーション例
