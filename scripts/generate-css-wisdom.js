@@ -129,8 +129,19 @@ async function main() {
     if (SKIP_CATEGORIES.has(category)) continue;
 
     // Skip top-level category index files (e.g. layout/index.mdx)
-    // but keep deep article index files (e.g. methodology/tight-token-strategy/index.mdx)
-    if (parts.length === 2 && basename(relPath) === "index.mdx") continue;
+    // but keep deep article index files (e.g. design-tokens/tight-token-strategy/index.mdx).
+    // Exception: a category index that carries its own description entry is a real
+    // article doubling as the landing page, so it stays indexed. Today that is only
+    // custom-properties/index.mdx -- the promoted custom-properties-advanced deep
+    // article (epic #196 decision 6), which kept its full body when it became a
+    // category. Keying off descriptions.json rather than a hardcoded path means the
+    // curated description is the signal: no entry, no index.
+    if (
+      parts.length === 2 &&
+      basename(relPath) === "index.mdx" &&
+      !(relPath in descriptions)
+    )
+      continue;
 
     // Look up description
     if (!(relPath in descriptions)) {
