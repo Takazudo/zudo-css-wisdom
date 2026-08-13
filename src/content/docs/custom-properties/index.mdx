@@ -1,9 +1,15 @@
 ---
-title: Advanced Custom Properties
+title: Custom Properties
+sidebar_label: Custom Properties
 sidebar_position: 20
+description: "Custom properties past simple var() substitution: the space-toggling trick, fallback chains, component styling APIs, and typed properties with @property."
 ---
 
 import CssPreview from '@/components/CssPreview';
+
+Custom properties do far more than name a color once and reuse it. This page covers the advanced mechanics — the space toggle, fallback chains, component styling APIs — and the pages below take each further into pattern catalogs, complete theming recipes, and typed properties registered with `@property`.
+
+<CategoryNav category="custom-properties" />
 
 ## The Problem
 
@@ -343,6 +349,7 @@ Custom properties have near-universal support (98%+). The `initial` keyword beha
 
 - [Pattern Catalog](./pattern-catalog.mdx) — Comprehensive collection of CSS custom property patterns with interactive demos
 - [Theming Recipes](./theming-recipes.mdx) — Complete theme system recipes for light/dark mode, brand theming, and component libraries
+- [@property](./at-property.mdx) — Registering typed custom properties so they animate, interpolate, and fail safely
 
 ## References
 
