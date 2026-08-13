@@ -1,0 +1,383 @@
+---
+title: 印刷とPDF出力
+description: 実際のプリンタとPDFビューアで壊れない印刷スタイルシート — @pageサイズ指定、改ページ制御、色の再現、決定論的なヘッドレス出力
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+印刷は第2のレンダーターゲットであり、スクリーン用CSSは印刷と積極的に衝突します。スクロール前提のビューポート、アニメーション、操作用UIを前提に組んだレイアウトは、印刷に敵対する挙動をひとつずつ明示的に無効化しない限り、壊れたPDFを生成します。以下はすべて実プロジェクトで起きた失敗です：
+
+- 2枚のスライドデッキが**4ページのPDF**として出力された — 画面上のヘッダーとツールバーを印刷時に非表示にしていなかったため、各ページに高さが加わり、余分な改ページが発生した。
+- 背景とグラデーションが印刷出力から**何の警告もなく消えた**。ブラウザはインク節約のためデフォルトで背景を除去する。
+- 最後の印刷単位が自分の後ろに改ページを要求したままだったため、すべての出力の末尾に**空白ページ**が付いた。
+- macOS Previewで開いたPDFで、`box-shadow` のぼかしがあるべき場所に**不透明なグレーのボックス**が表示された。
+
+AIエージェントは `@media print { .header { display: none; } }` を書いてそこで止まりがちです。信頼できる印刷パスには、ページサイズ指定、改ページ制御、色の再現、アニメーションの凍結、スクリーンレイアウトの解除が必要で、それぞれに自明でない落とし穴があります。
+
+## 解決方法
+
+印刷を、2つの連携するレイヤーからなる明示的なレンダーパスとして扱います：
+
+- CSSレイヤー：リテラル値の `@page` サイズ、単位ごとの改ページ制御、`print-color-adjust: exact`、アニメーションの凍結、そしてスクリーン用UIを隠して自然なブロックフローを復元する完全な `@media print` ブロック。
+- 出力レイヤー（PDF自動生成の場合）：CSSと同じサイズ定数で駆動するヘッドレスChromiumの `page.pdf()`。フォント読み込み完了後にのみ実行する。
+
+:::note[この記事がライブデモではなくコードブロックを使う理由]
+印刷の挙動 — `@page`、改ページ、印刷ヒューリスティクス — は、このサイトの他の記事で使っているライブプレビューのiframe内では再現できません。印刷専用のルールはコードブロックで示します。スクリーンでも再現できる唯一の比較（`box-shadow` と `filter: drop-shadow()`）にはライブデモを付けています。
+:::
+
+## @page によるページサイズ指定
+
+`size` 記述子は物理的なページ寸法を設定します。値は**リテラル**でなければなりません — カスタムプロパティは `@page` 内では確実に解決されません：
+
+```css
+/* BAD — var() inside @page is silently ignored in Chromium */
+:root {
+  --page-w: 1280px;
+  --page-h: 720px;
+}
+@page {
+  size: var(--page-w) var(--page-h);
+  margin: 0;
+}
+
+/* GOOD — literal values */
+@page {
+  size: 1280px 720px;
+  margin: 0;
+}
+```
+
+ページ寸法がランタイムの状態（ユーザーが選択できるアスペクト比など）に依存する場合は、静的な比率ごとのテーブルを保持し、レンダー時にリテラルのルールを出力します：
+
+```js
+const PAGE_SIZES = {
+  "16:9": { width: 1280, height: 720 },
+  "4:3": { width: 1024, height: 768 },
+};
+
+function applyPageSize(ratio) {
+  const { width, height } = PAGE_SIZES[ratio];
+  let style = document.getElementById("print-page-size");
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "print-page-size";
+    document.head.appendChild(style);
+  }
+  style.textContent = `@page { size: ${width}px ${height}px; margin: 0; }`;
+}
+```
+
+この注入するスタイルの配置には2つのルールがあります：
+
+- `@page` はシャドウルートの中には置けません。Webコンポーネントのスタイルはシャドウツリーにスコープされ、ページレベルの記述子はそこでは無視されます。ルールは `document.head` に注入します。
+- ロード後にページが変化する場合（比率の切り替え、ルート変更）、印刷ダイアログが常に現在の寸法を参照できるよう、`beforeprint` でルールを再適用します：
+
+```js
+window.addEventListener("beforeprint", () => applyPageSize(currentRatio));
+```
+
+## 改ページ制御
+
+すべての印刷単位に明示的な改ページポリシーを与えます。モダンな `break-*` プロパティに加え、エンジンカバレッジのためレガシーの `page-break-*` エイリアスも併記します：
+
+```css
+@media print {
+  .slide {
+    break-after: page;
+    break-inside: avoid;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+}
+```
+
+### 末尾の空白ページの抑止
+
+最後の単位に付いた `break-after: page` は、最終ページの後ろにも改ページを要求します — 多くのエンジンはこれを律儀に処理し、空白ページを出力します。最後の単位では抑止します：
+
+```css
+@media print {
+  .slide:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
+```
+
+### 最後に見える単位が :last-child ではない場合
+
+単位が非表示やスキップの対象になり得る場合（フィルタされたリスト、下書きスライド、条件付きセクション）、`:last-child` は機能しません — DOM上の最後の要素が、見た目上の最後の要素とは限らないからです。JSから最後の*可視*単位にdata属性でマークを付け、そちらをターゲットにします：
+
+```js
+const units = [...document.querySelectorAll(".slide")];
+units.forEach((el) => el.removeAttribute("data-print-last"));
+const visible = units.filter((el) => el.offsetParent !== null);
+visible.at(-1)?.setAttribute("data-print-last", "");
+```
+
+```css
+@media print {
+  .slide[data-print-last] {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
+```
+
+マーキング処理は `beforeprint`（および自動出力の直前）に実行し、現在の可視状態を反映させます。
+
+## 色の再現
+
+ブラウザは、印刷される背景はインクの無駄だと見なし、背景色・背景画像・グラデーションをデフォルトで除去します。明示的にオプトアウトします：
+
+```css
+@media print {
+  :root {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+```
+
+このプロパティは継承されるため、`:root` に設定すればドキュメント全体をカバーできます。Firefoxはプレフィックスなしの `print-color-adjust` をサポートし、ChromiumとSafariは `-webkit-` プレフィックスを必要とします — 両方を書いてください。これがないと、ダーク背景のデザインは白いページに白いテキストとして印刷されます。コンテンツは存在するのに見えない状態です。
+
+自動出力では、ブラウザ側のプロパティは話の半分にすぎません — ヘッドレスChromiumは `page.pdf()` の呼び出しに `printBackground: true` を追加で必要とします（[決定論的なPDF出力](#決定論的なpdf出力)を参照）。
+
+## アニメーションとトランジションの凍結
+
+印刷はアニメーションの途中でページをスナップショットします：フェードインの途中の要素は半透明で印刷され、スライドインの途中の要素はページ外に半分はみ出したまま印刷されます。印刷時にはすべてのアニメーションを終了状態までジャンプさせます：
+
+```css
+@media print {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+  }
+}
+```
+
+`animation: none` ではなく、ほぼゼロのdurationを使ってください。アニメーションを完全に除去すると `fill-mode: forwards` の終了状態も一緒に失われます — `opacity: 0` からフェードインする登場アニメーションは、不可視の状態に巻き戻ってしまいます。0.001sのdurationならアニメーションが瞬時に完了するため、`forwards` のfill状態が適用され、要素は最終的な確定位置で印刷されます。
+
+`animation-iteration-count: 1` のオーバーライドはループアニメーション対策です：`infinite` のアニメーションはdurationをほぼゼロにしても停止せず、高速に周回し続け、印刷スナップショットはランダムなフレームに当たります。1回に強制することで完走させられます。
+
+## macOS Previewのシャドウバグ
+
+ChromiumのPDFバックエンド（Skia）は `box-shadow` のぼかしをPDFのソフトマスクとしてエンコードします。Adobe AcrobatやブラウザのPDFビューアはこれを正しくレンダリングしますが、**macOS Previewはソフトマスクを不透明なグレーのボックスとしてレンダリングし**、背後のコンテンツを覆い隠します。PreviewはmacOSのデフォルトPDFビューアであるため、このバグは多くの読者に届いてしまいます。
+
+回避策は、印刷時に `box-shadow` を `filter: drop-shadow()` に差し替えることです。`drop-shadow()` は別のコードパスでラスタライズされるため、Previewでも生き残ります：
+
+```css
+@media print {
+  .card {
+    box-shadow: none;
+    filter: drop-shadow(0 2px 6px hsl(0 0% 0% / 0.25));
+  }
+}
+```
+
+これは**標的を絞った回避策であり、デフォルトではありません**。`drop-shadow()` はボーダーボックスではなく要素のアルファ形状に追従し、`spread` を無視し、insetや独立したオフセットを持つ多層シャドウを表現できません。Previewでグレーボックス問題が実際に再現する要素にだけ適用してください。
+
+スクリーン上ではシンプルなカードならほぼ同一にレンダリングされます。だからこそこの差し替えは安全です：
+
+<CssPreview client:load
+  title="box-shadow と filter: drop-shadow() — スクリーンではほぼ同一"
+  html={`
+    <div class="shadow-compare">
+      <div class="shadow-compare__card shadow-compare__card--box">
+        <p class="shadow-compare__label">box-shadow</p>
+        <p>Blur encoded as a PDF soft mask. Renders as an opaque grey box in macOS Preview.</p>
+      </div>
+      <div class="shadow-compare__card shadow-compare__card--drop">
+        <p class="shadow-compare__label">filter: drop-shadow()</p>
+        <p>Rasterized through a different path. Survives macOS Preview.</p>
+      </div>
+    </div>
+    `}
+  css={`
+    body {
+      margin: 0;
+      padding: 32px;
+      background: hsl(220 30% 94%);
+      font-family: system-ui, sans-serif;
+    }
+    .shadow-compare {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+    }
+    .shadow-compare__card {
+      flex: 1 1 200px;
+      padding: 20px;
+      background: hsl(0 0% 100%);
+      border-radius: 10px;
+    }
+    .shadow-compare__card--box {
+      box-shadow: 0 2px 6px hsl(0 0% 0% / 0.25);
+    }
+    .shadow-compare__card--drop {
+      filter: drop-shadow(0 2px 6px hsl(0 0% 0% / 0.25));
+    }
+    .shadow-compare__label {
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: hsl(220 60% 40%);
+    }
+    .shadow-compare__card p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: hsl(220 15% 30%);
+    }
+    .shadow-compare__label + p {
+      margin-top: 4px;
+    }
+    `}
+  height={260} />
+
+## スクリーンレイアウトの解除
+
+固定サイズコンテンツ用のスクリーンレイアウト（スライドビューア、レターボックス付きプレビュー）は、拡大縮小にtransform、スクロールコンテナに `overflow`、レスポンシブなサイズ決定に `aspect-ratio` を使います。これらはすべて印刷出力を壊します：`scale()` transformはコンテンツを縮尺されたまま印刷し、スクロールコンテナはフォールドより下をすべてクリップし、`aspect-ratio` は固定ページサイズと衝突します。
+
+印刷が求めるのは、デザインサイズでの自然なブロックフローです。単位ごとにスクリーン用の仕組みをリセットします：
+
+```css
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  .viewer {
+    display: block;
+    transform: none;
+    overflow: visible;
+    height: auto;
+  }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    aspect-ratio: auto;
+    transform: none;
+    overflow: visible;
+  }
+}
+```
+
+`html`/`body` のマージンリセットは省略できません：ブラウザのデフォルトである8pxのbodyマージンが単位の外側に残り、マージンゼロのページボックスから単位を押し出します — 端が切れたり、コンテンツが余分なページに押し出されたりするには十分な量です。
+
+単位ごとの固定 `width`/`height` は、各単位がちょうど1ページを満たすよう、`@page` サイズ（`@page` のmarginを差し引いた値）と一致していなければなりません。ページサイズが動的な場合（[@page によるページサイズ指定](#page-によるページサイズ指定)の比率テーブルのパターン）、単位の寸法も同じ注入ルールから出力し、両方が一緒に変化してずれようがない状態にします：
+
+```js
+style.textContent = `
+  @page { size: ${width}px ${height}px; margin: 0; }
+  @media print { .slide { width: ${width}px; height: ${height}px; } }
+`;
+```
+
+## スクリーン用UIの非表示
+
+印刷対象になり得るすべてのルートには、**すべての**非コンテンツUI — ヘッダー、ナビ、ツールバー、サイドバー、Cookie通知、デバッグパネル — を隠す明示的な `@media print` パスが必要です：
+
+```css
+@media print {
+  .site-header,
+  .site-nav,
+  .viewer-toolbar,
+  .cookie-notice,
+  .debug-panel {
+    display: none;
+  }
+}
+```
+
+これは実世界で最も頻度の高い印刷の失敗です。UI要素は単にPDFに写り込むだけではありません — **印刷単位の上や間に高さを追加し、コンテンツをページ境界の向こうへ押し出します**。2枚のスライドデッキが4ページとして出力された原因は、隠し忘れたヘッダーが1ページ目の一部を占有し、スライド1の下半分を2ページ目に押し出し、以降が連鎖したことでした。症状（ページ数の誤り）が原因(見えているヘッダー)から遠く離れて現れるため、診断に時間がかかります。
+
+消去法で監査してください：印刷プレビューで、印刷単位以外のものはすべて消えていなければなりません。見つけたUI要素を1つずつ隠すより、「すべて隠してからコンテンツだけを戻す」ホワイトリスト志向のほうが確実です。
+
+## 決定論的なPDF出力
+
+PDF自動生成では、ユーザーに手動印刷を頼むのではなく、ヘッドレスChromium（PlaywrightまたはPuppeteer）を駆動します。出力を決定論的にするルールは2つです：
+
+- ページ寸法を、CSSの出力が使うのと**同じ定数モジュール**からインポートする — 信頼できる唯一の情報源にすることで、`@page` ルールと `page.pdf()` 呼び出しがずれようがなくなります。
+- 出力前に `document.fonts.ready` を待つ。フォントフォールバックは環境ごとに異なり、特にCJKテキストは本来のフォントが到着するとリフローします — 早すぎる出力は、改行位置がネットワークのタイミングに依存するPDFを生みます。
+
+```js
+import { PAGE_SIZES } from "./page-sizes.js";
+
+const { width, height } = PAGE_SIZES["16:9"];
+await page.goto(url, { waitUntil: "networkidle" });
+await page.evaluate(() => document.fonts.ready);
+await page.pdf({
+  path: "deck.pdf",
+  width: `${width}px`,
+  height: `${height}px`,
+  printBackground: true,
+  margin: { top: 0, right: 0, bottom: 0, left: 0 },
+});
+```
+
+`printBackground: true` は `print-color-adjust: exact` の出力側の対応物です — CSSプロパティはユーザー操作の印刷ダイアログを、APIオプションはヘッドレス出力をカバーします。両方の経路でそれぞれのスイッチを入れなければ、その経路では背景が消えます。
+
+## クイックリファレンス
+
+| シナリオ | テクニック |
+| --- | --- |
+| 正確なページ寸法 | 定数テーブルから出力する `@page { size: <literal>; margin: 0; }` |
+| 動的なページサイズ | リテラルの `@page` ルールを `document.head` に注入し、`beforeprint` で再適用 |
+| 1単位1ページ | `break-after: page` + `break-inside: avoid`（+ `page-break-*` エイリアス） |
+| 末尾の空白ページ | `:last-child { break-after: auto; }` または `data-print-last` のJSフォールバック |
+| 背景が消える | `:root` に `print-color-adjust: exact` + `-webkit-print-color-adjust: exact` |
+| アニメーション途中のフレームが印刷される | `animation-duration: 0.001s`、`animation-delay: 0s`、`animation-iteration-count: 1`、`transition: none` |
+| macOS Previewでグレーのボックス | 印刷時に `box-shadow` を `filter: drop-shadow()` に差し替え（標的限定） |
+| スクリーンレイアウトが印刷に漏れる | `transform`・`overflow`・`aspect-ratio` をリセットし、単位ごとに固定デザインサイズ |
+| ページ数がおかしい | `@media print` で非コンテンツUIをすべて非表示 |
+| 自動出力のずれ | 共有定数から `page.pdf({ width, height, printBackground: true })`、`document.fonts.ready` の後に実行 |
+
+## AIがよくやるミス
+
+- **`@page` の中で `var()` を使う** — カスタムプロパティは `@page` 記述子内で確実には解決されず、Chromiumはルールを黙って無視します。定数テーブルからリテラル値を出力してください。
+- **`@page` をシャドウルートの中に置く** — ページレベルの記述子はシャドウスコープのスタイルシートでは無視されます。ルールは `document.head` のドキュメントレベルのスタイルシートに置く必要があります。
+- **`animation: none` でアニメーションを凍結する** — `fill-mode: forwards` の終了状態が破棄され、登場アニメーション付きの要素はアニメーション前の状態（多くは `opacity: 0` — 不可視）で印刷されます。代わりにほぼゼロの `animation-duration` を使ってください。
+- **背景はデフォルトで印刷されると思い込む** — インク節約ヒューリスティクスによって除去されます。印刷ダイアログ経路には `print-color-adjust: exact` が、ヘッドレス経路にはさらに `printBackground: true` が必要です。
+- **末尾の `break-after` 抑止を忘れる** — 最後の単位を含む全単位への `break-after: page` は、空白の最終ページを生みます。
+- **UIを網羅的にではなく選択的に隠す** — 見えたまま残ったヘッダー1つで、ドキュメント全体のページ数が変わります。印刷プレビューに印刷単位だけが残るまで監査してください。
+- **`drop-shadow()` への差し替えをグローバルに適用する** — `spread`、inset、多層シャドウを表現できません。macOS Previewのグレーボックスバグが実際に再現する場所でだけ使ってください。
+- **フォント読み込み前に出力する** — PDFの改行位置がフォント到着のタイミングに依存し、非決定的になります — 特にCJKテキストで顕著です。先に `document.fonts.ready` を待ってください。
+
+## 使い分け
+
+### ユーザーが印刷し得るすべてのルート
+
+ユーザーが印刷する可能性のあるルートには、最低限、UIを隠す `@media print` ブロックと `print-color-adjust: exact` が必要です。コンテンツ不可視バグとページ数バグに対する安価な保険です。
+
+### スライドデッキと固定サイズドキュメント
+
+フルスタックを追加します：定数テーブル由来のリテラル `@page` サイズ、末尾抑止付きの単位ごとの改ページ制御、スクリーンレイアウトのリセット。単位の固定印刷サイズは `@page` サイズと一致させます。
+
+### PDF自動生成パイプライン
+
+CSSとサイズ定数を共有し `document.fonts.ready` を待ちながら、ヘッドレスChromiumの `page.pdf()` を駆動します。ブラウザ側の印刷CSSはそのまま維持してください — ヘッドレス出力も同じ `@media print` パスを通ります。
+
+### Previewシャドウ回避策
+
+PDFがmacOSで閲覧され、かつPreviewでグレーボックスのアーティファクトが実際に再現する場合のみ。互換性パッチであり、先回りで適用すべきベストプラクティスではありません。
+
+## 参考リンク
+
+- [MDN: @page](https://developer.mozilla.org/en-US/docs/Web/CSS/@page)
+- [MDN: size descriptor](https://developer.mozilla.org/en-US/docs/Web/CSS/@page/size)
+- [MDN: break-after](https://developer.mozilla.org/en-US/docs/Web/CSS/break-after)
+- [MDN: break-inside](https://developer.mozilla.org/en-US/docs/Web/CSS/break-inside)
+- [MDN: print-color-adjust](https://developer.mozilla.org/en-US/docs/Web/CSS/print-color-adjust)
+- [web.dev: Print your page](https://web.dev/articles/print-your-page)
+- [Playwright: page.pdf()](https://playwright.dev/docs/api/class-page#page-pdf)

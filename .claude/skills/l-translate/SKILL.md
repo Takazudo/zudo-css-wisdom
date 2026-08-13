@@ -5,7 +5,7 @@ description: >-
   translate en docs to ja, (2) User says 'translate', 'ja version', 'Japanese translation', (3) User
   wants to check for missing ja docs.
 user-invocable: true
-argument-hint: <file-path-or-category> or 'check-missing'
+argument-hint: "<file-path-or-category> or 'check-missing'"
 ---
 
 # Translate EN Docs to JA
@@ -17,7 +17,7 @@ Translate English MDX documentation files to Japanese using the `ja-translator` 
 Parse the argument to determine the mode:
 
 - **File path** (e.g., `docs/color/three-tier-color-strategy.mdx`) — translate that specific file
-- **Category** (e.g., `color`, `layout`) — translate all untranslated files in that category
+- **Category** (e.g., `color`, `positioning`) — translate all untranslated files in that category
 - **`check-missing`** or **`check`** — scan for all EN docs without JA counterparts
 - **No argument** — ask the user what to translate
 
@@ -27,6 +27,7 @@ Parse the argument to determine the mode:
 - Target JA: `src/content/docs-ja/<category>/<filename>.mdx`
 
 For deep articles (folder with `index.mdx` + sub-pages):
+
 - Source EN: `src/content/docs/<category>/<folder>/index.mdx`
 - Target JA: `src/content/docs-ja/<category>/<folder>/index.mdx`
 

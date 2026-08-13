@@ -1,0 +1,311 @@
+---
+title: Containing Block for position fixed
+sidebar_position: 4
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+`position: fixed` is supposed to pin an element to the viewport. Most of the time it does. But the same set of properties that create a [stacking context](./stacking-context.mdx) — `transform`, `filter`, `backdrop-filter`, `perspective`, `will-change`, `contain`, `content-visibility` — also create a **containing block for fixed-positioned descendants**. When that happens, `top`, `left`, `right`, `bottom` resolve relative to that ancestor's box, not the viewport. The element silently behaves like `position: absolute`.
+
+This bug shows up in sticky headers, drag-and-drop libraries, modal portals, dropdown popovers, frosted-glass toolbars, and anywhere a popover library reads `getBoundingClientRect()` of an anchor that lives inside a trapped subtree. The popover renders far from where it should, often outside the viewport, and the user sees "nothing happens."
+
+The bug is the silent twin of the stacking-context bug: same trigger properties, different breakage. Stacking context breaks `z-index` resolution. Containing block breaks viewport pinning.
+
+## The Solution
+
+When you need `position: fixed` to pin to the viewport, the fixed element (or anything that participates in its geometry calculation, like a popover anchor) must not have any ancestor that creates a containing block for fixed. The standard fix is to **portal the element to `<body>`** so no trap ancestor sits between it and the root.
+
+If the popover library measures an anchor element to compute coordinates, the **anchor itself** must also be outside the trap — portaling only the popover is not enough.
+
+## What Creates a Containing Block for `position: fixed`
+
+The trigger list is almost identical to stacking context — but not exactly. `opacity` and `isolation` create stacking context only; they do **not** create a containing block.
+
+| Property | Stacking context | Containing block for fixed |
+| --- | --- | --- |
+| `transform` ≠ `none` | Yes | Yes |
+| `perspective` ≠ `none` | Yes | Yes |
+| `filter` ≠ `none` | Yes | Yes |
+| `backdrop-filter` ≠ `none` | Yes | Yes |
+| `will-change: transform` (or filter, perspective, etc.) | Yes | Yes |
+| `contain: paint` / `layout` / `strict` / `content` | Yes | Yes |
+| `content-visibility: auto` / `hidden` | Yes | Yes |
+| `opacity` < 1 | Yes | No |
+| `isolation: isolate` | Yes | No |
+| `mix-blend-mode` ≠ `normal` | Yes | No |
+
+Treat the first seven rows as one mental list: "anything from this list above the fixed element traps it."
+
+## Code Examples
+
+### The Basic Trap
+
+```css
+.parent {
+  transform: translateZ(0);
+}
+
+.parent .pinned {
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+```
+
+`.pinned` is supposed to sit at the top-right of the viewport. Because `.parent` has `transform`, `.pinned` sits at the top-right of `.parent`'s box instead.
+
+<CssPreview client:load
+  title="Containing block trap: transform on parent"
+  html={`    <div class="trap">
+      <div class="trap-label">Parent with transform: translateZ(0)</div>
+      <div class="pinned">position: fixed; top: 0; right: 0 — pinned to PARENT, not iframe</div>
+    </div>`}
+  css={`    body {
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+    }
+    .trap {
+      transform: translateZ(0);
+      margin: 60px 40px;
+      padding: 16px;
+      background: hsl(30, 90%, 60%);
+      color: hsl(30, 60%, 15%);
+      border-radius: 8px;
+      min-height: 140px;
+    }
+    .trap-label {
+      font-weight: 600;
+    }
+    .pinned {
+      position: fixed;
+      top: 0;
+      right: 0;
+      padding: 8px 12px;
+      background: hsl(0, 70%, 50%);
+      color: hsl(0, 0%, 100%);
+      border-radius: 0 0 0 8px;
+      max-width: 220px;
+      line-height: 1.4;
+    }`}
+  height={260} />
+
+### The Fix: Remove the Trap
+
+```css
+.parent {
+  /* No transform — fixed children pin to the viewport */
+}
+
+.parent .pinned {
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+```
+
+<CssPreview client:load
+  title="Fixed pins to viewport when no trap exists"
+  html={`    <div class="ok">
+      <div class="ok-label">Parent with no trap properties</div>
+      <div class="pinned">position: fixed; top: 0; right: 0 — pinned to iframe</div>
+    </div>`}
+  css={`    body {
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+    }
+    .ok {
+      margin: 60px 40px;
+      padding: 16px;
+      background: hsl(140, 50%, 60%);
+      color: hsl(140, 60%, 15%);
+      border-radius: 8px;
+      min-height: 140px;
+    }
+    .ok-label {
+      font-weight: 600;
+    }
+    .pinned {
+      position: fixed;
+      top: 0;
+      right: 0;
+      padding: 8px 12px;
+      background: hsl(220, 80%, 50%);
+      color: hsl(0, 0%, 100%);
+      border-radius: 0 0 0 8px;
+      max-width: 220px;
+      line-height: 1.4;
+    }`}
+  height={260} />
+
+### The `backdrop-filter` Trap
+
+A frosted-glass toolbar with `backdrop-filter: blur()` looks innocuous, but any `position: fixed` descendant — a popover, a tooltip, a modal — will pin to the toolbar's box, not the viewport.
+
+```css
+.toolbar {
+  position: sticky;
+  bottom: 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: hsl(0, 0%, 100% / 0.5);
+}
+
+.toolbar .popover {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  /* Trapped: pins to toolbar's coordinate space, not the viewport */
+}
+```
+
+<CssPreview client:load
+  title="backdrop-filter on toolbar traps fixed popover"
+  html={`    <div class="page">
+      <div class="bg-text">Page content behind the frosted toolbar</div>
+      <div class="toolbar">
+        <span class="toolbar-label">Frosted toolbar (backdrop-filter)</span>
+        <div class="popover">Popover: position: fixed; top: 0 — but stuck inside the toolbar</div>
+      </div>
+    </div>`}
+  css={`    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+      background: linear-gradient(135deg, hsl(280, 60%, 70%), hsl(200, 70%, 60%));
+      min-height: 100vh;
+    }
+    .page {
+      min-height: 100vh;
+      padding: 16px;
+      color: hsl(0, 0%, 100%);
+    }
+    .bg-text {
+      margin-bottom: 80px;
+      font-size: 14px;
+    }
+    .toolbar {
+      position: sticky;
+      bottom: 16px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: hsl(0, 0%, 100% / 0.3);
+      border-radius: 12px;
+      color: hsl(0, 0%, 10%);
+    }
+    .toolbar-label {
+      font-weight: 600;
+    }
+    .popover {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      background: hsl(0, 70%, 50%);
+      color: hsl(0, 0%, 100%);
+      border-radius: 6px;
+      max-width: 240px;
+      line-height: 1.4;
+    }`}
+  height={320} />
+
+The popover should sit at the top of the iframe but instead sits at the top of the toolbar's box. The trap is invisible — nothing in the toolbar's CSS hints that it changes geometry for descendants.
+
+## The Library/Component Angle
+
+Popovers, tooltips, dropdowns, modals, and command palettes all share the same fix: render outside any trapped ancestor, ideally directly under `<body>`.
+
+| Framework | Portal API |
+| --- | --- |
+| React | `createPortal(node, document.body)` |
+| Vue | `<Teleport to="body">` |
+| Svelte | `<svelte:body>` or third-party portal |
+| Web Components | Native `<dialog>` (top-layer escapes all containing blocks) |
+| Vanilla | `document.body.appendChild(node)` |
+
+The native `<dialog>` element with `showModal()` is the only mechanism that bypasses the containing-block trap entirely — it renders in the top layer, above everything, regardless of ancestor properties.
+
+## The Subtle Anchor-Measured Variant
+
+A popover library typically:
+
+1. Measures an anchor element with `getBoundingClientRect()`.
+2. Computes `top` / `left` for the popover.
+3. Renders the popover with `position: fixed` at those coordinates.
+
+Even if step 3 portals the popover to `<body>`, step 1 reads the anchor's rect — and `getBoundingClientRect()` returns viewport-relative coordinates that look correct. The library then sets `position: fixed; top: rect.top` on a popover that lives outside the trap. So far, so good.
+
+The trap appears when a parent has `transform`, `backdrop-filter`, etc. and the library re-checks the popover's own rect or applies a `containing-block`-aware offset. More commonly, the bug comes from older code paths that render the popover **inside** the anchor's tree, or that wrap the anchor in a positioning helper that lives inside the trap. In both cases, the fixed coordinates resolve against the trap's box.
+
+The fix is structural: ensure both the popover **and** the wrapper that measures coordinates live outside any trap ancestor. If the anchor must stay where it is for layout reasons, pass through the original event coordinates (`event.clientX`, `event.clientY`) instead of re-measuring.
+
+## DevTools Tip
+
+Chrome DevTools and Firefox DevTools do not visually flag "this element creates a containing block for fixed." The Layers panel shows compositing layers, which overlap with — but are not the same as — containing blocks.
+
+Run this in the console, walking up the ancestor chain from the broken element. The first `true` is the trap:
+
+```js
+let el = document.querySelector('.your-fixed-element');
+while (el && el !== document.body) {
+  el = el.parentElement;
+  const cs = getComputedStyle(el);
+  const trapped =
+    cs.transform !== 'none' ||
+    cs.perspective !== 'none' ||
+    cs.filter !== 'none' ||
+    cs.backdropFilter !== 'none' ||
+    /transform|filter|perspective/.test(cs.willChange) ||
+    cs.contain.includes('paint') ||
+    cs.contain.includes('layout') ||
+    cs.contain.includes('strict') ||
+    cs.contentVisibility === 'auto' ||
+    cs.contentVisibility === 'hidden';
+  if (trapped) {
+    console.log('Trap ancestor:', el, cs);
+    break;
+  }
+}
+```
+
+## Common AI Mistakes
+
+- **Bumping `z-index` or adding `isolation: isolate`.** The fixed element is in the wrong place, not at the wrong depth. Z-index changes do nothing because the element renders outside the viewport entirely.
+- **Removing `backdrop-filter` to "fix" the popover.** This kills the frosted-glass effect and is a visual regression. The fix is to portal the popover, not strip the parent's styles.
+- **Portaling only the popover, not the anchor.** If the popover library reads `getBoundingClientRect()` from an anchor inside the trap, the math is wrong before the popover is even placed. Portal the anchor wrapper too, or pass through event coordinates.
+- **Adding `position: absolute` as a workaround.** This makes the popover position relative to the nearest positioned ancestor — usually a closer trap. The bug becomes harder to reason about, not easier.
+- **Adding `transform: translateZ(0)` "for performance."** This is the most common way to introduce the trap accidentally. Apply transforms, `will-change`, and `contain` only when there is a measured benefit. Among `contain` keywords, `layout`, `paint`, `strict`, and `content` all create the trap; only `contain: style` and `contain: size` (used alone) are safe.
+
+## When to Use
+
+### Portal to `<body>` when
+
+- Building popovers, tooltips, dropdowns, modals, command palettes, or any element that must escape an arbitrary parent
+- Building reusable component libraries — you cannot know what trap properties the consumer will apply
+- The element has `position: fixed` and must pin to the viewport regardless of where it appears in the tree
+
+### Use `<dialog>` with `showModal()` when
+
+- You need a true modal that escapes every containing block (top layer renders above all stacking contexts and outside all containing blocks)
+- The element is modal — input is blocked behind it
+
+### Audit ancestor chains when
+
+- A `position: fixed` element appears in the wrong place
+- A popover library positions correctly in isolation but breaks inside a specific page section
+- Coordinates from `getBoundingClientRect()` look correct but the rendered element does not match
+
+## See Also
+
+- [Stacking Context](./stacking-context.mdx) — the sibling bug. Same trigger properties, different breakage. Stacking context breaks `z-index` resolution; containing block breaks `position: fixed` viewport pinning.
+- [Backdrop Filter and Glassmorphism](../effects/backdrop-filter-and-glassmorphism.mdx) — the most common accidental source of the trap in modern UI design.
+
+## References
+
+- [CSS Position spec — containing block rules](https://www.w3.org/TR/CSS21/visudet.html#containing-block-details)
+- [MDN — `position: fixed` containing block note](https://developer.mozilla.org/en-US/docs/Web/CSS/position#fixed_positioning)
+- [MDN — `backdrop-filter`](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter)
+- [CSS WG issue 3818 — consolidating containing-block triggers](https://github.com/w3c/csswg-drafts/issues/3818)

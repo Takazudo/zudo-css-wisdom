@@ -1,0 +1,423 @@
+---
+title: gap と margin の使い分け
+sidebar_position: 4
+---
+
+import CssPreview from '@/components/CssPreview';
+import TailwindPreview from '@/components/TailwindPreview';
+
+## 問題
+
+要素間のスペーシングは最もよくあるCSSタスクの1つですが、AIエージェントは flex や grid コンテナ内でも `gap` が正しいツールであるにもかかわらず、あらゆる状況で `margin` を使いがちです。margin ベースのスペーシングにはいくつかの問題があります：アイテムが隣接する場所でマージンが二重になる、first/last child のワークアラウンドが必要、ブロックフローでのマージンの相殺、アイテムが折り返す際の不均一なスペーシングなどです。`gap` プロパティは flexbox、grid、マルチカラムレイアウトで利用可能で、これらの問題をすべて解決します。
+
+## 解決方法
+
+flex、grid、またはマルチカラムコンテナ内の兄弟アイテム**間**のスペーシングには `gap` を使いましょう。要素の**周囲**のスペーシングや、同じレイアウトコンテナ内の兄弟ではない要素間のスペーシングには `margin` を使いましょう。
+
+重要な違い：`gap` はアイテム間にのみスペースを作り、最初のアイテムの前や最後のアイテムの後にはスペースを作りません。margin はすべての要素の周囲にスペースを作るため、二重スペーシングや端のスペーシングを避けるためのワークアラウンドが必要です。
+
+この記事が扱うのは仕組み——どちらのプロパティを使うか——についてです。境界線のどちら側に**どれだけの**スペースを置くべきかという知覚的な理由については、[スペーシングの設計思想：近接によるグルーピング](../design-principles/spacing-philosophy.mdx)を参照してください。
+
+## コード例
+
+### margin の問題
+
+```css
+/* Margin creates spacing issues */
+.list-item {
+  margin-bottom: 1rem;
+}
+
+/* Problem 1: Last item has unwanted bottom margin */
+/* Fix attempt: */
+.list-item:last-child {
+  margin-bottom: 0;
+}
+```
+
+```css
+/* Horizontal layout with margin */
+.tag {
+  margin-right: 0.5rem;
+}
+
+/* Problem 2: Last item has unwanted right margin */
+.tag:last-child {
+  margin-right: 0;
+}
+```
+
+### gap による解決
+
+```css
+/* Gap only creates space BETWEEN items */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* No :last-child workaround needed. No double spacing. */
+```
+
+```html
+<div class="tag-list">
+  <span class="tag">CSS</span>
+  <span class="tag">Grid</span>
+  <span class="tag">Flexbox</span>
+</div>
+```
+
+<CssPreview client:load
+  title="flex の gap と margin の比較"
+  html={`    <div class="label">With margin (extra space on last item):</div>
+    <div class="row-margin">
+      <div class="tag margin-tag">CSS</div>
+      <div class="tag margin-tag">Grid</div>
+      <div class="tag margin-tag">Flexbox</div>
+      <div class="tag margin-tag">Layout</div>
+    </div>
+    <div class="note">Each item has margin-right — last item pushes container edge</div>
+
+    <div class="label">With gap (clean spacing):</div>
+    <div class="row-gap">
+      <div class="tag gap-tag">CSS</div>
+      <div class="tag gap-tag">Grid</div>
+      <div class="tag gap-tag">Flexbox</div>
+      <div class="tag gap-tag">Layout</div>
+    </div>
+    <div class="note">gap only adds space between items — no edge overflow</div>`}
+  css={`.label {
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+    .note {
+      font-family: system-ui, sans-serif;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 16px;
+    }
+    .row-margin {
+      display: flex;
+      background: #fee2e2;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+    .row-gap {
+      display: flex;
+      gap: 10px;
+      background: #dcfce7;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+    .tag {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      color: #fff;
+    }
+    .margin-tag {
+      background: #ef4444;
+      margin-right: 10px;
+    }
+    .gap-tag {
+      background: #22c55e;
+    }`} />
+
+### ブロックフローでのマージンの相殺
+
+ブロック要素間の垂直マージンは相殺されます。ブラウザは合計ではなく、大きい方のマージンを使用します。
+
+```css
+.heading {
+  margin-bottom: 1rem;
+}
+
+.paragraph {
+  margin-top: 1.5rem;
+}
+
+/* The space between heading and paragraph is 1.5rem, not 2.5rem */
+```
+
+これは仕様通りの動作ですが、AIエージェントを混乱させることが多く、「足りない」と感じたスペースを補うために任意のマージン増加を行うことがあります。
+
+### マージンの相殺が起こらない場合
+
+マージンの相殺は通常のブロックフローでのみ発生します。以下の場合には発生**しません**：
+
+- flex コンテナ内
+- grid コンテナ内
+- フロートされた要素
+- absolute positioned の要素
+- 親が `visible` 以外の `overflow` を持つ場合
+- 親が相殺される辺に padding または border を持つ場合
+
+```css
+/* No margin collapse: items are flex children */
+.flex-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-container > .item {
+  margin-block: 1rem;
+  /* Adjacent margins DO NOT collapse. Total space = 2rem between items. */
+}
+```
+
+### グリッドレイアウトでの gap
+
+```css
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 1.5rem;
+}
+```
+
+すべてのカードは水平・垂直方向にぴったり 1.5rem のスペースを持ちます。margin のワークアラウンドは不要です。
+
+<CssPreview client:load
+  title="grid の gap: 均一なスペーシング"
+  html={`    <div class="card-grid">
+      <div class="card">Card 1</div>
+      <div class="card">Card 2</div>
+      <div class="card">Card 3</div>
+      <div class="card">Card 4</div>
+      <div class="card">Card 5</div>
+      <div class="card">Card 6</div>
+    </div>`}
+  css={`.card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 8px;
+    }
+    .card {
+      background: #8b5cf6;
+      color: #fff;
+      padding: 20px 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-family: system-ui, sans-serif;
+      font-size: 16px;
+    }`} />
+
+### 行と列で異なる gap
+
+```css
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  row-gap: 2rem;
+  column-gap: 1rem;
+  /* Or shorthand: gap: 2rem 1rem; */
+}
+```
+
+### flex レイアウトでの gap
+
+```css
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+```
+
+```html
+<div class="toolbar">
+  <button>Save</button>
+  <button>Cancel</button>
+  <span class="separator"></span>
+  <button>Delete</button>
+</div>
+```
+
+すべてのアイテムは隣のアイテムとの間にぴったり 0.75rem のスペースを持ちます。margin ルールも `:first-child` や `:last-child` のオーバーライドも不要です。
+
+### gap と margin の組み合わせ
+
+gap と margin は異なる目的を持ち、一緒に使えます：
+
+```css
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 1.5rem;                    /* Space between cards */
+  margin-block-end: 3rem;         /* Space after the entire grid */
+}
+
+.card {
+  padding: 1.5rem;                /* Space inside each card */
+  /* No margin needed — gap handles inter-card spacing */
+}
+```
+
+### margin が正しい選択である場合
+
+```css
+/* Centering a block element */
+.container {
+  max-inline-size: 1200px;
+  margin-inline: auto;
+}
+
+/* Space between unrelated sections */
+.section + .section {
+  margin-block-start: 4rem;
+}
+
+/* Space between elements that are NOT siblings in a flex/grid container */
+.page-title {
+  margin-block-end: 2rem;
+}
+```
+
+<CssPreview client:load
+  title="マージン相殺のデモ"
+  html={`    <div class="demo">
+      <div class="label">Block flow (margins collapse):</div>
+      <div class="block-flow">
+        <div class="box a">margin-bottom: 20px</div>
+        <div class="box b">margin-top: 30px</div>
+        <div class="annotation">Gap = 30px (not 50px) — margins collapsed</div>
+      </div>
+
+      <div class="label">Flex column (margins do NOT collapse):</div>
+      <div class="flex-flow">
+        <div class="box c">margin-bottom: 20px</div>
+        <div class="box d">margin-top: 30px</div>
+        <div class="annotation">Gap = 50px — both margins apply</div>
+      </div>
+    </div>`}
+  css={`.demo {
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+      padding: 8px;
+    }
+    .label {
+      font-weight: 600;
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+    .block-flow {
+      background: #fef3c7;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .flex-flow {
+      display: flex;
+      flex-direction: column;
+      background: #dbeafe;
+      padding: 12px;
+      border-radius: 8px;
+    }
+    .box {
+      padding: 10px 14px;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .box.a {
+      background: #f59e0b;
+      margin-bottom: 20px;
+    }
+    .box.b {
+      background: #f59e0b;
+      margin-top: 30px;
+    }
+    .box.c {
+      background: #3b82f6;
+      margin-bottom: 20px;
+    }
+    .box.d {
+      background: #3b82f6;
+      margin-top: 30px;
+    }
+    .annotation {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 8px;
+      text-align: center;
+    }`} />
+
+## AIがよくやるミス
+
+- **コンテナに `gap` を使う代わりに、flex/grid の子要素に `margin` を使っている。** これが最もよくあるミスです。flex や grid コンテナ内のアイテムには、`gap` の方がシンプルで予測可能であり、二重スペーシングの問題を避けられます。
+- **マージンの相殺を理解していない。** AIエージェントは隣接する要素に `margin-top: 1rem` と `margin-bottom: 1rem` を追加し、2rem のスペースを期待します。ブロックフローでは 1rem に相殺されます。これは混乱したデバッグや任意のマージン増加につながります。
+- **gap の問題を「修正」するためにネガティブマージンを使っている。** よくあるアンチパターン：アイテムの `margin: 0.5rem` を打ち消すためにコンテナに `margin: -0.5rem` を適用する方法です。`gap` はこれを完全に不要にします。
+- **`:last-child { margin: 0 }` のワークアラウンドを追加している。** first child や last child のマージンを削除している場合、代わりに `gap` を使うべきです。
+- **flex/grid 以外のコンテナで `gap` を使っている。** `gap` は `display: flex`、`display: grid`、`display: multi-column` のコンテナでのみ機能します。通常のブロック要素では効果がありません。
+- **flex/grid コンテナではマージンの相殺が無効になることを忘れている。** 要素をブロックから flex/grid に切り替えると、相殺が起こらなくなるため、既存のマージンベースのスペーシングが二倍になる可能性があります。
+- **コンポーネント内のスペーシングに `margin` を使い、コンポーネント間には `gap` を使う（またはその逆）。** 一貫性を保ちましょう：レイアウトコンテナ（flex/grid）内では `gap` を、セクション間や無関係な要素間の外部スペーシングには `margin` を使いましょう。
+
+## 使い分け
+
+### gap を使う場面
+
+- flex コンテナの子要素間のスペーシング（ナビゲーションアイテム、ボタン、タグ）
+- grid コンテナの子要素間のスペーシング（カードグリッド、フォームレイアウト）
+- first/last child のワークアラウンドなしで均一なスペーシングが必要な場合
+- アイテムが折り返す可能性があり、すべての行で均一な gap が必要な場合
+
+### margin を使う場面
+
+- ブロック要素のセンタリング（`margin-inline: auto`）
+- flex/grid の兄弟ではないセクション間や無関係な要素間のスペーシング
+- コンポーネントの周囲のコンテンツとのスペーシング
+- マージンの相殺動作を理解し意図的に使いたい通常のブロックフローでの作業
+
+### padding を使う場面
+
+- 要素内部のスペース（コンテンツとボーダーの間）の作成
+- スペースを要素の背景やクリック可能なエリアの一部にする必要がある場合
+
+## Tailwind CSS
+
+Tailwind は flex や grid コンテナの `gap-*` ユーティリティで、`gap` を自然な選択にしています。
+
+### flex の gap
+
+<TailwindPreview client:load
+  title="Tailwind: gap 付きの flex"
+  html={`    <div class="p-4">
+      <p class="text-sm font-semibold text-slate-600 mb-2">Flex with gap-2.5:</p>
+      <div class="flex gap-2.5 bg-green-50 p-2 rounded-lg">
+        <div class="bg-green-500 text-white px-4 py-2 rounded-md text-sm">CSS</div>
+        <div class="bg-green-500 text-white px-4 py-2 rounded-md text-sm">Grid</div>
+        <div class="bg-green-500 text-white px-4 py-2 rounded-md text-sm">Flexbox</div>
+        <div class="bg-green-500 text-white px-4 py-2 rounded-md text-sm">Layout</div>
+      </div>
+    </div>`}
+  height={110} />
+
+### grid の gap
+
+<TailwindPreview client:load
+  title="Tailwind: gap 付きの grid"
+  html={`    <div class="grid grid-cols-3 gap-3 p-2">
+      <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center text-sm">Card 1</div>
+      <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center text-sm">Card 2</div>
+      <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center text-sm">Card 3</div>
+      <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center text-sm">Card 4</div>
+      <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center text-sm">Card 5</div>
+      <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center text-sm">Card 6</div>
+    </div>`} />
+
+## 参考リンク
+
+- [gap - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/gap)
+- [CSS gap property vs. margin property - LogRocket Blog](https://blog.logrocket.com/css-gap-vs-margin/)
+- [The Rules of Margin Collapse - Josh W. Comeau](https://www.joshwcomeau.com/css/rules-of-margin-collapse/)
+- [Spacing in CSS - Ahmad Shadeed](https://ishadeed.com/article/spacing-in-css/)
+- [Spacing - web.dev](https://web.dev/learn/css/spacing)

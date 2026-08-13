@@ -26,7 +26,7 @@ set -euo pipefail
 
 START_TIME=$(date +%s)
 FAILURES=()
-TOTAL_STEPS=9
+TOTAL_STEPS=11
 CURRENT_STEP=0
 
 step() {
@@ -133,6 +133,27 @@ else
     fail "Link check"
   fi
 fi
+
+# ── nav labelKey guard (#203) ─────────────────────────
+# Pure-Node. Fails when a headerNav `labelKey` has no matching
+# translations.en/translations.ja entry — that failure mode renders a raw
+# `nav.*` string in the header and is invisible to every other step above.
+step "Nav label guard (check:nav-labels)"
+if (cd "$ROOT_DIR" && pnpm check:nav-labels); then
+  pass "Nav label guard passed"
+else
+  fail "Nav label guard"
+fi
+# --- redirect coverage (#200) ---
+# Every pre-migration URL from the Flat Category Restructure (epic #196) must
+# still resolve via public/_redirects. Needs dist/ from Step 7's build.
+step "Redirect coverage check (check:redirects)"
+if (cd "$ROOT_DIR" && pnpm check:redirects); then
+  pass "Redirect coverage check passed"
+else
+  fail "Redirect coverage check"
+fi
+# --- end redirect coverage (#200) ---
 
 # ── Summary ──────────────────────────────────────────
 END_TIME=$(date +%s)

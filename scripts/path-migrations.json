@@ -1,0 +1,584 @@
+{
+  "_comment": [
+    "PERMANENT manifest for the Flat Category Restructure (epic #196, sub-issue #197).",
+    "Do NOT delete or rename this file after the restructure lands -- scripts/check-redirects.mjs",
+    "(a later sub-task) reads it forever as the inventory of every old docs route, to verify",
+    "public/_redirects covers all of them.",
+    "",
+    "Consumed by scripts/restructure-docs.mjs (moves files + rewrites links; that script IS",
+    "temporary and gets deleted once the cutover is confirmed) and by scripts/check-redirects.mjs.",
+    "",
+    "See the \"_shape\" key below for the JSON shape of each section (JSON has no comment syntax,",
+    "so the shape notes live here instead of inline)."
+  ],
+  "_shape": {
+    "moves": [
+      "Array of { old, newCategory }.",
+      "`old`: the EN docs-relative path, i.e. relative to src/content/docs/",
+      "  (e.g. \"layout/positioning/centering-techniques.mdx\").",
+      "`newCategory`: the new top-level (or top-level/deep-article) category directory the file",
+      "  lands in (e.g. \"positioning\", or \"design-tokens/tight-token-strategy\" for a deep article).",
+      "The basename is unchanged in every move.",
+      "New EN path  = `${newCategory}/${basename(old)}`, under src/content/docs/.",
+      "New JA path  = `${newCategory}/${basename(old)}`, under src/content/docs-ja/.",
+      "Old JA path  = same `old` value, under src/content/docs-ja/ instead of src/content/docs/",
+      "  (docs-ja mirrors docs exactly -- verified: 92 articles + 28 index pages per locale).",
+      "Old route (EN) = `/docs/${dirname(old)}` + basename-without-extension.",
+      "Old route (JA) = `/ja/docs/${dirname(old)}` + basename-without-extension.",
+      "New route (EN) = `/docs/${newCategory}` + basename-without-extension.",
+      "New route (JA) = `/ja/docs/${newCategory}` + basename-without-extension.",
+      "Scope note: this list covers the 92 articles + the 2 deep-article index files",
+      "  (design-systems/tight-token-strategy/index.mdx, effects/gradient-techniques/index.mdx)",
+      "  -- i.e. every file scripts/restructure-docs.mjs `git mv`s. It deliberately excludes the",
+      "  other ~17 old mid-level category index.mdx files (e.g. layout/positioning/index.mdx) --",
+      "  those are superseded by freshly authored top-level category index pages in a later wave",
+      "  (#199), not moved by this manifest. See `categoryIndexMoves` below for their old->new",
+      "  route inventory (filled in by #200, which needed it to be complete for redirect coverage)."
+    ],
+    "categoryIndexMoves": [
+      "Array of { old, newCategory }. Same shape and route formulas as `moves`, but for the ~17",
+      "old mid-level category directories whose `index.mdx` was `git mv`'d straight to a new",
+      "top-level directory during #198's cutover (commit 4c0d6f6) -- NOT run through",
+      "scripts/restructure-docs.mjs, so `moves` above deliberately excludes them (see its scope",
+      "note). Filled in by #200 to close that gap: this manifest's own stated purpose is 'the",
+      "inventory of every old docs route', and these 17 routes needed a redirect too.",
+      "`old` here has no `.mdx` extension (it names the old directory, not a file) -- reuse the",
+      "same old-route/new-route formulas as `moves`, treating `old` as if `basename(old)` were",
+      "\"index\" (i.e. old/new route = `/docs/${old}` and `/docs/${newCategory}`, no basename",
+      "suffix). `newCategory` here is always a bare top-level directory (no deep-article case)."
+    ],
+    "deletedRoutes": [
+      "Array of { oldCategory, kind, redirectTarget }.",
+      "Old category directories dissolved entirely by the restructure, with no direct",
+      "file-for-file successor -- their `index.mdx` is not in `moves` and the directory ceases",
+      "to exist once the cutover lands.",
+      "`oldCategory`: docs-relative directory path (e.g. \"layout\", \"layout/specialized\").",
+      "`kind`: \"umbrella\" (former header-nav umbrella level whose children were promoted to",
+      "  top-level categories) or \"junk-drawer\" (a dissolved leaf category whose children were",
+      "  redistributed across other categories).",
+      "`redirectTarget`: the new top-level category directory this old route 301s to (filled in",
+      "  by #200, closing the gap this manifest's own note used to flag as 'chosen in a later",
+      "  wave'). For `kind: \"umbrella\"`, this is always the epic #196 header-nav group's first",
+      "  child (e.g. \"layout\" -> \"flexbox-and-grid\", per the Layout group's child order). For",
+      "  `kind: \"junk-drawer\"`, epic #196 has no per-dir formula -- `layout/specialized` targets",
+      "  \"document-layout\" (plurality: 3 of its 6 redistributed articles landed there) and",
+      "  `typography/text-effects` targets \"effects\" (its one article's own destination).",
+      "Old routes needing a redirect: `/docs/${oldCategory}` and `/ja/docs/${oldCategory}`,",
+      "  each 301ing to `/docs/${redirectTarget}` / `/ja/docs/${redirectTarget}`."
+    ],
+    "newCategoryOrder": [
+      "Array of 21 new top-level category directory names, in header-nav display order",
+      "(flattening the 8-item/5-group nav from epic #196's target-taxonomy table).",
+      "Reference for sidebar_position scope 1 (global, unique positions across all 21 category",
+      "index.mdx files) once those files exist -- position = 1-based index into this array."
+    ]
+  },
+  "moves": [
+    {
+      "old": "layout/flexbox-and-grid/flexbox-patterns.mdx",
+      "newCategory": "flexbox-and-grid"
+    },
+    {
+      "old": "layout/flexbox-and-grid/grid-patterns.mdx",
+      "newCategory": "flexbox-and-grid"
+    },
+    {
+      "old": "layout/flexbox-and-grid/subgrid.mdx",
+      "newCategory": "flexbox-and-grid"
+    },
+    {
+      "old": "layout/flexbox-and-grid/gap-vs-margin.mdx",
+      "newCategory": "flexbox-and-grid"
+    },
+    {
+      "old": "layout/positioning/centering-techniques.mdx",
+      "newCategory": "positioning"
+    },
+    {
+      "old": "layout/positioning/positioning-guide.mdx",
+      "newCategory": "positioning"
+    },
+    {
+      "old": "layout/positioning/stacking-context.mdx",
+      "newCategory": "positioning"
+    },
+    {
+      "old": "layout/positioning/containing-block-for-fixed.mdx",
+      "newCategory": "positioning"
+    },
+    {
+      "old": "layout/positioning/anchor-positioning.mdx",
+      "newCategory": "positioning"
+    },
+    {
+      "old": "layout/sizing/fit-content.mdx",
+      "newCategory": "sizing"
+    },
+    {
+      "old": "layout/sizing/clamp-for-sizing.mdx",
+      "newCategory": "sizing"
+    },
+    {
+      "old": "layout/sizing/logical-properties.mdx",
+      "newCategory": "sizing"
+    },
+    {
+      "old": "layout/sizing/letterbox-stage.mdx",
+      "newCategory": "media"
+    },
+    {
+      "old": "layout/specialized/negative-margin-expand.mdx",
+      "newCategory": "sizing"
+    },
+    {
+      "old": "layout/specialized/overflow-clip-and-hidden.mdx",
+      "newCategory": "sizing"
+    },
+    {
+      "old": "layout/sizing/aspect-ratio.mdx",
+      "newCategory": "media"
+    },
+    {
+      "old": "layout/specialized/object-fit-and-position.mdx",
+      "newCategory": "media"
+    },
+    {
+      "old": "responsive/responsive-images.mdx",
+      "newCategory": "media"
+    },
+    {
+      "old": "layout/specialized/multi-column-layout.mdx",
+      "newCategory": "document-layout"
+    },
+    {
+      "old": "layout/specialized/table-cell-width-control.mdx",
+      "newCategory": "document-layout"
+    },
+    {
+      "old": "layout/specialized/print-and-pdf.mdx",
+      "newCategory": "document-layout"
+    },
+    {
+      "old": "typography/font-sizing/fluid-font-sizing.mdx",
+      "newCategory": "font-sizing"
+    },
+    {
+      "old": "typography/font-sizing/three-tier-font-size-strategy.mdx",
+      "newCategory": "font-sizing"
+    },
+    {
+      "old": "typography/font-sizing/screen-width-based-font-size.mdx",
+      "newCategory": "font-sizing"
+    },
+    {
+      "old": "typography/font-sizing/line-height-best-practices.mdx",
+      "newCategory": "font-sizing"
+    },
+    {
+      "old": "typography/font-sizing/stage-proportional-typography.mdx",
+      "newCategory": "font-sizing"
+    },
+    {
+      "old": "typography/fonts/font-loading-strategies.mdx",
+      "newCategory": "fonts"
+    },
+    {
+      "old": "typography/fonts/variable-fonts.mdx",
+      "newCategory": "fonts"
+    },
+    {
+      "old": "typography/fonts/japanese-font-family.mdx",
+      "newCategory": "fonts"
+    },
+    {
+      "old": "typography/fonts/noto-sans-webfont-guide.mdx",
+      "newCategory": "fonts"
+    },
+    {
+      "old": "typography/text-control/text-overflow-and-clamping.mdx",
+      "newCategory": "text-control"
+    },
+    {
+      "old": "typography/text-control/vertical-rhythm.mdx",
+      "newCategory": "text-control"
+    },
+    {
+      "old": "typography/text-control/text-wrap-balance-pretty.mdx",
+      "newCategory": "text-control"
+    },
+    {
+      "old": "typography/text-control/prose-heading-spacing.mdx",
+      "newCategory": "text-control"
+    },
+    {
+      "old": "typography/text-control/long-url-and-path-wrapping.mdx",
+      "newCategory": "text-control"
+    },
+    {
+      "old": "styling/color/oklch-color-space.mdx",
+      "newCategory": "color"
+    },
+    {
+      "old": "styling/color/color-mix.mdx",
+      "newCategory": "color"
+    },
+    {
+      "old": "styling/color/currentcolor-patterns.mdx",
+      "newCategory": "color"
+    },
+    {
+      "old": "styling/color/dark-mode-strategies.mdx",
+      "newCategory": "color"
+    },
+    {
+      "old": "styling/color/color-palette-strategy.mdx",
+      "newCategory": "color"
+    },
+    {
+      "old": "styling/color/three-tier-color-strategy.mdx",
+      "newCategory": "color"
+    },
+    {
+      "old": "styling/effects/backdrop-filter-and-glassmorphism.mdx",
+      "newCategory": "effects"
+    },
+    {
+      "old": "styling/effects/clip-path-and-mask.mdx",
+      "newCategory": "effects"
+    },
+    {
+      "old": "styling/effects/blend-modes.mdx",
+      "newCategory": "effects"
+    },
+    {
+      "old": "styling/effects/filter-effects.mdx",
+      "newCategory": "effects"
+    },
+    {
+      "old": "styling/effects/css-3d-transforms.mdx",
+      "newCategory": "effects"
+    },
+    {
+      "old": "typography/text-effects/text-outline-and-stroke.mdx",
+      "newCategory": "effects"
+    },
+    {
+      "old": "styling/effects/gradient-techniques/index.mdx",
+      "newCategory": "effects/gradient-techniques"
+    },
+    {
+      "old": "styling/effects/gradient-techniques/css-pattern-library.mdx",
+      "newCategory": "effects/gradient-techniques"
+    },
+    {
+      "old": "styling/shadows-and-borders/layered-natural-shadows.mdx",
+      "newCategory": "shadows-and-borders"
+    },
+    {
+      "old": "styling/shadows-and-borders/border-techniques.mdx",
+      "newCategory": "shadows-and-borders"
+    },
+    {
+      "old": "styling/shadows-and-borders/smooth-shadow-transitions.mdx",
+      "newCategory": "shadows-and-borders"
+    },
+    {
+      "old": "responsive/container-queries.mdx",
+      "newCategory": "responsive"
+    },
+    {
+      "old": "responsive/fluid-design-with-clamp.mdx",
+      "newCategory": "responsive"
+    },
+    {
+      "old": "responsive/media-query-best-practices.mdx",
+      "newCategory": "responsive"
+    },
+    {
+      "old": "responsive/responsive-grid-patterns.mdx",
+      "newCategory": "responsive"
+    },
+    {
+      "old": "interactive/states-and-transitions/hover-focus-active-states.mdx",
+      "newCategory": "states-and-transitions"
+    },
+    {
+      "old": "interactive/states-and-transitions/transition-best-practices.mdx",
+      "newCategory": "states-and-transitions"
+    },
+    {
+      "old": "interactive/states-and-transitions/view-transitions.mdx",
+      "newCategory": "states-and-transitions"
+    },
+    {
+      "old": "interactive/selectors/has-selector.mdx",
+      "newCategory": "selectors"
+    },
+    {
+      "old": "interactive/selectors/is-where-selectors.mdx",
+      "newCategory": "selectors"
+    },
+    {
+      "old": "interactive/selectors/parent-state-child-styling.mdx",
+      "newCategory": "selectors"
+    },
+    {
+      "old": "interactive/scroll/scroll-snap.mdx",
+      "newCategory": "scroll"
+    },
+    {
+      "old": "interactive/scroll/scroll-driven-animations.mdx",
+      "newCategory": "scroll"
+    },
+    {
+      "old": "interactive/scroll/overscroll-behavior.mdx",
+      "newCategory": "scroll"
+    },
+    {
+      "old": "interactive/forms-and-accessibility/form-control-styling.mdx",
+      "newCategory": "accessibility"
+    },
+    {
+      "old": "interactive/forms-and-accessibility/touch-target-sizing.mdx",
+      "newCategory": "accessibility"
+    },
+    {
+      "old": "interactive/forms-and-accessibility/prefers-reduced-motion.mdx",
+      "newCategory": "accessibility"
+    },
+    {
+      "old": "styling/color/color-contrast-accessibility.mdx",
+      "newCategory": "accessibility"
+    },
+    {
+      "old": "methodology/architecture/bem-strategy.mdx",
+      "newCategory": "architecture"
+    },
+    {
+      "old": "methodology/architecture/component-first-strategy.mdx",
+      "newCategory": "architecture"
+    },
+    {
+      "old": "methodology/architecture/css-modules-strategy.mdx",
+      "newCategory": "architecture"
+    },
+    {
+      "old": "methodology/architecture/cascade-layers.mdx",
+      "newCategory": "architecture"
+    },
+    {
+      "old": "methodology/architecture/mdx-component-architecture.mdx",
+      "newCategory": "architecture"
+    },
+    {
+      "old": "methodology/architecture/design-token-lint.mdx",
+      "newCategory": "design-tokens"
+    },
+    {
+      "old": "methodology/design-systems/two-tier-size-strategy.mdx",
+      "newCategory": "design-tokens"
+    },
+    {
+      "old": "methodology/design-systems/multi-namespace-token-strategy.mdx",
+      "newCategory": "design-tokens"
+    },
+    {
+      "old": "methodology/design-systems/z-index-strategy.mdx",
+      "newCategory": "design-tokens"
+    },
+    {
+      "old": "methodology/design-systems/display-scale-strategy.mdx",
+      "newCategory": "design-tokens"
+    },
+    {
+      "old": "methodology/design-systems/tight-token-strategy/index.mdx",
+      "newCategory": "design-tokens/tight-token-strategy"
+    },
+    {
+      "old": "methodology/design-systems/tight-token-strategy/color-tokens.mdx",
+      "newCategory": "design-tokens/tight-token-strategy"
+    },
+    {
+      "old": "methodology/design-systems/tight-token-strategy/typography-tokens.mdx",
+      "newCategory": "design-tokens/tight-token-strategy"
+    },
+    {
+      "old": "methodology/design-systems/tight-token-strategy/token-preview.mdx",
+      "newCategory": "design-tokens/tight-token-strategy"
+    },
+    {
+      "old": "methodology/design-systems/tight-token-strategy/component-tokens.mdx",
+      "newCategory": "design-tokens/tight-token-strategy"
+    },
+    {
+      "old": "methodology/design-systems/custom-properties-advanced/pattern-catalog.mdx",
+      "newCategory": "custom-properties"
+    },
+    {
+      "old": "methodology/design-systems/custom-properties-advanced/theming-recipes.mdx",
+      "newCategory": "custom-properties"
+    },
+    {
+      "old": "styling/effects/at-property.mdx",
+      "newCategory": "custom-properties"
+    },
+    {
+      "old": "methodology/design-principles/spacing-philosophy.mdx",
+      "newCategory": "design-principles"
+    },
+    {
+      "old": "methodology/design-principles/color-usage-philosophy.mdx",
+      "newCategory": "design-principles"
+    },
+    {
+      "old": "methodology/design-principles/shape-language.mdx",
+      "newCategory": "design-principles"
+    },
+    {
+      "old": "methodology/design-principles/design-tone-spec-for-ai.mdx",
+      "newCategory": "design-principles"
+    },
+    {
+      "old": "methodology/design-systems/app-spacing-architecture.mdx",
+      "newCategory": "design-tokens"
+    },
+    {
+      "old": "overview/what-is-zudo-css.mdx",
+      "newCategory": "overview"
+    },
+    {
+      "old": "overview/css-wisdom-skill.mdx",
+      "newCategory": "overview"
+    }
+  ],
+  "categoryIndexMoves": [
+    {
+      "old": "interactive/forms-and-accessibility",
+      "newCategory": "accessibility"
+    },
+    {
+      "old": "methodology/architecture",
+      "newCategory": "architecture"
+    },
+    {
+      "old": "styling/color",
+      "newCategory": "color"
+    },
+    {
+      "old": "methodology/design-systems/custom-properties-advanced",
+      "newCategory": "custom-properties"
+    },
+    {
+      "old": "methodology/design-principles",
+      "newCategory": "design-principles"
+    },
+    {
+      "old": "methodology/design-systems",
+      "newCategory": "design-tokens"
+    },
+    {
+      "old": "styling/effects",
+      "newCategory": "effects"
+    },
+    {
+      "old": "layout/flexbox-and-grid",
+      "newCategory": "flexbox-and-grid"
+    },
+    {
+      "old": "typography/font-sizing",
+      "newCategory": "font-sizing"
+    },
+    {
+      "old": "typography/fonts",
+      "newCategory": "fonts"
+    },
+    {
+      "old": "layout/positioning",
+      "newCategory": "positioning"
+    },
+    {
+      "old": "interactive/scroll",
+      "newCategory": "scroll"
+    },
+    {
+      "old": "interactive/selectors",
+      "newCategory": "selectors"
+    },
+    {
+      "old": "styling/shadows-and-borders",
+      "newCategory": "shadows-and-borders"
+    },
+    {
+      "old": "layout/sizing",
+      "newCategory": "sizing"
+    },
+    {
+      "old": "interactive/states-and-transitions",
+      "newCategory": "states-and-transitions"
+    },
+    {
+      "old": "typography/text-control",
+      "newCategory": "text-control"
+    }
+  ],
+  "deletedRoutes": [
+    {
+      "oldCategory": "layout",
+      "kind": "umbrella",
+      "redirectTarget": "flexbox-and-grid"
+    },
+    {
+      "oldCategory": "typography",
+      "kind": "umbrella",
+      "redirectTarget": "font-sizing"
+    },
+    {
+      "oldCategory": "styling",
+      "kind": "umbrella",
+      "redirectTarget": "color"
+    },
+    {
+      "oldCategory": "interactive",
+      "kind": "umbrella",
+      "redirectTarget": "states-and-transitions"
+    },
+    {
+      "oldCategory": "methodology",
+      "kind": "umbrella",
+      "redirectTarget": "architecture"
+    },
+    {
+      "oldCategory": "layout/specialized",
+      "kind": "junk-drawer",
+      "redirectTarget": "document-layout"
+    },
+    {
+      "oldCategory": "typography/text-effects",
+      "kind": "junk-drawer",
+      "redirectTarget": "effects"
+    }
+  ],
+  "newCategoryOrder": [
+    "overview",
+    "flexbox-and-grid",
+    "positioning",
+    "sizing",
+    "media",
+    "document-layout",
+    "font-sizing",
+    "fonts",
+    "text-control",
+    "color",
+    "effects",
+    "shadows-and-borders",
+    "responsive",
+    "states-and-transitions",
+    "selectors",
+    "scroll",
+    "accessibility",
+    "architecture",
+    "design-tokens",
+    "custom-properties",
+    "design-principles"
+  ]
+}

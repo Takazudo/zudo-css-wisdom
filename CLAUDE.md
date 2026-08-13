@@ -26,17 +26,53 @@ pnpm b4push           # Pre-push validation (typecheck + build + link check)
 
 ## Content Categories
 
-Top-level directories under `src/content/docs/`. Directories with header nav entries are mapped via `categoryMatch` in `src/config/settings.ts`:
+21 flat top-level directories under `src/content/docs/` (mirrored under `src/content/docs-ja/`). The header nav (`headerNav` in `zfb.config.ts`) presents them as 8 menu items -- 5 are dropdown groups whose children are these directories, matched via each item's own `categoryMatch`.
+
+**Overview** (direct)
 
 - `overview/` - What is zudo-css, css-wisdom skill docs
-- `layout/` - Flexbox, Grid, positioning, centering, sizing, specialized layouts
-- `typography/` - Font sizing, fonts, text control
-- `styling/` - Color, effects, shadows and borders
-- `responsive/` - Container queries, fluid design, media queries, responsive patterns
-- `interactive/` - Forms, scroll, selectors, states and transitions
-- `methodology/` - Architecture (BEM, cascade layers, CSS modules), design systems
 
-Auto-generated directories (no header nav entry):
+**Layout** (group)
+
+- `flexbox-and-grid/` - Flexbox patterns, Grid patterns, subgrid, gap vs margin
+- `positioning/` - Centering, position/stacking context, containing block, anchor positioning
+- `sizing/` - fit-content, clamp, logical properties, negative margin, overflow
+- `media/` - aspect-ratio, object-fit/position, responsive images, letterbox staging
+- `document-layout/` - Multi-column layout, table cell width, print/PDF
+
+**Typography** (group)
+
+- `font-sizing/` - Fluid font sizing, tiered font-size strategies, viewport-based sizing, line height
+- `fonts/` - Font loading strategies, variable fonts, Japanese/Noto Sans webfonts
+- `text-control/` - Overflow/clamping, vertical rhythm, text-wrap, prose heading spacing, URL wrapping
+
+**Styling** (group)
+
+- `color/` - OKLCH, color-mix, currentColor, dark mode, color palette/tier strategy
+- `effects/` - Backdrop filter, clip-path/mask, blend modes, filters, 3D transforms, gradients
+- `shadows-and-borders/` - Layered shadows, border techniques, shadow transitions
+
+**Responsive** (direct)
+
+- `responsive/` - Container queries, fluid design with clamp, media query best practices, responsive grids
+
+**Interactive** (group)
+
+- `states-and-transitions/` - Hover/focus/active states, transitions, view transitions
+- `selectors/` - `:has()`, `:is()`/`:where()`, parent-state child styling
+- `scroll/` - Scroll-snap, scroll-driven animations, overscroll behavior
+- `accessibility/` - Form control styling, touch targets, reduced motion, color contrast
+
+**Methodology** (group)
+
+- `architecture/` - BEM, component-first strategy, CSS modules, cascade layers, MDX component architecture
+- `design-tokens/` - Token linting, size/spacing/z-index token strategies, the tight-token-strategy deep article
+- `custom-properties/` - Custom property pattern catalog, theming recipes, `@property`
+- `design-principles/` - Spacing philosophy, color usage philosophy, shape language, AI design-tone spec
+
+The header nav also has a **Claude** item (`categoryMatch: "claude"`) pointing at build-time-generated `.claude/`-derived resource docs -- it is not a `src/content/docs/` category.
+
+Auto-generated directory (no header nav entry):
 
 - `inbox/` - Draft/work-in-progress articles (skipped by css-wisdom skill)
 
@@ -129,13 +165,25 @@ Navigation is filesystem-driven. Directory structure directly becomes sidebar na
 
 ### Header Navigation
 
-Defined in `src/config/settings.ts` via `headerNav`. Each item maps to a top-level content directory via `categoryMatch`:
+Defined in `zfb.config.ts` via `headerNav`. Direct items map straight to a top-level content directory via `categoryMatch`; grouped items render as a dropdown of children, each with its own `categoryMatch`:
 
 ```typescript
-{ label: "Layout", path: "/docs/layout", categoryMatch: "layout" }
+// Direct item
+{ label: "Responsive", path: "/docs/responsive", categoryMatch: "responsive" },
+
+// Grouped item — the parent link points at its first child's path and must
+// NOT carry its own categoryMatch (see epic #196 note in zfb.config.ts)
+{
+  label: "Layout",
+  path: "/docs/flexbox-and-grid",
+  children: [
+    { label: "Flexbox & Grid", path: "/docs/flexbox-and-grid", categoryMatch: "flexbox-and-grid" },
+    { label: "Positioning", path: "/docs/positioning", categoryMatch: "positioning" },
+  ],
+},
 ```
 
-Adding a new header nav item requires editing `settings.ts`.
+Adding a new header nav item requires editing `zfb.config.ts`.
 
 ## Content Creation Workflow
 
@@ -153,25 +201,18 @@ Adding a new header nav item requires editing `settings.ts`.
 
 1. Create the directory under `src/content/docs/` (kebab-case)
 2. Create `index.mdx` with `title`, `description`, and `sidebar_position`
-3. Add a `headerNav` entry in `src/config/settings.ts` with `categoryMatch` pointing to the directory name
+3. Add a `headerNav` entry in `zfb.config.ts` with `categoryMatch` pointing to the directory name (as a direct item, or as a child inside an existing group)
 4. Mirror the directory structure under `src/content/docs-ja/`
 5. Run `pnpm build` to verify
 
 ## Design Token System
 
-Uses a 16-color palette with OKLCH orange accent (`oklch(55.5% 0.163 48.998)`).
+Theming is **fully default** (zudo-doc's package theme, currently `@takazudo/zudo-doc@^5.2.1`) -- this repo does not configure a custom palette or color scheme; tokens ship from `@takazudo/zudo-doc/theme.css`. See the `zfb.config.ts` file-header comment for why the earlier custom color schemes + webfonts were dropped.
 
 ### Color Rules
 
 - **NEVER** use Tailwind default colors (`bg-gray-500`, `text-blue-600`)
-- **ALWAYS** use project tokens: `text-fg`, `bg-surface`, `border-muted`, `text-accent`, etc.
-- Use palette tokens (`p0`–`p15`) only when no semantic token fits
-
-### Color Schemes
-
-- Default: **ZCSS Dark** (warm dark theme with orange accents)
-- Light: **ZCSS Light** (warm light theme with orange accents)
-- Configured in `src/config/settings.ts` and `src/config/color-schemes.ts`
+- **ALWAYS** use the shipped semantic tokens: `text-fg`, `bg-surface`, `border-muted`, `text-accent`, etc. (defined as `--color-*` in the package's `theme.css`)
 
 ## Doc Skill (css-wisdom)
 
@@ -200,8 +241,7 @@ After editing or creating an English doc, translate the Japanese counterpart usi
 
 - Base path: `/` (root, no sub-path prefix)
 - Hosting: **Cloudflare Workers static assets** (config in `wrangler.toml`)
-- Settings: `src/config/settings.ts` (`siteUrl` host MUST match the `wrangler.toml` custom-domain route)
-- Build config: `zfb.config.ts`
+- Build/site config: `zfb.config.ts` (`siteUrl` host MUST match the `wrangler.toml` custom-domain route)
 
 ## CI/CD
 
@@ -216,4 +256,4 @@ Workflows live in `.github/workflows/`:
 
 - `rm -rf`: relative paths only (`./path`), never absolute
 - No force push, no `--amend` unless explicitly permitted
-- Temp files go to `__inbox/` (gitignored)
+- WIP / prototype / scratch files go to the repo-scoped cclogs dir (`$DROPBOX_CCLOGS_DIR/zudo-css-wisdom/`), not `__inbox/`. `__inbox/` (gitignored) is retained only for a prototype that must import this repo's production code or use its Vite/workspace tooling, so relative imports resolve.

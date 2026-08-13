@@ -121,7 +121,7 @@ Show the code first, then explain it. Readers (especially AI agents) can often u
 When a topic warrants multiple sub-pages, convert the flat `.mdx` file into a folder:
 
 ```
-docs/layout/centering-techniques/
+docs/positioning/centering-techniques/
   index.mdx          # Overview + navigation
   margin-auto.mdx    # Sub-page
   flexbox.mdx        # Sub-page
@@ -228,6 +228,7 @@ Available types: `note`, `tip`, `info`, `warning`, `danger`. Use `note` and `inf
 ```
 
 Rules:
+
 - Always provide a descriptive `title` prop
 - Use `hsl()` for all colors
 - Use descriptive BEM-ish class names

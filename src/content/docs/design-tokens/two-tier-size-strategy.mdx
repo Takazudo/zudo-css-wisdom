@@ -1,0 +1,747 @@
+---
+title: Two-Tier Size Strategy
+sidebar_position: 2
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+When using the [tight token strategy](./tight-token-strategy/index.mdx), all Tailwind defaults are reset — including the numeric spacing scale that powers `h-4`, `w-4`, `size-8`, and similar width/height utilities. The moment someone needs to size an icon or set a card width, these classes stop working.
+
+The instinct — especially from AI agents — is to re-add numeric spacing tokens:
+
+```css
+@theme {
+  /* "Just add back what we need" */
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-16: 64px;
+}
+```
+
+This defeats the purpose. It re-imports Tailwind's default numeric scale with no semantic value. `h-4 w-4` tells you nothing — is it an icon? A spacer? A decorative element? You are back to the same problem the tight token strategy was designed to solve.
+
+### Why This Property Is Different
+
+Some CSS properties have natural scales worth abstracting:
+
+- **Spacing** (padding, margin, gap) — has a consistent rhythm across the UI → semantic axes (hsp/vsp) make sense
+- **Font sizes** — has a clear hierarchy from captions to headings → an abstract scale (xs–2xl) makes sense
+- **Colors** — has a palette of raw values that get mapped to roles → three tiers make sense
+
+**Width/height is different.** A 16px icon, a 40px avatar, a 320px card, and a 64px sidebar toggle have nothing in common. There is no natural progression, no rhythm, no hierarchy. An abstract scale like `size-4`, `size-8`, `size-16` is just arbitrary numbers pretending to be meaningful.
+
+## The Solution
+
+Use a **two-tier approach** — skip the abstract scale entirely:
+
+| Tier | Name | Purpose | Example |
+| --- | --- | --- | --- |
+| 1 | **Theme** | Design-level sizes that define the visual system | `--icon-sm: 16px` |
+| 2 | **Component** | One-off sizes specific to one component | `w-[28px] h-[28px]` |
+
+The key insight: **there is no Tier 0 (abstract scale) for width/height.** Semantic names are the first and only token layer. Everything else is an arbitrary value.
+
+### Tier 1: Theme Tokens
+
+Define tokens when a size represents a **design decision** — a deliberate choice about how the UI is structured:
+
+```css
+@theme {
+  /* Icon sizes — a design system decision */
+  --spacing-icon-sm: 16px;
+  --spacing-icon-md: 20px;
+  --spacing-icon-lg: 24px;
+
+  /* Avatar sizes — a design system decision */
+  --spacing-avatar-sm: 32px;
+  --spacing-avatar-md: 40px;
+  --spacing-avatar-lg: 56px;
+
+  /* Layout sizes — an architectural decision */
+  --spacing-content-width: 800px;
+  --spacing-card-width: 300px;
+}
+```
+
+This generates utilities like `w-icon-md h-icon-md`, `w-avatar-sm h-avatar-sm`, and `max-w-content-width` — self-documenting class names that tell you exactly what the size is for.
+
+Whether to create a token is an **architectural and design judgment**, not a usage-count threshold. You define `--spacing-content-width: 800px` because your design says "the main column is 800px" — even if only one component uses it today. It's the same kind of decision as choosing a brand color or a type scale: it comes from the design, not from counting how many files reference a value.
+
+The converse is worth stating, because it looks like the same mistake and is not: when one arbitrary value has been copy-pasted across dozens of components, that recurrence does not *make* it a design decision — but it is strong evidence one already exists and went unnamed. A `w-[28px] h-[28px]` repeated at 41 sites was never 41 independent one-offs; it was a single decision ("the dialog close button is a 28px square") written 41 times.
+
+This is similar to the "should we extract this to a utility function?" debate in application architecture. The answer isn't "when 3 files import it" — it's about whether the concept deserves a name in the system.
+
+### Tier 2: Arbitrary Values
+
+For everything else — one-off component dimensions, calculated layouts, structural details — use Tailwind's bracket syntax:
+
+```html
+<!-- Component-specific sizing -->
+<button class="w-[28px] h-[28px] p-[6px]">...</button>
+
+<!-- Grid structure -->
+<div class="grid grid-cols-[240px_1fr]">...</div>
+
+<!-- Calculated value -->
+<div class="h-[calc(100vh-64px)]">...</div>
+```
+
+When a value is purely a structural detail of one component (a button's exact padding, a grid's column template), arbitrary values are the right choice. When a value represents a design decision that defines the system, it belongs in Tier 1 — regardless of how many components currently use it.
+
+#### Display-scaled apps change the Tier 2 contract
+
+In an app where every token multiplies by `--display-scale` (see [Display Scale Strategy](./display-scale-strategy.mdx)), a plain px arbitrary opts that dimension *out of zoom*: `w-[28px]` stays 28px at 200% while everything around it doubles. The correct Tier 2 form is the wrapped calc — `w-[calc(28px*var(--display-scale))]` — and a bare px arbitrary is only correct when the value genuinely must not scale (hairlines, touch-target floors, platform-imposed px).
+
+This failure is invisible at 100% zoom, invisible to sizing lint (sizing arbitraries are allowed by design), and surfaces only when a user zooms. Audit for it explicitly. In one measured app, the exact example above shipped as a scale-integrity defect: 41 copy-pasted close/icon-button literals computed 28px flat at 0.75/1.0/1.5/2.0× while the tokenized equivalent (`--spacing-close-btn`) scaled 21/28/42/56. See [Spacing Architecture for Dense Desktop-Class Web Apps](./app-spacing-architecture.mdx) for the full golden rule and its exception list.
+
+## Demos
+
+### The Wrong Approach: Re-importing Numeric Sizes
+
+This demo shows what happens when you re-add Tailwind's numeric spacing scale for width/height. The class names are meaningless — `size-4`, `size-5`, `size-8` tell you nothing about what they're sizing.
+
+<CssPreview client:load
+  title="Wrong: Abstract Numeric Sizes (size-4, size-8, etc.)"
+  height={280}
+  html={`    <div class="wrong-demo">
+      <div class="wrong-demo__section">
+        <div class="wrong-demo__label">@theme tokens added</div>
+        <div class="wrong-demo__tokens">
+          <code>--spacing-3: 12px</code>
+          <code>--spacing-4: 16px</code>
+          <code>--spacing-5: 20px</code>
+          <code>--spacing-8: 32px</code>
+          <code>--spacing-10: 40px</code>
+          <code>--spacing-16: 64px</code>
+        </div>
+      </div>
+      <div class="wrong-demo__section">
+        <div class="wrong-demo__label">Usage in components</div>
+        <div class="wrong-demo__examples">
+          <div class="wrong-demo__row">
+            <div class="wrong-demo__box" style="width: 16px; height: 16px"></div>
+            <code>h-4 w-4</code>
+            <span class="wrong-demo__q">← Icon? Spacer? Dot?</span>
+          </div>
+          <div class="wrong-demo__row">
+            <div class="wrong-demo__box" style="width: 20px; height: 20px"></div>
+            <code>h-5 w-5</code>
+            <span class="wrong-demo__q">← Bigger icon? Badge?</span>
+          </div>
+          <div class="wrong-demo__row">
+            <div class="wrong-demo__box" style="width: 32px; height: 32px"></div>
+            <code>h-8 w-8</code>
+            <span class="wrong-demo__q">← Avatar? Button? Thumbnail?</span>
+          </div>
+          <div class="wrong-demo__row">
+            <div class="wrong-demo__box" style="width: 40px; height: 40px"></div>
+            <code>h-10 w-10</code>
+            <span class="wrong-demo__q">← Who knows?</span>
+          </div>
+        </div>
+      </div>
+      <div class="wrong-demo__verdict">Numbers tell you how big, but not what for. This is the spacing-drift problem all over again.</div>
+    </div>`}
+  css={`.wrong-demo {
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .wrong-demo__section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .wrong-demo__label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .wrong-demo__tokens {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .wrong-demo__tokens code {
+      font-size: 0.65rem;
+      background: hsl(0 80% 95%);
+      color: hsl(0 60% 40%);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid hsl(0 60% 85%);
+    }
+    .wrong-demo__examples {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .wrong-demo__row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .wrong-demo__box {
+      background: hsl(215 16% 47%);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .wrong-demo__row code {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: hsl(222 47% 11%);
+      width: 56px;
+    }
+    .wrong-demo__q {
+      font-size: 0.65rem;
+      color: hsl(0 60% 50%);
+      font-style: italic;
+    }
+    .wrong-demo__verdict {
+      font-size: 0.7rem;
+      color: hsl(0 60% 40%);
+      background: hsl(0 80% 95%);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border-left: 3px solid hsl(0 60% 50%);
+      line-height: 1.4;
+    }`} />
+
+### The Right Approach: Theme Tokens for Shared Sizes
+
+With semantic theme tokens, the class names are self-documenting. Every developer knows what `w-icon-md h-icon-md` means — and changing the icon size updates every component at once.
+
+<CssPreview client:load
+  title="Right: Semantic Theme Tokens (icon-md, avatar-sm, etc.)"
+  height={360}
+  html={`    <div class="right-demo">
+      <div class="right-demo__section">
+        <div class="right-demo__label">@theme tokens</div>
+        <div class="right-demo__tokens">
+          <code>--spacing-icon-sm: 16px</code>
+          <code>--spacing-icon-md: 20px</code>
+          <code>--spacing-icon-lg: 24px</code>
+          <code>--spacing-avatar-sm: 32px</code>
+          <code>--spacing-avatar-md: 40px</code>
+        </div>
+      </div>
+      <div class="right-demo__components">
+        <div class="right-demo__comp">
+          <div class="right-demo__comp-label">Toolbar</div>
+          <div class="right-demo__toolbar">
+            <div class="right-demo__icon-btn"><div class="right-demo__icon" style="width: 20px; height: 20px"></div></div>
+            <div class="right-demo__icon-btn"><div class="right-demo__icon" style="width: 20px; height: 20px"></div></div>
+            <div class="right-demo__icon-btn"><div class="right-demo__icon" style="width: 20px; height: 20px"></div></div>
+          </div>
+          <code class="right-demo__usage">w-icon-md h-icon-md</code>
+        </div>
+        <div class="right-demo__comp">
+          <div class="right-demo__comp-label">Comment</div>
+          <div class="right-demo__comment">
+            <div class="right-demo__avatar" style="width: 32px; height: 32px">T</div>
+            <div class="right-demo__comment-body">
+              <div class="right-demo__comment-name">Takeshi</div>
+              <div class="right-demo__comment-text">Great article!</div>
+            </div>
+          </div>
+          <code class="right-demo__usage">w-avatar-sm h-avatar-sm</code>
+        </div>
+        <div class="right-demo__comp">
+          <div class="right-demo__comp-label">Header</div>
+          <div class="right-demo__header">
+            <div class="right-demo__header-logo">App</div>
+            <div class="right-demo__header-icons">
+              <div class="right-demo__icon" style="width: 20px; height: 20px"></div>
+              <div class="right-demo__avatar" style="width: 32px; height: 32px">T</div>
+            </div>
+          </div>
+          <code class="right-demo__usage">Same tokens, different component</code>
+        </div>
+      </div>
+    </div>`}
+  css={`.right-demo {
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .right-demo__section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .right-demo__label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .right-demo__tokens {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .right-demo__tokens code {
+      font-size: 0.65rem;
+      background: hsl(142 50% 93%);
+      color: hsl(142 50% 30%);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid hsl(142 40% 78%);
+    }
+    .right-demo__components {
+      display: flex;
+      gap: 12px;
+    }
+    .right-demo__comp {
+      flex: 1;
+      background: hsl(0 0% 100%);
+      border: 1px solid hsl(214 32% 91%);
+      border-radius: 8px;
+      padding: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .right-demo__comp-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .right-demo__toolbar {
+      display: flex;
+      gap: 6px;
+    }
+    .right-demo__icon-btn {
+      padding: 6px;
+      background: hsl(210 40% 96%);
+      border-radius: 6px;
+    }
+    .right-demo__icon {
+      background: hsl(221 83% 53%);
+      border-radius: 3px;
+    }
+    .right-demo__comment {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .right-demo__avatar {
+      background: hsl(221 83% 53%);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: hsl(0 0% 100%);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .right-demo__comment-body {
+      min-width: 0;
+    }
+    .right-demo__comment-name {
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .right-demo__comment-text {
+      font-size: 0.68rem;
+      color: hsl(215 16% 47%);
+    }
+    .right-demo__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: hsl(222 47% 11%);
+      color: hsl(0 0% 100%);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+    }
+    .right-demo__header-logo {
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .right-demo__header-icons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .right-demo__usage {
+      font-size: 0.6rem;
+      color: hsl(142 50% 30%);
+      background: hsl(142 50% 93%);
+      padding: 2px 6px;
+      border-radius: 3px;
+      align-self: flex-start;
+    }`} />
+
+### Side-by-Side: Abstract Numbers vs Semantic Names
+
+The same UI elements sized two ways. On the left, abstract numeric tokens that could mean anything. On the right, semantic theme tokens that tell you exactly what they're for.
+
+<CssPreview client:load
+  title="Abstract Numbers vs Semantic Theme Tokens"
+  height={300}
+  html={`    <div class="compare">
+      <div class="compare__col">
+        <div class="compare__heading">Abstract numbers</div>
+        <div class="compare__card">
+          <div class="compare__row">
+            <div class="compare__box" style="width: 16px; height: 16px"></div>
+            <code>size-4</code>
+            <span class="compare__what">icon?</span>
+          </div>
+          <div class="compare__row">
+            <div class="compare__circle" style="width: 32px; height: 32px">T</div>
+            <code>size-8</code>
+            <span class="compare__what">avatar?</span>
+          </div>
+          <div class="compare__row">
+            <div class="compare__box" style="width: 20px; height: 20px"></div>
+            <code>size-5</code>
+            <span class="compare__what">bigger icon?</span>
+          </div>
+          <div class="compare__row">
+            <div class="compare__circle" style="width: 40px; height: 40px">T</div>
+            <code>size-10</code>
+            <span class="compare__what">bigger avatar?</span>
+          </div>
+        </div>
+        <div class="compare__note compare__note--bad">Numbers don't communicate intent</div>
+      </div>
+      <div class="compare__col">
+        <div class="compare__heading">Semantic names</div>
+        <div class="compare__card">
+          <div class="compare__row">
+            <div class="compare__box" style="width: 16px; height: 16px"></div>
+            <code>icon-sm</code>
+            <span class="compare__clear">small icon</span>
+          </div>
+          <div class="compare__row">
+            <div class="compare__circle" style="width: 32px; height: 32px">T</div>
+            <code>avatar-sm</code>
+            <span class="compare__clear">small avatar</span>
+          </div>
+          <div class="compare__row">
+            <div class="compare__box" style="width: 20px; height: 20px"></div>
+            <code>icon-md</code>
+            <span class="compare__clear">medium icon</span>
+          </div>
+          <div class="compare__row">
+            <div class="compare__circle" style="width: 40px; height: 40px">T</div>
+            <code>avatar-md</code>
+            <span class="compare__clear">medium avatar</span>
+          </div>
+        </div>
+        <div class="compare__note compare__note--good">Names tell you what it's for</div>
+      </div>
+    </div>`}
+  css={`.compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+    }
+    .compare__col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .compare__heading {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(215 16% 47%);
+    }
+    .compare__card {
+      background: hsl(0 0% 100%);
+      border: 1px solid hsl(214 32% 91%);
+      border-radius: 8px;
+      padding: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+    .compare__row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .compare__box {
+      background: hsl(215 16% 47%);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .compare__circle {
+      background: hsl(221 83% 53%);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: hsl(0 0% 100%);
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+    .compare__row code {
+      font-size: 0.68rem;
+      font-weight: 600;
+      width: 72px;
+    }
+    .compare__what {
+      font-size: 0.62rem;
+      color: hsl(0 60% 50%);
+      font-style: italic;
+    }
+    .compare__clear {
+      font-size: 0.62rem;
+      color: hsl(142 50% 30%);
+    }
+    .compare__note {
+      font-size: 0.65rem;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      line-height: 1.3;
+    }
+    .compare__note--bad {
+      background: hsl(0 80% 95%);
+      color: hsl(0 60% 40%);
+      border-left: 3px solid hsl(0 60% 50%);
+    }
+    .compare__note--good {
+      background: hsl(142 50% 93%);
+      color: hsl(142 50% 30%);
+      border-left: 3px solid hsl(142 50% 40%);
+    }`} />
+
+### Tier 2 in Practice: Arbitrary Values for One-Offs
+
+Component-specific sizing uses Tailwind's bracket syntax. These values stay in the component — they are not promoted to tokens because they have no meaning outside their context.
+
+<CssPreview client:load
+  title="Arbitrary Values for Component-Specific Sizing"
+  height={260}
+  html={`    <div class="arb-demo">
+      <div class="arb-demo__section">
+        <div class="arb-demo__label">Icon button — custom padding for visual balance</div>
+        <div class="arb-demo__row">
+          <button class="arb-demo__icon-btn">
+            <div class="arb-demo__icon" style="width: 20px; height: 20px"></div>
+          </button>
+          <code>w-[28px] h-[28px] p-[4px]</code>
+        </div>
+      </div>
+      <div class="arb-demo__section">
+        <div class="arb-demo__label">Sidebar — structural width</div>
+        <div class="arb-demo__row">
+          <div class="arb-demo__sidebar">Sidebar</div>
+          <code>w-[240px]</code>
+        </div>
+      </div>
+      <div class="arb-demo__section">
+        <div class="arb-demo__label">Grid layout — template columns</div>
+        <div class="arb-demo__row">
+          <div class="arb-demo__grid">
+            <div class="arb-demo__grid-col1">Nav</div>
+            <div class="arb-demo__grid-col2">Content area</div>
+          </div>
+          <code>grid-cols-[200px_1fr]</code>
+        </div>
+      </div>
+      <div class="arb-demo__section">
+        <div class="arb-demo__label">Main content — calculated height</div>
+        <div class="arb-demo__row">
+          <div class="arb-demo__calc">Main</div>
+          <code>h-[calc(100vh-64px)]</code>
+        </div>
+      </div>
+      <div class="arb-demo__note">All arbitrary — unique to one component, not worth tokenizing</div>
+    </div>`}
+  css={`.arb-demo {
+      padding: 1rem;
+      font-family: system-ui, sans-serif;
+      color: hsl(222 47% 11%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .arb-demo__section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .arb-demo__label {
+      font-size: 0.65rem;
+      color: hsl(215 16% 47%);
+    }
+    .arb-demo__row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .arb-demo__row code {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: hsl(221 83% 53%);
+      background: hsl(210 40% 96%);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .arb-demo__icon-btn {
+      width: 28px;
+      height: 28px;
+      padding: 4px;
+      background: hsl(210 40% 96%);
+      border: 1px solid hsl(214 32% 91%);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .arb-demo__icon {
+      background: hsl(221 83% 53%);
+      border-radius: 3px;
+    }
+    .arb-demo__sidebar {
+      width: 80px;
+      height: 28px;
+      background: hsl(222 47% 11%);
+      color: hsl(0 0% 100%);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+    .arb-demo__grid {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      width: 160px;
+      height: 28px;
+      border: 1px solid hsl(214 32% 91%);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .arb-demo__grid-col1 {
+      background: hsl(210 40% 96%);
+      font-size: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid hsl(214 32% 91%);
+    }
+    .arb-demo__grid-col2 {
+      font-size: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: hsl(215 16% 47%);
+    }
+    .arb-demo__calc {
+      width: 120px;
+      height: 28px;
+      background: hsl(210 40% 96%);
+      border: 1px solid hsl(214 32% 91%);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: hsl(215 16% 47%);
+    }
+    .arb-demo__note {
+      font-size: 0.65rem;
+      color: hsl(215 16% 47%);
+      font-style: italic;
+    }`} />
+
+## Tailwind CSS Integration
+
+In a Tailwind v4 project:
+
+**Tier 1** → `@theme` block with `--spacing-*` prefix (so they work with `w-*` and `h-*` utilities):
+
+```css
+@theme {
+  /* Element sizing tokens — only shared, semantic sizes */
+  --spacing-icon-sm: 16px;
+  --spacing-icon-md: 20px;
+  --spacing-icon-lg: 24px;
+  --spacing-avatar-sm: 32px;
+  --spacing-avatar-md: 40px;
+  --spacing-avatar-lg: 56px;
+}
+```
+
+Usage: `w-icon-md h-icon-md`, `w-avatar-sm h-avatar-sm`.
+
+**Tier 2** → Tailwind's bracket syntax for one-offs:
+
+```html
+<div class="w-[28px] h-[28px]">...</div>
+<div class="w-[calc(100%-2px)]">...</div>
+<div class="grid grid-cols-[240px_1fr]">...</div>
+```
+
+## Common AI Mistakes
+
+- **Re-adding the numeric spacing scale** — importing `--spacing-4: 16px`, `--spacing-8: 32px` etc. back into `@theme` defeats the tight token strategy; these are meaningless numbers
+- **Creating abstract size tokens** — `--size-sm`, `--size-md`, `--size-lg` with values like 16px, 32px, 64px are too generic; what is a "small size"? An icon? An avatar? A button?
+- **Using spacing tokens for element sizing** — `hsp-sm` is for horizontal padding/margins, not for icon width; different concepts, different tokens
+- **Adding a token for every unique dimension** — not every pixel value deserves a name; a calculated offset like `top-[calc(100%-2px)]` is a structural detail, not a design decision
+- **Porting Tailwind defaults "just in case"** — adding numeric spacing tokens without a design reason creates the unconstrained palette the tight strategy was designed to prevent; tokens should come from design decisions, not from anticipating future usage
+
+## When to Use
+
+- **Any project using the tight token strategy** that needs to size elements (icons, avatars, cards, thumbnails)
+- **When AI agents build components** — they consistently reach for `h-4 w-4` which doesn't exist in tight token projects; this article explains the correct approach
+- **When the team debates adding numeric size tokens** — this article provides the reasoning for why not
+
+### Tailwind + Component-First vs General CSS
+
+The two-tier approach works the same way regardless of CSS methodology, but the mechanism for Tier 2 differs:
+
+- **Tailwind + component-first** — Tier 2 values are Tailwind bracket syntax in JSX: `w-[28px]`, `grid-cols-[240px_1fr]`. The component file provides scoping. No CSS custom properties needed.
+- **General CSS (BEM, CSS Modules)** — Tier 2 values are component-scoped CSS custom properties: `--_button-width: 28px`, `--_grid-sidebar: 240px`. The underscore prefix (`--_`) signals local scope.
+
+### Contrast with Other Token Strategies
+
+Not every CSS property needs the same number of tiers:
+
+| Property | Tiers | Why |
+| --- | --- | --- |
+| Colors | 3 (palette → theme → component) | Raw values have palette structure worth abstracting |
+| Font sizes | 3 (scale → theme → component) | Clear hierarchy from captions to headings |
+| Spacing | 2 (semantic axes hsp/vsp) | Consistent rhythm, but already semantic |
+| **Width/height** | **2 (theme → component)** | **No natural scale — semantic names only** |
+
+See also:
+
+- [Three-Tier Color Strategy](../color/three-tier-color-strategy.mdx) — Full three-tier architecture for colors
+- [Three-Tier Font-Size Strategy](../font-sizing/three-tier-font-size-strategy.mdx) — Three-tier architecture for font sizes
+- [Component Tokens & Arbitrary Values](./tight-token-strategy/component-tokens.mdx) — General framework for when to use tokens vs arbitrary values
+
+## References
+
+- [Tailwind CSS v4 Theme Configuration](https://tailwindcss.com/docs/theme)
+- [Tailwind CSS v4 Arbitrary Values](https://tailwindcss.com/docs/adding-custom-styles#using-arbitrary-values)

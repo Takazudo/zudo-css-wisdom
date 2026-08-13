@@ -1,0 +1,395 @@
+---
+title: レターボックスステージ
+description: 固定アスペクト比のステージを境界のあるボックスに正しい軸の余白付きで収める方法。max-height では実現できず、サイズコンテナで解決します。
+sidebar_position: 1
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+16:9 のスライド、動画プレーヤー、ゲームキャンバス。固定アスペクト比のステージを任意の境界付きボックスに収めるには、先に足りなくなった軸に合わせて縮小し、もう一方の軸に余白（バー）を残す必要があります。すぐ思いつくパターンは幅駆動で、この動作を実現できません。
+
+```css
+.frame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.stage {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+```
+
+フレームが高さ制約下にある — つまり 16:9 より横長の — 場合、`max-height: 100%` はアスペクト比から幅を再導出しません。[aspect-ratio](./aspect-ratio.mdx) はサイズを決定軸からもう一方の軸へ転送しますが、min/max 制約が決定軸になるのは、その軸のサイズが `auto` のときだけです。ここでは `width: 100%` が確定値なので、`max-height` は単なるクランプとして働きます。ステージは全幅を保ったまま高さだけがフレームの高さに切り詰められ、16:9 の比率が壊れます。中のコンテンツは歪むか、あふれるか、切り取られます。サイドバー付きのレターボックスには決してなりません。
+
+このパターンは実際のプロジェクトで出荷され、すべてのユニットテストを通過しました。狭い幅ではステージは幅駆動で正しく見えます。失敗が現れるのは、実際の横長で高さ制約のあるビューポートだけです。
+
+## 解決方法
+
+フレームをサイズコンテナにし、ステージの幅を両方の軸に対して計算します。
+
+```css
+.frame--contain {
+  container-type: size;
+}
+
+@container (min-width: 0) {
+  .frame--contain .stage {
+    width: min(100cqw, calc(100cqh * 16 / 9));
+  }
+}
+```
+
+`min()` は2つの候補幅のうち小さい方を選びます。`100cqw`（フレームのインライン軸いっぱいの幅）と `calc(100cqh * 16 / 9)`（高さいっぱいの 16:9 ステージが持つはずの幅）です。先に足りなくなった軸が勝ち、`aspect-ratio` が結果の幅から高さを導出します。これは `max-height` 単独では決して行えない計算です。両方の軸が幅の決定に参加します。
+
+`--contain` 修飾子は意図的なものです。`container-type: size` は無償ではありません。フレームの高さが有界な場所にだけ適用してください（後述のハザードのセクションを参照）。
+
+## コード例
+
+### 幅駆動の罠
+
+デモのフレームは固定の 220px 高を使っています。プレビューの iframe 自体が高さ非有界のコンテキストだからです。円はパーセントの幅と高さで描かれており、ステージが本当に 16:9 のときだけ真円になるよう値を選んであります。
+
+ビューポートボタンを切り替えてみてください。Mobile ではフレームが 16:9 より縦長なのでステージは幅駆動になり、すべて正しく見えます。狭いビューポートのテストが通ってしまう理由がこれです。Tablet と Full ではフレームが 16:9 より横長になります。ステージは幅 391px のレターボックス化されたボックスに縮むべきですが、実際には全幅を保ったままフレームの高さに押しつぶされ、円は楕円になります。
+
+<CssPreview client:load
+  title="壊れた例: 高さ制約フレーム内の幅駆動ステージ"
+  html={`    <div class="frame">
+      <div class="stage">
+        <div class="stage__circle"></div>
+        <div class="stage__label">aspect-ratio: 16 / 9</div>
+      </div>
+    </div>`}
+  css={`    .frame {
+      display: grid;
+      place-items: center;
+      height: 220px;
+      background: hsl(220, 20%, 92%);
+      border: 2px dashed hsl(220, 12%, 62%);
+      border-radius: 8px;
+    }
+    .stage {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, hsl(215, 72%, 46%), hsl(262, 65%, 52%));
+      border-radius: 6px;
+      font-family: system-ui, sans-serif;
+    }
+    .stage__circle {
+      width: 18%;
+      height: 32%;
+      border: 3px solid hsl(0, 0%, 100%);
+      border-radius: 50%;
+      background: hsla(0, 0%, 100%, 0.2);
+    }
+    .stage__label {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      font-size: 12px;
+      color: hsl(0, 0%, 100%);
+      opacity: 0.85;
+    }`}
+  height={250} />
+
+### サイズコンテナによる修正
+
+マークアップも `.stage` の基本ルールも同じです。フレームに `frame--contain` 修飾子とコンテナスコープの幅ルールを足しただけです。ビューポートボタンを切り替えると、バーの軸が反転するのが分かります。Mobile では幅の軸が先に尽きるのでバーは上下に、Tablet と Full では高さの軸が先に尽きるのでバーは左右に付きます。円はどの状態でも真円のままです。
+
+<CssPreview client:load
+  title="修正版: サイズコンテナ + min() のレターボックス"
+  html={`    <div class="frame frame--contain">
+      <div class="stage">
+        <div class="stage__circle"></div>
+        <div class="stage__label">aspect-ratio: 16 / 9</div>
+      </div>
+    </div>`}
+  css={`    .frame {
+      display: grid;
+      place-items: center;
+      height: 220px;
+      background: hsl(220, 20%, 92%);
+      border: 2px dashed hsl(220, 12%, 62%);
+      border-radius: 8px;
+    }
+    .frame--contain {
+      container-type: size;
+    }
+    @container (min-width: 0) {
+      .frame--contain .stage {
+        width: min(100cqw, calc(100cqh * 16 / 9));
+      }
+    }
+    .stage {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, hsl(215, 72%, 46%), hsl(262, 65%, 52%));
+      border-radius: 6px;
+      font-family: system-ui, sans-serif;
+    }
+    .stage__circle {
+      width: 18%;
+      height: 32%;
+      border: 3px solid hsl(0, 0%, 100%);
+      border-radius: 50%;
+      background: hsla(0, 0%, 100%, 0.2);
+    }
+    .stage__label {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      font-size: 12px;
+      color: hsl(0, 0%, 100%);
+      opacity: 0.85;
+    }`}
+  height={250} />
+
+このルールの2つのポイント:
+
+- フレームの `place-items: center` がステージを中央に配置するので、余りのある軸でバーが均等に分かれます。
+- `@container (min-width: 0)` のゲートは、祖先にコンテナが存在するとき — そしてそのときだけ — 常に真になります。コンテナの祖先がない場合、`cqw`/`cqh` は small viewport 単位にフォールバックし、ステージをフレームではなくブラウザウィンドウに対してサイズしてしまいます。宣言をゲートで囲むことで、`min()` の幅が実際のコンテナコンテキスト内でのみ適用されることが保証され、それ以外の場所ではステージはきれいに幅駆動のままになります。
+
+### 封じ込めのスコープを絞る: オプトインクラス
+
+`container-type: size` は要素のサイズをコンテンツから独立させます。`height: auto` のラッパーに適用すると、ラッパーは高さゼロに潰れます。コンテンツは描画され続け、高さゼロのボックスからあふれます。
+
+<CssPreview client:load
+  title="危険: container-type: size は高さ auto のラッパーを潰す"
+  html={`    <div class="collapse-demo">
+      <div class="collapse-demo__col">
+        <p class="collapse-demo__caption">height: auto — collapses</p>
+        <div class="wrapper">
+          <p class="wrapper__content">This wrapper has container-type: size and no height bound. It collapses to zero height and this text overflows it.</p>
+        </div>
+      </div>
+      <div class="collapse-demo__col">
+        <p class="collapse-demo__caption">height: 140px — keeps its size</p>
+        <div class="wrapper wrapper--bounded">
+          <p class="wrapper__content">Same containment, but the wrapper has an explicit height bound.</p>
+        </div>
+      </div>
+    </div>`}
+  css={`    .collapse-demo {
+      display: flex;
+      gap: 32px;
+      font-family: system-ui, sans-serif;
+    }
+    .collapse-demo__col {
+      flex: 1;
+    }
+    .collapse-demo__caption {
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: hsl(220, 10%, 40%);
+    }
+    .wrapper {
+      container-type: size;
+      border: 2px dashed hsl(0, 70%, 55%);
+      border-radius: 8px;
+    }
+    .wrapper--bounded {
+      height: 140px;
+      border-color: hsl(150, 45%, 40%);
+    }
+    .wrapper__content {
+      margin: 0;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      background: hsl(45, 90%, 88%);
+      color: hsl(30, 40%, 25%);
+      border-radius: 6px;
+    }`}
+  height={220} />
+
+これが、すべてのフレームに封じ込めを適用するのではなくオプトインの `--contain` クラスを使う理由です。このパターンの無条件版がかつて出荷され、無関係な iframe 高さ報告のコンテキストを壊しました。高さ auto のラッパーが潰れ、埋め込まれたページが高さゼロを報告したのです。ラッパーを測ってレイアウトを導出する仕組み — iframe の高さ報告、スクロール計算、仮想化リスト — はすべて、サイズ封じ込めされた高さ auto の要素からゼロを読み取ります。封じ込めは無償ではありません。高さが有界なフレームにスコープを絞ってください。
+
+### 高さ非有界のコンテキストでは幅駆動が正しい
+
+iframe の埋め込みページ、ドキュメントのプレビューペイン、コンテンツに合わせて高さが伸びるラッパーには、高さの境界がありません。そこではフレームの `height: 100%` は高さ auto の親に対して解決され、`max-height: 100%` は `none` に解決されます。ブロック軸にはレターボックスの基準になるものが何もないのです。ステージは幅駆動で描画されます。全幅で、高さは比率から導出されます。
+
+これは期待される動作であり、バグではありません。レターボックスには両方の軸の境界が必要です。`container-type: size` で「修正」しないでください。高さ auto のラッパーでは、前述のとおりサイズ封じ込めがラッパーを潰してしまいます。高さ非有界のコンテキストでは `width: 100%; aspect-ratio: 16 / 9` が正しい最終回答です。
+
+### transform-scale という代替手段
+
+reveal.js や Slidev の系譜にあるプレゼンテーションフレームワークは、同じ問題を別の方法で解決しています。ステージはピクセルの固定デザインサイズを保ち、JavaScript がそれをスケールして収めます。
+
+```css
+.frame {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.stage-scaled {
+  width: 960px;
+  height: 540px;
+  transform-origin: center;
+}
+```
+
+```js
+const frame = document.querySelector('.frame');
+const stage = document.querySelector('.stage-scaled');
+const DESIGN_W = 960;
+const DESIGN_H = 540;
+
+const observer = new ResizeObserver((entries) => {
+  const { width, height } = entries[0].contentRect;
+  const scale = Math.min(width / DESIGN_W, height / DESIGN_H);
+  stage.style.transform = `scale(${scale})`;
+});
+observer.observe(frame);
+```
+
+どちらのアプローチも同じレターボックスのジオメトリを生成します。トレードオフは次のとおりです。
+
+| 観点 | 純CSSレターボックス | transform: scale() |
+| --- | --- | --- |
+| ファーストペイント | JavaScript の実行前から正しい | ResizeObserver が発火するまでサイズが不正 |
+| テキストレンダリング | 実サイズでレイアウトされ常に鮮明 | WebKit はデザインサイズでテキストをラスタライズし、非整数のスケール係数でぼやける |
+| 印刷 | レイアウトどおりに印刷され、元に戻す処理が不要 | print スタイルで transform をリセットする必要がある |
+| 埋め込み側へのスケール係数 | 公開されない — サイジングは CSS 内部に閉じる | 明示的な数値であり、サムネイルやズーム UI に再利用できる |
+| 座標系 | コンテンツはリフローし、位置はステージ相対（`%`、`cqi`） | コンテンツはデザインピクセル座標を保ち、係数が 1:1 で対応付ける |
+
+デフォルトは純CSSレターボックスです。埋め込み側がスケール係数そのものを必要とする場合や、コンテンツがリフローしてはならないピクセル厳密なデザインサイズ座標で作られている場合に transform-scale を選んでください。
+
+### cqi 単位による内部の流動性
+
+レターボックス化されたステージはフレームに合わせてサイズが変わるので、中のコンテンツはビューポートではなくステージに合わせてスケールすべきです。ステージを inline-size コンテナにし、コンテンツを `cqi` 単位でサイズしてください。[コンテナクエリ](../responsive/container-queries.mdx)を参照してください。
+
+<CssPreview client:load
+  title="内部の流動性: cqi 単位でコンテンツをステージに追従させる"
+  html={`    <div class="frame frame--contain">
+      <div class="stage stage--fluid">
+        <div class="stage__inner">
+          <p class="stage__title">Letterboxed 16:9</p>
+          <p class="stage__sub">This text is sized with cqi units, so it tracks the stage, not the viewport.</p>
+        </div>
+      </div>
+    </div>`}
+  css={`    .frame {
+      display: grid;
+      place-items: center;
+      height: 220px;
+      background: hsl(220, 20%, 92%);
+      border: 2px dashed hsl(220, 12%, 62%);
+      border-radius: 8px;
+    }
+    .frame--contain {
+      container-type: size;
+    }
+    @container (min-width: 0) {
+      .frame--contain .stage {
+        width: min(100cqw, calc(100cqh * 16 / 9));
+      }
+    }
+    .stage {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      background: linear-gradient(135deg, hsl(215, 72%, 46%), hsl(262, 65%, 52%));
+      border-radius: 6px;
+    }
+    .stage--fluid {
+      container-type: inline-size;
+    }
+    .stage__inner {
+      box-sizing: border-box;
+      height: 100%;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 2cqi;
+      padding: 4cqi;
+      text-align: center;
+      font-family: system-ui, sans-serif;
+      color: hsl(0, 0%, 100%);
+    }
+    .stage__title {
+      margin: 0;
+      font-size: clamp(1rem, 7cqi, 2.75rem);
+      font-weight: 700;
+    }
+    .stage__sub {
+      margin: 0;
+      font-size: clamp(0.75rem, 3.2cqi, 1.05rem);
+      opacity: 0.85;
+    }`}
+  height={250} />
+
+2種類のコンテナタイプはきれいにネストします。フレームはサイズコンテナ（両軸。レターボックスの計算用）、ステージは inline-size コンテナ（自身のコンテンツ用）です。ルール内のコンテナクエリ単位は、マッチした要素から見て最も近い祖先コンテナに対して解決されます。そのため、ステージの幅ルール内の `cqw`/`cqh` はフレームを読み、コンテンツのルール内の `cqi` はステージを読みます。`gap` と `padding` を内側の要素に置いているのも同じ理由です。要素自身の `container-type` はその要素自身の宣言には影響しないため、ステージに直接書いた `cqi` 値はフレームに対して解決されてしまいます。内側の要素には `box-sizing: border-box` も指定してあり、padding が aspect-ratio から導出されたボックスの内側に収まるようにしています。
+
+### フレームが flex / grid の子であるとき
+
+境界のあるフレームは、たいてい flex や grid の親からその境界を得ています。ツールバーの隣の `flex: 1` パネルや `1fr` のグリッドトラックです。flex と grid の子はデフォルトで `min-width: auto` / `min-height: auto` を持ち、コンテンツサイズより小さく縮むことを拒否するため、ウィンドウが縮んでもフレームが利用可能なスペースに追従しないことがあります。
+
+```css
+.stage-panel {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+```
+
+フレーム自体の `container-type: size` は固有サイズの寄与をすでにゼロにしていますが、flex / grid の親とフレームの間にある封じ込めされていないラッパーには、このリセットが依然として必要です。一般則は [Flexbox パターン](../flexbox-and-grid/flexbox-patterns.mdx)を参照してください。
+
+## クイックリファレンス
+
+| シナリオ | テクニック |
+| --- | --- |
+| 高さ有界のフレーム内の固定アスペクト比ステージ | フレームに `container-type: size` + `width: min(100cqw, calc(100cqh * 16 / 9))` |
+| フレームの高さが auto / 非有界 | 幅駆動のまま: `width: 100%; aspect-ratio: 16 / 9` — サイズ封じ込めは使わない |
+| 埋め込み側がスケール係数の数値を必要とする | 固定 px ステージ + ResizeObserver からの `transform: scale()` |
+| ステージのコンテンツをステージに合わせてスケールさせる | ステージに `container-type: inline-size` + `cqi` 単位 |
+| フレームが flex / grid の子 | フレームのラッパーに `min-width: 0` / `min-height: 0` |
+| ボックス内のメディア（`img`、`video`） | `object-fit: contain` — [aspect-ratio](./aspect-ratio.mdx) を参照 |
+
+## AIがよくやるミス
+
+- **`max-height: 100%` にレターボックスを期待する。** min/max 制約が `aspect-ratio` を通じて転送されるのは、その軸のサイズが `auto` のときだけです。`width: 100%` が設定されていると `max-height` は高さをクランプするだけで、比率を壊します。この失敗は狭いビューポートのテストを通過し、横長で高さ制約のあるレイアウトでだけ現れます。
+- **すべてのラッパーに `container-type: size` を適用する。** 高さ auto のラッパーでは要素が高さゼロに潰れ、ラッパーを測るすべての仕組み — iframe の高さ報告、スクロール計算 — がゼロを読み取ります。封じ込めはオプトインクラスでスコープを絞りましょう。
+- **`100cqw`/`100cqh` の代わりに `100vw`/`100vh` を使う。** ビューポート単位はステージをフレームではなくブラウザウィンドウに対してサイズします。レターボックスの計算はフレームのボックスを読まなければなりません。
+- **高さ非有界の埋め込みでの幅駆動の動作を「修正」する。** 高さの境界がなければレターボックスの基準は存在せず、幅駆動の描画が正しい結果です。そこにサイズ封じ込めを足すとラッパーが潰れます。
+- **フレームを囲む flex / grid ラッパーの `min-width: 0` / `min-height: 0` を忘れる。** デフォルトの `auto` 最小値がフレームの縮小を止めるため、ステージは縮んだスペースを認識できません。
+- **`transform: scale()` が実サイズのレイアウトと同じように描画されると思い込む。** WebKit はテキストをデザインサイズでラスタライズするため非整数のスケール係数でぼやけ、transform は印刷出力にも漏れます。
+
+## 使い分け
+
+### サイズコンテナのレターボックスを使う場面
+
+フレームの幅と高さが有界で、ステージを正しい軸のバー付きで収める必要がある場合。これがデフォルトです。JavaScript なしでファーストペイントから正しく、テキストは鮮明で、印刷出力もクリーンです。
+
+### transform-scale を使う場面
+
+埋め込み側がスケール係数そのもの（サムネイル一覧、ズームコントロール）を必要とする場合、またはステージのコンテンツがリフローしてはならないピクセル厳密なデザインサイズ座標で作られている場合。スライドツールのユースケースです。
+
+### 幅駆動のままにする場面
+
+コンテキストに高さの境界がない場合 — iframe 埋め込み、プレビューペイン、通常のドキュメントフロー。そこでは `width: 100%; aspect-ratio: 16 / 9` で完結します。レターボックスの出番はありません。
+
+## 参考リンク
+
+- [aspect-ratio - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/aspect-ratio)
+- [container-type - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/container-type)
+- [CSS container queries - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries)
+- [CSS Box Sizing Module Level 4 — aspect-ratio and transferred size](https://www.w3.org/TR/css-sizing-4/)
+- [reveal.js](https://revealjs.com/) — transform-scale の系譜

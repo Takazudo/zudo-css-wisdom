@@ -1,0 +1,355 @@
+---
+title: Stacking Context
+sidebar_position: 3
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+Stacking context is the most misunderstood concept in CSS. AI agents routinely escalate `z-index` values to absurd numbers (99999) without understanding why elements still appear behind others. The root cause is almost always that elements live in different stacking contexts, and no amount of z-index increase can break out of a parent's stacking context.
+
+## The Solution
+
+A stacking context is an isolated layering group. Elements within one stacking context are compared against each other for z-ordering, but they are never compared against elements in a different stacking context. Understanding what creates a stacking context, and using the `isolation` property to create them intentionally, eliminates z-index wars.
+
+## What Creates a Stacking Context
+
+The following properties create a new stacking context on an element:
+
+### Always creates a stacking context
+
+- The root element (`<html>`)
+- `position: fixed`
+- `position: sticky`
+
+### Creates a stacking context when a condition is met
+
+- `position: relative` or `position: absolute` **with `z-index` other than `auto`**
+- `opacity` less than `1`
+- `transform` with any value other than `none`
+- `filter` with any value other than `none`
+- `backdrop-filter` with any value other than `none`
+- `perspective` with any value other than `none`
+- `clip-path` with any value other than `none`
+- `mask` / `mask-image` / `mask-border` with any value other than `none`
+- `mix-blend-mode` with any value other than `normal`
+- `isolation: isolate`
+- `will-change` specifying any of the above properties
+- `contain: layout`, `contain: paint`, or `contain: strict`
+
+## Code Examples
+
+### The Classic z-index Bug
+
+```css
+.sidebar {
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar .dropdown {
+  position: absolute;
+  z-index: 99999; /* Will NOT appear above .main-content */
+}
+
+.main-content {
+  position: relative;
+  z-index: 2;
+}
+```
+
+In this example, `.dropdown` has `z-index: 99999` but still renders behind `.main-content`. This happens because `.sidebar` creates a stacking context with `z-index: 1`. The dropdown is trapped inside that stacking context. From the perspective of `.main-content` (z-index: 2), the entire `.sidebar` group has z-index 1.
+
+<CssPreview client:load
+  title="Stacking Context: z-index Bug (Broken)"
+  html={`    <div class="container">
+      <div class="sidebar">
+        <div class="sidebar-label">Sidebar (z-index: 1)</div>
+        <div class="dropdown">Dropdown z-index: 99999 — trapped behind main!</div>
+      </div>
+      <div class="main-content">Main Content (z-index: 2) — covers dropdown</div>
+    </div>`}
+  css={`.container {
+      position: relative;
+      height: 200px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+    }
+    .sidebar {
+      position: relative;
+      z-index: 1;
+      background: #f59e0b;
+      color: #fff;
+      padding: 12px;
+      width: 55%;
+      border-radius: 8px;
+    }
+    .sidebar-label {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 99999;
+      background: #ef4444;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      width: 280px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .main-content {
+      position: relative;
+      z-index: 2;
+      background: #3b82f6;
+      color: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: -8px;
+    }`}
+  height={220} />
+
+### Fix: Remove the Parent's Stacking Context
+
+```css
+.sidebar {
+  position: relative;
+  /* Remove z-index to avoid creating a stacking context */
+}
+
+.sidebar .dropdown {
+  position: absolute;
+  z-index: 10;
+}
+
+.main-content {
+  position: relative;
+  /* No z-index needed */
+}
+```
+
+<CssPreview client:load
+  title="Stacking Context: z-index Bug (Fixed)"
+  html={`    <div class="container">
+      <div class="sidebar">
+        <div class="sidebar-label">Sidebar (no z-index)</div>
+        <div class="dropdown">Dropdown z-index: 10 — now appears on top!</div>
+      </div>
+      <div class="main-content">Main Content (no z-index)</div>
+    </div>`}
+  css={`.container {
+      position: relative;
+      height: 200px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+    }
+    .sidebar {
+      position: relative;
+      background: #f59e0b;
+      color: #fff;
+      padding: 12px;
+      width: 55%;
+      border-radius: 8px;
+    }
+    .sidebar-label {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 10;
+      background: #22c55e;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      width: 280px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .main-content {
+      position: relative;
+      background: #3b82f6;
+      color: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: -8px;
+    }`}
+  height={220} />
+
+### The isolation Property
+
+`isolation: isolate` is the cleanest way to create a stacking context. It does exactly one thing: creates a new stacking context. No side effects, no visual changes.
+
+```css
+.card {
+  isolation: isolate; /* Creates stacking context */
+}
+
+.card .background {
+  position: absolute;
+  inset: 0;
+  z-index: -1; /* Stays behind card content but inside card's context */
+}
+
+.card .content {
+  position: relative;
+  /* z-index: auto, but still above .background due to DOM order */
+}
+```
+
+```html
+<div class="card">
+  <div class="background"></div>
+  <div class="content">Card text</div>
+</div>
+```
+
+<CssPreview client:load
+  title="Stacking Context: isolation: isolate"
+  html={`    <div class="demo-area">
+      <div class="card">
+        <div class="card-bg"></div>
+        <div class="card-content">
+          <strong>isolation: isolate</strong><br/>
+          The purple background uses z-index: -1 but stays inside the card thanks to isolation.
+        </div>
+      </div>
+      <div class="behind-text">This text is behind the card — z-index: -1 does not leak out</div>
+    </div>`}
+  css={`.demo-area {
+      padding: 12px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+    }
+    .card {
+      isolation: isolate;
+      position: relative;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .card-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    }
+    .card-content {
+      position: relative;
+      color: #fff;
+      line-height: 1.5;
+    }
+    .behind-text {
+      color: #64748b;
+      padding: 8px;
+      text-align: center;
+    }`} />
+
+### Preventing Component Leakage
+
+Use `isolation: isolate` on component root elements to prevent z-index from leaking out.
+
+```css
+/* Each component is self-contained */
+.modal-overlay {
+  isolation: isolate;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.tooltip {
+  isolation: isolate;
+  position: absolute;
+}
+
+.dropdown-menu {
+  isolation: isolate;
+  position: absolute;
+}
+```
+
+### Accidental Stacking Contexts
+
+Properties that seem unrelated to layering can silently create stacking contexts.
+
+```css
+/* This creates a stacking context! */
+.fading-element {
+  opacity: 0.99;
+}
+
+/* This also creates a stacking context! */
+.animated-element {
+  transform: translateZ(0); /* Often added for "GPU acceleration" */
+}
+
+/* This too! */
+.blurred-element {
+  filter: blur(0px);
+}
+```
+
+Any of these will trap child z-index values inside the element's stacking context.
+
+## Debugging Stacking Context Issues
+
+### Step-by-step diagnosis
+
+1. Identify the element that is layered incorrectly.
+2. Walk up the DOM tree from that element to the root.
+3. For each ancestor, check if it creates a stacking context (use the list above).
+4. Find the stacking context boundary where the layering breaks.
+5. Either remove the unnecessary stacking context, or restructure z-index values to work within the existing contexts.
+
+### Browser DevTools
+
+In Chrome DevTools, the Layers panel (More Tools > Layers) visualizes stacking contexts. Firefox DevTools shows stacking context information in the Layout panel.
+
+## Common AI Mistakes
+
+- **Escalating z-index values.** When an element does not appear on top, AI agents increase z-index to large numbers. This never solves stacking context issues. The fix is to understand which stacking contexts the elements belong to.
+- **Not knowing that `opacity`, `transform`, and `filter` create stacking contexts.** Adding `opacity: 0.99` or `transform: translateZ(0)` for performance can break z-index behavior of child elements.
+- **Using z-index on non-positioned elements.** `z-index` only works on positioned elements (`relative`, `absolute`, `fixed`, `sticky`) and flex/grid items. On a statically positioned element, it has no effect.
+- **Not using `isolation: isolate` for component boundaries.** Every reusable component with internal z-index should use `isolation: isolate` to prevent its z-index values from leaking into the parent context.
+- **Adding `position: relative; z-index: 1` as a general "fix".** This creates a new stacking context, which may fix the immediate issue but traps all descendant z-index values and causes new problems elsewhere.
+
+## When to Use
+
+### Use `isolation: isolate` when
+
+- Building reusable components that use z-index internally
+- You need a stacking context without any visual side effect
+- You want to contain `z-index: -1` elements within their parent
+- You want to prevent mix-blend-mode from bleeding through
+
+### Use `z-index` when
+
+- Controlling the order of positioned elements within the same stacking context
+- Layering overlays, modals, and dropdowns at the page level
+
+### Audit stacking contexts when
+
+- A z-index value "does not work"
+- An element with a high z-index appears behind one with a lower z-index
+- Adding `opacity`, `transform`, or `filter` causes unexpected layering changes
+
+## See Also
+
+- [Containing Block for position fixed](./containing-block-for-fixed.mdx) — the silent twin of this bug. Almost the same trigger property list (`transform`, `filter`, `backdrop-filter`, `perspective`, `will-change`, `contain`, `content-visibility`) also creates a new **containing block for `position: fixed` descendants**, which silently makes them pin to that ancestor's box instead of the viewport.
+- [Z-Index Strategy](../design-tokens/z-index-strategy.mdx) — once the stacking-context rules are clear, manage z-index values themselves with semantic tokens (`--z-modal`, `--z-tooltip`, `--z-local-N`) generated from a single source of truth, plus a lint rule that forbids raw integers.
+
+## References
+
+- [Stacking Context - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Stacking_context)
+- [What The Heck, z-index?? - Josh W. Comeau](https://www.joshwcomeau.com/css/stacking-contexts/)
+- [isolation - MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/isolation)
+- [Z-index and Stacking Contexts - web.dev](https://web.dev/learn/css/z-index)
+- [CSS isolation property - freeCodeCamp](https://www.freecodecamp.org/news/the-css-isolation-property/)

@@ -29,23 +29,76 @@ const SKIP_CATEGORIES = new Set([
   "claude-skills",
 ]);
 
-const CATEGORY_ORDER = [
-  "layout",
-  "typography",
-  "styling",
-  "responsive",
-  "interactive",
-  "methodology",
+// Header-nav groups, in nav display order, per epic #196's target-taxonomy
+// table. `direct: true` marks a group that is its own flat header-nav item
+// (not a dropdown with children) -- rendered without a category sub-heading.
+// Overview and Claude are also direct nav items but carry no skill-relevant
+// categories (overview is in SKIP_CATEGORIES; Claude has no docs category).
+const HEADER_NAV_GROUPS = [
+  {
+    label: "Layout",
+    categories: [
+      "flexbox-and-grid",
+      "positioning",
+      "sizing",
+      "media",
+      "document-layout",
+    ],
+  },
+  {
+    label: "Typography",
+    categories: ["font-sizing", "fonts", "text-control"],
+  },
+  {
+    label: "Styling",
+    categories: ["color", "effects", "shadows-and-borders"],
+  },
+  {
+    label: "Responsive",
+    direct: true,
+    categories: ["responsive"],
+  },
+  {
+    label: "Interactive",
+    categories: ["states-and-transitions", "selectors", "scroll", "accessibility"],
+  },
+  {
+    label: "Methodology",
+    categories: [
+      "architecture",
+      "design-tokens",
+      "custom-properties",
+      "design-principles",
+    ],
+  },
 ];
 
 const CATEGORY_LABELS = {
-  layout: "Layout",
-  typography: "Typography",
-  styling: "Styling",
+  "flexbox-and-grid": "Flexbox & Grid",
+  positioning: "Positioning",
+  sizing: "Sizing",
+  media: "Media",
+  "document-layout": "Document Layout",
+  "font-sizing": "Font Sizing",
+  fonts: "Fonts",
+  "text-control": "Text Control",
+  color: "Color",
+  effects: "Effects",
+  "shadows-and-borders": "Shadows & Borders",
   responsive: "Responsive",
-  interactive: "Interactive",
-  methodology: "Methodology",
+  "states-and-transitions": "States & Transitions",
+  selectors: "Selectors",
+  scroll: "Scroll",
+  accessibility: "Accessibility",
+  architecture: "Architecture",
+  "design-tokens": "Design Tokens",
+  "custom-properties": "Custom Properties",
+  "design-principles": "Design Principles",
 };
+
+// Flattened category order, derived from HEADER_NAV_GROUPS, used for
+// grouping/sorting and to detect any category left out of the nav shape.
+const CATEGORY_ORDER = HEADER_NAV_GROUPS.flatMap((group) => group.categories);
 
 async function collectMdxFiles(dir) {
   const results = [];
@@ -76,8 +129,19 @@ async function main() {
     if (SKIP_CATEGORIES.has(category)) continue;
 
     // Skip top-level category index files (e.g. layout/index.mdx)
-    // but keep deep article index files (e.g. methodology/tight-token-strategy/index.mdx)
-    if (parts.length === 2 && basename(relPath) === "index.mdx") continue;
+    // but keep deep article index files (e.g. design-tokens/tight-token-strategy/index.mdx).
+    // Exception: a category index that carries its own description entry is a real
+    // article doubling as the landing page, so it stays indexed. Today that is only
+    // custom-properties/index.mdx -- the promoted custom-properties-advanced deep
+    // article (epic #196 decision 6), which kept its full body when it became a
+    // category. Keying off descriptions.json rather than a hardcoded path means the
+    // curated description is the signal: no entry, no index.
+    if (
+      parts.length === 2 &&
+      basename(relPath) === "index.mdx" &&
+      !(relPath in descriptions)
+    )
+      continue;
 
     // Look up description
     if (!(relPath in descriptions)) {
@@ -168,14 +232,33 @@ documentation in this repo.
 
 Each entry: \`file path\` — brief description.`);
 
-  for (const cat of CATEGORY_ORDER) {
-    if (!grouped[cat]) continue;
-    const label = CATEGORY_LABELS[cat] || cat;
+  for (const group of HEADER_NAV_GROUPS) {
+    const categoriesWithArticles = group.categories.filter((cat) => grouped[cat]);
+    if (categoriesWithArticles.length === 0) continue;
+
     lines.push("");
-    lines.push(`### ${label}`);
-    lines.push("");
-    for (const article of grouped[cat]) {
-      lines.push(`- \`${article.relPath}\` — ${article.description}`);
+    lines.push(`## ${group.label}`);
+
+    if (group.direct) {
+      // Direct nav item (not a dropdown group) -- list articles straight
+      // under the group heading, no redundant category sub-heading.
+      for (const cat of categoriesWithArticles) {
+        lines.push("");
+        for (const article of grouped[cat]) {
+          lines.push(`- \`${article.relPath}\` — ${article.description}`);
+        }
+      }
+      continue;
+    }
+
+    for (const cat of categoriesWithArticles) {
+      const label = CATEGORY_LABELS[cat] || cat;
+      lines.push("");
+      lines.push(`### ${label}`);
+      lines.push("");
+      for (const article of grouped[cat]) {
+        lines.push(`- \`${article.relPath}\` — ${article.description}`);
+      }
     }
   }
 

@@ -1,0 +1,409 @@
+---
+title: テーマレシピ
+sidebar_position: 2
+---
+
+import CssPreview from '@/components/CssPreview';
+
+CSSカスタムプロパティを使った完全なテーマシステムレシピです。各レシピはプロダクション対応のパターンで、自分のプロジェクトに適応できます。これらのレシピは [Three-Tier Color Strategy](../color/three-tier-color-strategy.mdx) で説明されているレイヤードアーキテクチャ — パレットトークン、セマンティックテーマトークン、コンポーネントスコープのオーバーライド — をカスケードと `var()` フォールバックを使って実装しています。
+
+## ライト/ダークテーマとカスタムプロパティ
+
+カラーパレット全体をカスタムプロパティとして定義し、1つのクラストグルですべてを切り替えます。個別の色に対するJavaScriptロジックは不要です — カスケードがすべてを処理します。
+
+<CssPreview client:load
+  title="ライト / ダークテーマ"
+  height={340}
+  html={`
+    <div class="theme-comparison">
+      <div class="theme-panel light-theme">
+        <h3>Light Theme</h3>
+        <p>Clean and bright for daytime reading. All colors come from custom properties.</p>
+        <button class="theme-btn">Action</button>
+      </div>
+      <div class="theme-panel dark-theme">
+        <h3>Dark Theme</h3>
+        <p>Easy on the eyes for nighttime use. Same markup, swapped properties.</p>
+        <button class="theme-btn">Action</button>
+      </div>
+    </div>
+    `}
+  css={`
+    .light-theme {
+      --surface: hsl(220 20% 98%);
+      --surface-raised: hsl(0 0% 100%);
+      --text-primary: hsl(220 25% 15%);
+      --text-secondary: hsl(220 15% 45%);
+      --accent: hsl(220 80% 55%);
+      --accent-hover: hsl(220 80% 45%);
+      --accent-text: hsl(0 0% 100%);
+      --border: hsl(220 15% 88%);
+    }
+
+    .dark-theme {
+      --surface: hsl(225 25% 12%);
+      --surface-raised: hsl(225 20% 18%);
+      --text-primary: hsl(220 15% 90%);
+      --text-secondary: hsl(220 15% 65%);
+      --accent: hsl(220 80% 65%);
+      --accent-hover: hsl(220 80% 75%);
+      --accent-text: hsl(225 25% 12%);
+      --border: hsl(225 15% 28%);
+    }
+
+    .theme-comparison {
+      font-family: system-ui, sans-serif;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .theme-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .theme-panel h3 {
+      margin: 0 0 0.5rem;
+      color: var(--text-primary);
+      font-size: 1.05rem;
+    }
+
+    .theme-panel p {
+      margin: 0 0 1.25rem;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .theme-btn {
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      padding: 0.55rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .theme-btn:hover {
+      background: var(--accent-hover);
+    }
+    `} />
+
+## ブランドテーマのオーバーライド
+
+デフォルトテーマから開始し、コンポーネントをブランドカラーのコンテナでラップしてオーバーライドします。子要素はカスケードを通じて自動的に新しい値を取得します。
+
+<CssPreview client:load
+  title="ブランドテーマのオーバーライド"
+  height={340}
+  html={`
+    <div class="brand-demo">
+      <div class="brand-card">
+        <h3>Default Brand</h3>
+        <p>Uses the base theme colors defined on :root. No overrides needed.</p>
+        <span class="brand-badge">Standard</span>
+      </div>
+      <div class="brand-override brand-card">
+        <h3>Custom Brand</h3>
+        <p>Wrapped in a brand override container — accent and surface swap instantly.</p>
+        <span class="brand-badge">Branded</span>
+      </div>
+    </div>
+    `}
+  css={`
+    :root {
+      --brand-accent: hsl(220 75% 55%);
+      --brand-accent-light: hsl(220 75% 95%);
+      --brand-text: hsl(220 25% 20%);
+      --brand-muted: hsl(220 15% 55%);
+    }
+
+    .brand-override {
+      --brand-accent: hsl(280 70% 55%);
+      --brand-accent-light: hsl(280 70% 95%);
+      --brand-text: hsl(280 25% 20%);
+      --brand-muted: hsl(280 15% 45%);
+    }
+
+    .brand-demo {
+      font-family: system-ui, sans-serif;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .brand-card {
+      background: var(--brand-accent-light);
+      border: 2px solid var(--brand-accent);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .brand-card h3 {
+      margin: 0 0 0.5rem;
+      color: var(--brand-text);
+      font-size: 1rem;
+    }
+
+    .brand-card p {
+      margin: 0 0 1rem;
+      color: var(--brand-muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .brand-badge {
+      display: inline-block;
+      background: var(--brand-accent);
+      color: white;
+      padding: 0.25rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    `} />
+
+## コンポーネントAPIパターン
+
+カスタムプロパティのセットをコンポーネントのパブリックスタイリングAPIとして公開します。コンシューマーは必要なプロパティだけをオーバーライドし、コンポーネントが残りを内部的に処理します。
+
+<CssPreview client:load
+  title="コンポーネントAPIパターン"
+  height={250}
+  html={`
+    <div class="api-demo">
+      <button class="api-btn">Default</button>
+      <button class="api-btn" style="--btn-bg: hsl(160 65% 45%); --btn-radius: 999px;">Pill Green</button>
+      <button class="api-btn" style="--btn-bg: hsl(340 75% 55%); --btn-padding: 0.75rem 2.5rem;">Wide Pink</button>
+      <button class="api-btn" style="--btn-bg: hsl(35 90% 55%); --btn-color: hsl(35 40% 15%); --btn-radius: 4px;">Square Orange</button>
+    </div>
+    <div class="api-code">
+      <p>Each button uses the same <code>.api-btn</code> class. Visual differences come entirely from custom property overrides via inline styles.</p>
+    </div>
+    `}
+  css={`
+    .api-demo {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .api-btn {
+      /* Public API */
+      --_bg: var(--btn-bg, hsl(220 75% 55%));
+      --_color: var(--btn-color, white);
+      --_padding: var(--btn-padding, 0.6rem 1.5rem);
+      --_radius: var(--btn-radius, 8px);
+
+      background: var(--_bg);
+      color: var(--_color);
+      padding: var(--_padding);
+      border-radius: var(--_radius);
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+
+    .api-btn:hover {
+      filter: brightness(0.9);
+    }
+
+    .api-code {
+      margin-top: 1rem;
+    }
+
+    .api-code p {
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: hsl(220 15% 55%);
+      line-height: 1.5;
+    }
+
+    .api-code code {
+      background: hsl(220 20% 94%);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+    `} />
+
+## Surface/Contentレイヤーパターン
+
+3つの論理レイヤーを定義します — **surface**（背景）、**content**（テキスト）、**accent**（インタラクティブなハイライト）。コンポーネントは生の色ではなくレイヤーを参照するため、ページ全体のテーマ切り替えが簡単になります。これは [Three-Tier Color Strategy](../color/three-tier-color-strategy.mdx) の実践例です — 以下のレイヤーは Tier 2（セマンティックテーマトークン）に対応しています。
+
+<CssPreview client:load
+  title="Surface / Contentレイヤーパターン"
+  height={320}
+  html={`
+    <div class="layer-page">
+      <header class="layer-header">
+        <span class="layer-logo">AppName</span>
+        <nav class="layer-nav">
+          <a href="#">Docs</a>
+          <a href="#">Blog</a>
+          <a href="#">About</a>
+        </nav>
+      </header>
+      <div class="layer-body">
+        <aside class="layer-sidebar">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="#">Getting Started</a></li>
+            <li><a href="#">Components</a></li>
+            <li><a href="#">Theming</a></li>
+          </ul>
+        </aside>
+        <main class="layer-content">
+          <h2>Welcome</h2>
+          <p>This layout uses a surface/content/accent layer system. Every section references layer tokens instead of hard-coded colors.</p>
+          <button class="layer-action">Get Started</button>
+        </main>
+      </div>
+    </div>
+    `}
+  css={`
+    /* Layer definitions */
+    :root {
+      --surface-base: hsl(220 20% 97%);
+      --surface-raised: hsl(0 0% 100%);
+      --surface-overlay: hsl(220 25% 93%);
+      --content-primary: hsl(220 25% 15%);
+      --content-secondary: hsl(220 15% 45%);
+      --accent-base: hsl(250 70% 55%);
+      --accent-hover: hsl(250 70% 45%);
+      --accent-subtle: hsl(250 70% 95%);
+      --accent-text: white;
+      --border-subtle: hsl(220 15% 88%);
+    }
+
+    .layer-page {
+      font-family: system-ui, sans-serif;
+      background: var(--surface-base);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .layer-header {
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .layer-logo {
+      font-weight: 700;
+      color: var(--accent-base);
+      font-size: 0.95rem;
+    }
+
+    .layer-nav {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .layer-nav a {
+      color: var(--content-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+
+    .layer-nav a:hover {
+      color: var(--accent-base);
+    }
+
+    .layer-body {
+      display: grid;
+      grid-template-columns: 10rem 1fr;
+    }
+
+    .layer-sidebar {
+      background: var(--surface-overlay);
+      padding: 1rem;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .layer-sidebar h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      color: var(--content-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .layer-sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .layer-sidebar li {
+      margin-bottom: 0.25rem;
+    }
+
+    .layer-sidebar a {
+      color: var(--content-primary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      display: block;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .layer-sidebar a:hover {
+      background: var(--accent-subtle);
+      color: var(--accent-base);
+    }
+
+    .layer-content {
+      padding: 1.5rem;
+      background: var(--surface-raised);
+    }
+
+    .layer-content h2 {
+      margin: 0 0 0.5rem;
+      color: var(--content-primary);
+      font-size: 1.1rem;
+    }
+
+    .layer-content p {
+      margin: 0 0 1.25rem;
+      color: var(--content-secondary);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .layer-action {
+      background: var(--accent-base);
+      color: var(--accent-text);
+      border: none;
+      padding: 0.55rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .layer-action:hover {
+      background: var(--accent-hover);
+    }
+    `} />
+
+## 参考リンク
+
+- [A Complete Guide to Custom Properties - CSS-Tricks](https://css-tricks.com/a-complete-guide-to-custom-properties/)
+- [Dark Mode in CSS - CSS-Tricks](https://css-tricks.com/a-complete-guide-to-dark-mode-on-the-web/)
+- [Component-Level Art Direction with CSS Custom Properties - Sara Soueidan](https://www.sarasoueidan.com/blog/component-level-art-direction-with-css-custom-properties/)
