@@ -36,6 +36,43 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
+  # nav labelKey guard (#203)
+  # ---------------------------------------------------------------------------
+  # Fails when a headerNav `labelKey` has no matching translations.en/
+  # translations.ja entry. `t()` never throws on a missing key — it falls back
+  # to the raw key string — so a regression here renders a literal `nav.layout`
+  # in the header with a green build otherwise. See Takazudo/zudo-css-wisdom#203.
+  # Runs on every push to main and gates `deploy` below (see its `needs`) —
+  # PR Checks already gates this pre-merge, this is the backstop for a direct
+  # push to main. Needs node_modules: the checker dynamically imports the real
+  # `@takazudo/zudo-doc/i18n-defaults` table to resolve `...defaultTranslations`
+  # spreads.
+  check-nav-labels:
+    name: Nav Label Guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          dest: ~/setup-pnpm-${{ github.job }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check nav labels
+        run: node scripts/check-nav-labels.mjs
+
+  # ---------------------------------------------------------------------------
   # Job 1: Build the zfb docs site (full clone — needed for SSG meta dates)
   # ---------------------------------------------------------------------------
   # fetch-depth: 0 is required so the doc-history preBuild step can call
@@ -163,7 +200,7 @@ jobs:
   # ---------------------------------------------------------------------------
   deploy:
     name: Deploy to Cloudflare Workers
-    needs: [build-site, html-validate, build-history]
+    needs: [build-site, html-validate, build-history, check-nav-labels]
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
