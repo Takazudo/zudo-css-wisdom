@@ -7,7 +7,7 @@ import CssPreview from '@/components/CssPreview';
 
 ## The Problem
 
-Tailwind CSS ships with an enormous default token set. The spacing scale alone includes values like `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `11`, `12`, `14`, `16`, `20`, `24`, `28`, `32`, `36`, `40`, `44`, `48`, `52`, `56`, `60`, `64`, `72`, `80`, `96` — that is over 30 numeric steps for spacing. Multiply this by colors, font sizes, border radii, and other categories, and the available utility space becomes massive.
+Tailwind CSS ships with an enormous default token set, and since v4 the spacing scale is not even a fixed list. Spacing utilities compute from a single `--spacing` variable — `padding: calc(var(--spacing) * <number>)`, with `--spacing` defaulting to `0.25rem`. Any numeric multiple works: `p-4`, `p-13`, `p-17`, and `gap-21` are all valid without touching a config file. (v3 shipped a fixed scale of roughly 33 steps; v4 removed that ceiling.) Multiply this open-ended spacing axis by colors, font sizes, border radii, and other categories, and the available utility space is effectively unlimited.
 
 In practice, this means any developer on the team can reach for any value at any time. One person writes `p-4`, another uses `p-5`, and a third picks `p-6` — all for "medium padding." There is no wrong answer because every value is valid, but the result is an inconsistent, drifting UI. Design reviews turn into debates about which numeric step is "correct," and refactoring spacing later requires auditing hundreds of utility classes scattered across the codebase.
 
