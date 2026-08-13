@@ -26,7 +26,7 @@ set -euo pipefail
 
 START_TIME=$(date +%s)
 FAILURES=()
-TOTAL_STEPS=9
+TOTAL_STEPS=10
 CURRENT_STEP=0
 
 step() {
@@ -132,6 +132,17 @@ else
   else
     fail "Link check"
   fi
+fi
+
+# ── nav labelKey guard (#203) ─────────────────────────
+# Pure-Node. Fails when a headerNav `labelKey` has no matching
+# translations.en/translations.ja entry — that failure mode renders a raw
+# `nav.*` string in the header and is invisible to every other step above.
+step "Nav label guard (check:nav-labels)"
+if (cd "$ROOT_DIR" && pnpm check:nav-labels); then
+  pass "Nav label guard passed"
+else
+  fail "Nav label guard"
 fi
 
 # ── Summary ──────────────────────────────────────────

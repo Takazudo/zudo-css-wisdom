@@ -12,6 +12,7 @@
     "check": "zfb check",
     "check:html": "pnpm dlx html-validate \"dist/**/*.html\"",
     "check:category-meta": "node scripts/check-category-meta.mjs",
+    "check:nav-labels": "node scripts/check-nav-labels.mjs",
     "check:pin-parity": "node scripts/check-pin-parity.mjs",
     "check:wrangler-pin": "node scripts/check-wrangler-pin.mjs",
     "check:template-drift": "bash scripts/check-template-drift.sh",

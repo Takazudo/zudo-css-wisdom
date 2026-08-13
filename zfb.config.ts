@@ -1,5 +1,6 @@
 import { defineConfig } from "zfb/config";
 import { zudoDoc } from "@takazudo/zudo-doc/config";
+import { defaultTranslations } from "@takazudo/zudo-doc/i18n-defaults";
 
 // Single-entry v4 config. `zudoDoc()` returns a complete ZfbConfig and shallow-
 // merges these fields over the package defaults, so only NON-default values are
@@ -89,60 +90,144 @@ export default defineConfig(
     // one list, so a parent repeating its first child's match would double-count
     // that category. Direct items and every child carry `categoryMatch` equal to
     // their top-level content directory name.
+    //
+    // Every item and child also carries `labelKey` (#203) — `renderNavItem` uses
+    // `label` only when `labelKey` is absent, so the JA header renders localized
+    // text via `translations` below instead of the hardcoded English `label`.
+    // `label` stays as the literal fallback the type requires and as a readable
+    // English anchor next to `categoryMatch`.
     headerNav: [
-      { label: "Overview", path: "/docs/overview", categoryMatch: "overview" },
+      { label: "Overview", labelKey: "nav.overview", path: "/docs/overview", categoryMatch: "overview" },
       {
         label: "Layout",
+        labelKey: "nav.layout",
         path: "/docs/flexbox-and-grid",
         children: [
-          { label: "Flexbox & Grid", path: "/docs/flexbox-and-grid", categoryMatch: "flexbox-and-grid" },
-          { label: "Positioning", path: "/docs/positioning", categoryMatch: "positioning" },
-          { label: "Sizing", path: "/docs/sizing", categoryMatch: "sizing" },
-          { label: "Media", path: "/docs/media", categoryMatch: "media" },
-          { label: "Document Layout", path: "/docs/document-layout", categoryMatch: "document-layout" },
+          { label: "Flexbox & Grid", labelKey: "nav.flexboxAndGrid", path: "/docs/flexbox-and-grid", categoryMatch: "flexbox-and-grid" },
+          { label: "Positioning", labelKey: "nav.positioning", path: "/docs/positioning", categoryMatch: "positioning" },
+          { label: "Sizing", labelKey: "nav.sizing", path: "/docs/sizing", categoryMatch: "sizing" },
+          { label: "Media", labelKey: "nav.media", path: "/docs/media", categoryMatch: "media" },
+          { label: "Document Layout", labelKey: "nav.documentLayout", path: "/docs/document-layout", categoryMatch: "document-layout" },
         ],
       },
       {
         label: "Typography",
+        labelKey: "nav.typography",
         path: "/docs/font-sizing",
         children: [
-          { label: "Font Sizing", path: "/docs/font-sizing", categoryMatch: "font-sizing" },
-          { label: "Fonts", path: "/docs/fonts", categoryMatch: "fonts" },
-          { label: "Text Control", path: "/docs/text-control", categoryMatch: "text-control" },
+          { label: "Font Sizing", labelKey: "nav.fontSizing", path: "/docs/font-sizing", categoryMatch: "font-sizing" },
+          { label: "Fonts", labelKey: "nav.fonts", path: "/docs/fonts", categoryMatch: "fonts" },
+          { label: "Text Control", labelKey: "nav.textControl", path: "/docs/text-control", categoryMatch: "text-control" },
         ],
       },
       {
         label: "Styling",
+        labelKey: "nav.styling",
         path: "/docs/color",
         children: [
-          { label: "Color", path: "/docs/color", categoryMatch: "color" },
-          { label: "Effects", path: "/docs/effects", categoryMatch: "effects" },
-          { label: "Shadows & Borders", path: "/docs/shadows-and-borders", categoryMatch: "shadows-and-borders" },
+          { label: "Color", labelKey: "nav.color", path: "/docs/color", categoryMatch: "color" },
+          { label: "Effects", labelKey: "nav.effects", path: "/docs/effects", categoryMatch: "effects" },
+          { label: "Shadows & Borders", labelKey: "nav.shadowsAndBorders", path: "/docs/shadows-and-borders", categoryMatch: "shadows-and-borders" },
         ],
       },
-      { label: "Responsive", path: "/docs/responsive", categoryMatch: "responsive" },
+      { label: "Responsive", labelKey: "nav.responsive", path: "/docs/responsive", categoryMatch: "responsive" },
       {
         label: "Interactive",
+        labelKey: "nav.interactive",
         path: "/docs/states-and-transitions",
         children: [
-          { label: "States & Transitions", path: "/docs/states-and-transitions", categoryMatch: "states-and-transitions" },
-          { label: "Selectors", path: "/docs/selectors", categoryMatch: "selectors" },
-          { label: "Scroll", path: "/docs/scroll", categoryMatch: "scroll" },
-          { label: "Accessibility", path: "/docs/accessibility", categoryMatch: "accessibility" },
+          { label: "States & Transitions", labelKey: "nav.statesAndTransitions", path: "/docs/states-and-transitions", categoryMatch: "states-and-transitions" },
+          { label: "Selectors", labelKey: "nav.selectors", path: "/docs/selectors", categoryMatch: "selectors" },
+          { label: "Scroll", labelKey: "nav.scroll", path: "/docs/scroll", categoryMatch: "scroll" },
+          { label: "Accessibility", labelKey: "nav.accessibility", path: "/docs/accessibility", categoryMatch: "accessibility" },
         ],
       },
       {
         label: "Methodology",
+        labelKey: "nav.methodology",
         path: "/docs/architecture",
         children: [
-          { label: "Architecture", path: "/docs/architecture", categoryMatch: "architecture" },
-          { label: "Design Tokens", path: "/docs/design-tokens", categoryMatch: "design-tokens" },
-          { label: "Custom Properties", path: "/docs/custom-properties", categoryMatch: "custom-properties" },
-          { label: "Design Principles", path: "/docs/design-principles", categoryMatch: "design-principles" },
+          { label: "Architecture", labelKey: "nav.architecture", path: "/docs/architecture", categoryMatch: "architecture" },
+          { label: "Design Tokens", labelKey: "nav.designTokens", path: "/docs/design-tokens", categoryMatch: "design-tokens" },
+          { label: "Custom Properties", labelKey: "nav.customProperties", path: "/docs/custom-properties", categoryMatch: "custom-properties" },
+          { label: "Design Principles", labelKey: "nav.designPrinciples", path: "/docs/design-principles", categoryMatch: "design-principles" },
         ],
       },
-      { label: "Claude", path: "/docs/claude", categoryMatch: "claude" },
+      { label: "Claude", labelKey: "nav.claude", path: "/docs/claude", categoryMatch: "claude" },
     ],
+    // Localized header-nav labels (#203). `zudoDoc()` shallow-merges top-level
+    // config fields only (`translations: userTranslations ?? defaultTranslations`
+    // in @takazudo/zudo-doc/dist/config.js) — an override here REPLACES the
+    // shipped table wholesale, so every locale spreads `defaultTranslations`
+    // first to keep `nav.backToMenu`, the pager strings, the version-banner
+    // strings, and the `de` locale alive. `nav.overview` / `nav.claude` reuse
+    // the keys zudo-doc already ships (including a real `ja` translation for
+    // `nav.overview`); every other `nav.*` key below is new for this site's
+    // grouped nav. `ja` values are seeded as the English string on purpose —
+    // `t()` resolves locale → default locale → the raw key itself
+    // (dist/route-context/index.js), so a missing `ja` entry would render a
+    // literal `nav.layout` in the header. The real Japanese strings are
+    // sub-issue #204's job.
+    translations: {
+      ...defaultTranslations,
+      en: {
+        ...defaultTranslations.en,
+        "nav.layout": "Layout",
+        "nav.flexboxAndGrid": "Flexbox & Grid",
+        "nav.positioning": "Positioning",
+        "nav.sizing": "Sizing",
+        "nav.media": "Media",
+        "nav.documentLayout": "Document Layout",
+        "nav.typography": "Typography",
+        "nav.fontSizing": "Font Sizing",
+        "nav.fonts": "Fonts",
+        "nav.textControl": "Text Control",
+        "nav.styling": "Styling",
+        "nav.color": "Color",
+        "nav.effects": "Effects",
+        "nav.shadowsAndBorders": "Shadows & Borders",
+        "nav.responsive": "Responsive",
+        "nav.interactive": "Interactive",
+        "nav.statesAndTransitions": "States & Transitions",
+        "nav.selectors": "Selectors",
+        "nav.scroll": "Scroll",
+        "nav.accessibility": "Accessibility",
+        "nav.methodology": "Methodology",
+        "nav.architecture": "Architecture",
+        "nav.designTokens": "Design Tokens",
+        "nav.customProperties": "Custom Properties",
+        "nav.designPrinciples": "Design Principles",
+      },
+      ja: {
+        ...defaultTranslations.ja,
+        // Placeholders — English strings, filled in by #204.
+        "nav.layout": "Layout",
+        "nav.flexboxAndGrid": "Flexbox & Grid",
+        "nav.positioning": "Positioning",
+        "nav.sizing": "Sizing",
+        "nav.media": "Media",
+        "nav.documentLayout": "Document Layout",
+        "nav.typography": "Typography",
+        "nav.fontSizing": "Font Sizing",
+        "nav.fonts": "Fonts",
+        "nav.textControl": "Text Control",
+        "nav.styling": "Styling",
+        "nav.color": "Color",
+        "nav.effects": "Effects",
+        "nav.shadowsAndBorders": "Shadows & Borders",
+        "nav.responsive": "Responsive",
+        "nav.interactive": "Interactive",
+        "nav.statesAndTransitions": "States & Transitions",
+        "nav.selectors": "Selectors",
+        "nav.scroll": "Scroll",
+        "nav.accessibility": "Accessibility",
+        "nav.methodology": "Methodology",
+        "nav.architecture": "Architecture",
+        "nav.designTokens": "Design Tokens",
+        "nav.customProperties": "Custom Properties",
+        "nav.designPrinciples": "Design Principles",
+      },
+    },
     headerRightItems: [
       { type: "component", component: "github-link" },
       { type: "component", component: "theme-toggle" },
