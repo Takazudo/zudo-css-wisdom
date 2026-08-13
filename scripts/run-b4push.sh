@@ -134,6 +134,18 @@ else
   fi
 fi
 
+# --- redirect coverage (#200) ---
+# Every pre-migration URL from the Flat Category Restructure (epic #196) must
+# still resolve via public/_redirects. Needs dist/ from Step 7's build.
+TOTAL_STEPS=10
+step "Redirect coverage check (check:redirects)"
+if (cd "$ROOT_DIR" && pnpm check:redirects); then
+  pass "Redirect coverage check passed"
+else
+  fail "Redirect coverage check"
+fi
+# --- end redirect coverage (#200) ---
+
 # ── Summary ──────────────────────────────────────────
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))

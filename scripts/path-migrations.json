@@ -30,20 +30,41 @@
       "Scope note: this list covers the 92 articles + the 2 deep-article index files",
       "  (design-systems/tight-token-strategy/index.mdx, effects/gradient-techniques/index.mdx)",
       "  -- i.e. every file scripts/restructure-docs.mjs `git mv`s. It deliberately excludes the",
-      "  other ~19 old mid-level category index.mdx files (e.g. layout/positioning/index.mdx) --",
+      "  other ~17 old mid-level category index.mdx files (e.g. layout/positioning/index.mdx) --",
       "  those are superseded by freshly authored top-level category index pages in a later wave",
-      "  (#199), not moved by this manifest."
+      "  (#199), not moved by this manifest. See `categoryIndexMoves` below for their old->new",
+      "  route inventory (filled in by #200, which needed it to be complete for redirect coverage)."
+    ],
+    "categoryIndexMoves": [
+      "Array of { old, newCategory }. Same shape and route formulas as `moves`, but for the ~17",
+      "old mid-level category directories whose `index.mdx` was `git mv`'d straight to a new",
+      "top-level directory during #198's cutover (commit 4c0d6f6) -- NOT run through",
+      "scripts/restructure-docs.mjs, so `moves` above deliberately excludes them (see its scope",
+      "note). Filled in by #200 to close that gap: this manifest's own stated purpose is 'the",
+      "inventory of every old docs route', and these 17 routes needed a redirect too.",
+      "`old` here has no `.mdx` extension (it names the old directory, not a file) -- reuse the",
+      "same old-route/new-route formulas as `moves`, treating `old` as if `basename(old)` were",
+      "\"index\" (i.e. old/new route = `/docs/${old}` and `/docs/${newCategory}`, no basename",
+      "suffix). `newCategory` here is always a bare top-level directory (no deep-article case)."
     ],
     "deletedRoutes": [
-      "Array of { oldCategory, kind }.",
+      "Array of { oldCategory, kind, redirectTarget }.",
       "Old category directories dissolved entirely by the restructure, with no direct",
       "file-for-file successor -- their `index.mdx` is not in `moves` and the directory ceases",
-      "to exist once the cutover lands. Each needs a redirect target chosen in a later wave.",
+      "to exist once the cutover lands.",
       "`oldCategory`: docs-relative directory path (e.g. \"layout\", \"layout/specialized\").",
       "`kind`: \"umbrella\" (former header-nav umbrella level whose children were promoted to",
       "  top-level categories) or \"junk-drawer\" (a dissolved leaf category whose children were",
       "  redistributed across other categories).",
-      "Old routes needing a redirect: `/docs/${oldCategory}` and `/ja/docs/${oldCategory}`."
+      "`redirectTarget`: the new top-level category directory this old route 301s to (filled in",
+      "  by #200, closing the gap this manifest's own note used to flag as 'chosen in a later",
+      "  wave'). For `kind: \"umbrella\"`, this is always the epic #196 header-nav group's first",
+      "  child (e.g. \"layout\" -> \"flexbox-and-grid\", per the Layout group's child order). For",
+      "  `kind: \"junk-drawer\"`, epic #196 has no per-dir formula -- `layout/specialized` targets",
+      "  \"document-layout\" (plurality: 3 of its 6 redistributed articles landed there) and",
+      "  `typography/text-effects` targets \"effects\" (its one article's own destination).",
+      "Old routes needing a redirect: `/docs/${oldCategory}` and `/ja/docs/${oldCategory}`,",
+      "  each 301ing to `/docs/${redirectTarget}` / `/ja/docs/${redirectTarget}`."
     ],
     "newCategoryOrder": [
       "Array of 21 new top-level category directory names, in header-nav display order",
@@ -430,34 +451,111 @@
       "newCategory": "overview"
     }
   ],
+  "categoryIndexMoves": [
+    {
+      "old": "interactive/forms-and-accessibility",
+      "newCategory": "accessibility"
+    },
+    {
+      "old": "methodology/architecture",
+      "newCategory": "architecture"
+    },
+    {
+      "old": "styling/color",
+      "newCategory": "color"
+    },
+    {
+      "old": "methodology/design-systems/custom-properties-advanced",
+      "newCategory": "custom-properties"
+    },
+    {
+      "old": "methodology/design-principles",
+      "newCategory": "design-principles"
+    },
+    {
+      "old": "methodology/design-systems",
+      "newCategory": "design-tokens"
+    },
+    {
+      "old": "styling/effects",
+      "newCategory": "effects"
+    },
+    {
+      "old": "layout/flexbox-and-grid",
+      "newCategory": "flexbox-and-grid"
+    },
+    {
+      "old": "typography/font-sizing",
+      "newCategory": "font-sizing"
+    },
+    {
+      "old": "typography/fonts",
+      "newCategory": "fonts"
+    },
+    {
+      "old": "layout/positioning",
+      "newCategory": "positioning"
+    },
+    {
+      "old": "interactive/scroll",
+      "newCategory": "scroll"
+    },
+    {
+      "old": "interactive/selectors",
+      "newCategory": "selectors"
+    },
+    {
+      "old": "styling/shadows-and-borders",
+      "newCategory": "shadows-and-borders"
+    },
+    {
+      "old": "layout/sizing",
+      "newCategory": "sizing"
+    },
+    {
+      "old": "interactive/states-and-transitions",
+      "newCategory": "states-and-transitions"
+    },
+    {
+      "old": "typography/text-control",
+      "newCategory": "text-control"
+    }
+  ],
   "deletedRoutes": [
     {
       "oldCategory": "layout",
-      "kind": "umbrella"
+      "kind": "umbrella",
+      "redirectTarget": "flexbox-and-grid"
     },
     {
       "oldCategory": "typography",
-      "kind": "umbrella"
+      "kind": "umbrella",
+      "redirectTarget": "font-sizing"
     },
     {
       "oldCategory": "styling",
-      "kind": "umbrella"
+      "kind": "umbrella",
+      "redirectTarget": "color"
     },
     {
       "oldCategory": "interactive",
-      "kind": "umbrella"
+      "kind": "umbrella",
+      "redirectTarget": "states-and-transitions"
     },
     {
       "oldCategory": "methodology",
-      "kind": "umbrella"
+      "kind": "umbrella",
+      "redirectTarget": "architecture"
     },
     {
       "oldCategory": "layout/specialized",
-      "kind": "junk-drawer"
+      "kind": "junk-drawer",
+      "redirectTarget": "document-layout"
     },
     {
       "oldCategory": "typography/text-effects",
-      "kind": "junk-drawer"
+      "kind": "junk-drawer",
+      "redirectTarget": "effects"
     }
   ],
   "newCategoryOrder": [
