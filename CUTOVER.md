@@ -82,7 +82,7 @@ pattern = "zudo-css-wisdom.takazudomodular.com"
 custom_domain = true
 ```
 
-And `src/config/settings.ts` sets:
+And `zfb.config.ts` sets:
 
 ```typescript
 siteUrl: "https://zudo-css-wisdom.takazudomodular.com"
