@@ -163,11 +163,10 @@ export default defineConfig(
     // strings, and the `de` locale alive. `nav.overview` / `nav.claude` reuse
     // the keys zudo-doc already ships (including a real `ja` translation for
     // `nav.overview`); every other `nav.*` key below is new for this site's
-    // grouped nav. `ja` values are seeded as the English string on purpose —
-    // `t()` resolves locale → default locale → the raw key itself
+    // grouped nav. Every key must exist in BOTH locales — `t()` resolves
+    // locale → default locale → the raw key itself
     // (dist/route-context/index.js), so a missing `ja` entry would render a
-    // literal `nav.layout` in the header. The real Japanese strings are
-    // sub-issue #204's job.
+    // literal `nav.layout` in the header.
     translations: {
       ...defaultTranslations,
       en: {
@@ -200,32 +199,34 @@ export default defineConfig(
       },
       ja: {
         ...defaultTranslations.ja,
-        // Placeholders — English strings, filled in by #204.
-        "nav.layout": "Layout",
+        // Each label matches the `title` / `sidebar_label` of the matching
+        // src/content/docs-ja/<category>/index.mdx so the header and the page
+        // it opens read the same (#204).
+        "nav.layout": "レイアウト",
         "nav.flexboxAndGrid": "Flexbox & Grid",
-        "nav.positioning": "Positioning",
-        "nav.sizing": "Sizing",
-        "nav.media": "Media",
-        "nav.documentLayout": "Document Layout",
-        "nav.typography": "Typography",
-        "nav.fontSizing": "Font Sizing",
-        "nav.fonts": "Fonts",
-        "nav.textControl": "Text Control",
-        "nav.styling": "Styling",
-        "nav.color": "Color",
-        "nav.effects": "Effects",
-        "nav.shadowsAndBorders": "Shadows & Borders",
-        "nav.responsive": "Responsive",
-        "nav.interactive": "Interactive",
-        "nav.statesAndTransitions": "States & Transitions",
-        "nav.selectors": "Selectors",
-        "nav.scroll": "Scroll",
-        "nav.accessibility": "Accessibility",
-        "nav.methodology": "Methodology",
-        "nav.architecture": "Architecture",
-        "nav.designTokens": "Design Tokens",
-        "nav.customProperties": "Custom Properties",
-        "nav.designPrinciples": "Design Principles",
+        "nav.positioning": "ポジショニング",
+        "nav.sizing": "サイジング",
+        "nav.media": "メディア",
+        "nav.documentLayout": "ドキュメントレイアウト",
+        "nav.typography": "タイポグラフィ",
+        "nav.fontSizing": "フォントサイズ",
+        "nav.fonts": "フォント",
+        "nav.textControl": "テキスト制御",
+        "nav.styling": "スタイリング",
+        "nav.color": "カラー",
+        "nav.effects": "エフェクト",
+        "nav.shadowsAndBorders": "シャドウ & ボーダー",
+        "nav.responsive": "レスポンシブ",
+        "nav.interactive": "インタラクティブ",
+        "nav.statesAndTransitions": "ステート & トランジション",
+        "nav.selectors": "セレクター",
+        "nav.scroll": "スクロール",
+        "nav.accessibility": "アクセシビリティ",
+        "nav.methodology": "CSS設計",
+        "nav.architecture": "アーキテクチャ",
+        "nav.designTokens": "デザイントークン",
+        "nav.customProperties": "カスタムプロパティ",
+        "nav.designPrinciples": "デザイン原則",
       },
     },
     headerRightItems: [
