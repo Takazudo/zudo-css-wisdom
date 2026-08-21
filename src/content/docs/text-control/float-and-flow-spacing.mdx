@@ -1,0 +1,650 @@
+---
+title: Float and Flow Spacing
+sidebar_position: 5
+description: "Why flow/owl prose spacing silently misaligns floated figures, the backwards \"zero the follower\" fix, and how to equalise the leads instead."
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## The Problem
+
+The flow utility from [Prose Heading Spacing](./prose-heading-spacing.mdx) puts every gap on the **following** sibling's `margin-block-start`:
+
+```css
+.prose > * + * { margin-block-start: var(--flow-space, 1rem); }
+.prose :where(h3) { --flow-space: 2rem; }
+```
+
+This is robust for blocks. It is wrong for floats, and it fails without any diagnostic.
+
+A float is positioned by **its own** `margin-block-start`. Its border-box top sits at `previous sibling's bottom margin edge + own margin-block-start`. The block beside it is positioned by **its** `margin-block-start`. The two top-align only when those two leads are **equal**. Nothing in the flow strategy makes that true — headings deliberately carry a larger lead than body text — so a floated figure beside a heading is misaligned by default. The error is invisible until the heading paints a rule or border.
+
+<CssPreview client:load
+  title="Flow Spacing Misaligns a Float Beside a Heading"
+  html={`
+<div class="demo">
+  <div class="demo__col">
+    <p class="demo__label">p → float → p (leads equal, aligned)</p>
+    <article class="prose">
+      <p>Leading paragraph. Both the float and the next paragraph use the default 1rem lead.</p>
+      <div class="figure"></div>
+      <p>This paragraph starts at the same height as the image: previous bottom + 1rem for both.</p>
+      <p>Body text continues after the float.</p>
+    </article>
+  </div>
+  <div class="demo__col">
+    <p class="demo__label">p → float → h3 (leads differ, misaligned)</p>
+    <article class="prose">
+      <p>Leading paragraph. The float keeps the 1rem lead; the heading has a 2rem lead.</p>
+      <div class="figure"></div>
+      <h3>Section heading</h3>
+      <p>The heading's rule lands 1rem lower than the image top. Nothing warned about it.</p>
+    </article>
+  </div>
+</div>
+  `}
+  css={`
+  .demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .demo__col {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+  .demo__label {
+    margin: 0 0 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(215, 15%, 45%);
+  }
+  .prose {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: hsl(215, 25%, 20%);
+  }
+  .prose > * {
+    margin: 0;
+  }
+  /* Flow utility: the gap lives on the following sibling */
+  .prose > * + * {
+    margin-block-start: var(--flow-space, 1rem);
+  }
+  .prose :where(h3) {
+    --flow-space: 2rem;
+    font-size: 1.05rem;
+    border-top: 2px solid hsl(350, 80%, 55%);
+    padding-top: 0.4em;
+  }
+  .prose > :first-child {
+    margin-block-start: 0;
+  }
+  /* The float is positioned by its OWN margin-block-start */
+  .figure {
+    float: left;
+    width: 88px;
+    aspect-ratio: 1;
+    margin-inline-end: 16px;
+    background: linear-gradient(135deg, hsl(30, 90%, 65%), hsl(15, 70%, 45%));
+    outline: 2px solid hsl(210, 80%, 50%);
+    outline-offset: -2px;
+  }
+  `}
+/>
+
+The left column aligns only by coincidence: both leads are the default `1rem`. Change the neighbour to a heading, and the heading drops below the image by exactly the difference between the two leads.
+
+## The Seductive Wrong Fix
+
+The first instinct is "the float already opened the gap, so zero the neighbour":
+
+```css
+/* Backwards — do not ship this */
+.prose .figure + * { margin-block-start: 0; }
+```
+
+This drops the neighbour to the previous block's bottom edge while the float stays one lead lower. The text now starts **above** the image. A production site shipped exactly this rule, with a code comment claiming it aligned things.
+
+<CssPreview client:load
+  title="Anti-Pattern — Zeroing the Neighbour's Lead Puts Text Above the Image"
+  html={`
+<div class="demo">
+  <div class="demo__col">
+    <p class="demo__label">Zeroed neighbour (wrong)</p>
+    <article class="prose prose--zeroed">
+      <p>Leading paragraph. The float has a 1rem lead. The next paragraph has none.</p>
+      <div class="figure"></div>
+      <p>This paragraph now starts 1rem above the image top. The "fix" moved the error to the other side.</p>
+      <p>Body text continues after the float.</p>
+    </article>
+  </div>
+  <div class="demo__col">
+    <p class="demo__label">No rule at all (correct for equal leads)</p>
+    <article class="prose">
+      <p>Leading paragraph. The float has a 1rem lead. The next paragraph has a 1rem lead.</p>
+      <div class="figure"></div>
+      <p>Equal leads align. The right action was to delete the zeroing rule, not to add one.</p>
+      <p>Body text continues after the float.</p>
+    </article>
+  </div>
+</div>
+  `}
+  css={`
+  .demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .demo__col {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+  .demo__label {
+    margin: 0 0 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(215, 15%, 45%);
+  }
+  .prose {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: hsl(215, 25%, 20%);
+  }
+  .prose > * {
+    margin: 0;
+  }
+  .prose > * + * {
+    margin-block-start: var(--flow-space, 1rem);
+  }
+  .prose > :first-child {
+    margin-block-start: 0;
+  }
+  /* Border shows where the paragraph's box actually starts */
+  .figure + p {
+    border-top: 2px solid hsl(350, 80%, 55%);
+    padding-top: 0.2em;
+  }
+  /* The anti-pattern */
+  .prose--zeroed .figure + * {
+    margin-block-start: 0;
+  }
+  .figure {
+    float: left;
+    width: 88px;
+    aspect-ratio: 1;
+    margin-inline-end: 16px;
+    background: linear-gradient(135deg, hsl(30, 90%, 65%), hsl(15, 70%, 45%));
+    outline: 2px solid hsl(210, 80%, 50%);
+    outline-offset: -2px;
+  }
+  `}
+/>
+
+## The Solution
+
+Equalise the two leads instead of zeroing one. Move the **float** to meet the neighbour — never pull the neighbour up, because its lead is the section rhythm the whole strategy exists to protect.
+
+| Shape | Leads | Action |
+| --- | --- | --- |
+| `p → float → p` | Both default | None. Delete any zeroing rule. |
+| `p → float → h3` | Heading lead is larger | Float adopts the heading's lead: `.figure:has(+ h3) { --flow-space: 2rem }` |
+| Heading paints its rule below its own `padding-top` | Heading lead + inset | Float adopts `lead + inset`, sharing the inset through one custom property |
+| Previous sibling owns a `margin-block-end` | Collapses with the block, not with the float | Zero it: `> *:has(+ .figure) { margin-block-end: 0 }` |
+| Float only above a breakpoint | Below it the element is a block | Scope every correction to that media query |
+
+## Code Examples
+
+### Float Adopts the Heading's Lead
+
+The flow utility reads `--flow-space` from the element it positions. Set it on the float when a heading follows, and the float moves **down** to meet the heading.
+
+```css
+.prose > * + * { margin-block-start: var(--flow-space, 1rem); }
+.prose :where(h3) { --flow-space: 2rem; }
+
+/* The float beside an h3 takes the h3's lead */
+.prose .figure:has(+ :where(h3)) { --flow-space: 2rem; }
+```
+
+:::warning[Define leads in `rem`, not `em`]
+`em` resolves against the element that uses it. A float at `14px` and an `h3` at `16.8px` get different pixel values from the same `2em`, so the leads are still unequal after the "fix". Put the lead values in `rem` or fixed-unit tokens, as the examples on this page do.
+:::
+
+<CssPreview client:load
+  title="Fix — The Float Takes the Heading's Lead"
+  html={`
+<div class="demo">
+  <div class="demo__col">
+    <p class="demo__label">Before</p>
+    <article class="prose">
+      <p>Leading paragraph before a floated figure and a heading.</p>
+      <div class="figure"></div>
+      <h3>Section heading</h3>
+      <p>Image top sits 1rem above the heading's rule.</p>
+    </article>
+  </div>
+  <div class="demo__col">
+    <p class="demo__label">After — float adopts 2rem</p>
+    <article class="prose prose--fixed">
+      <p>Leading paragraph before a floated figure and a heading.</p>
+      <div class="figure"></div>
+      <h3>Section heading</h3>
+      <p>Image top meets the heading's rule. The heading did not move.</p>
+    </article>
+  </div>
+</div>
+  `}
+  css={`
+  .demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .demo__col {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+  .demo__label {
+    margin: 0 0 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(215, 15%, 45%);
+  }
+  .prose {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: hsl(215, 25%, 20%);
+  }
+  .prose > * {
+    margin: 0;
+  }
+  .prose > * + * {
+    margin-block-start: var(--flow-space, 1rem);
+  }
+  .prose :where(h3) {
+    --flow-space: 2rem;
+    font-size: 1.05rem;
+    border-top: 2px solid hsl(350, 80%, 55%);
+    padding-top: 0.4em;
+  }
+  .prose > :first-child {
+    margin-block-start: 0;
+  }
+  /* The fix */
+  .prose--fixed .figure:has(+ :where(h3)) {
+    --flow-space: 2rem;
+  }
+  .figure {
+    float: left;
+    width: 88px;
+    aspect-ratio: 1;
+    margin-inline-end: 16px;
+    background: linear-gradient(135deg, hsl(30, 90%, 65%), hsl(15, 70%, 45%));
+    outline: 2px solid hsl(210, 80%, 50%);
+    outline-offset: -2px;
+  }
+  `}
+/>
+
+### Heading With an Internal Inset
+
+A heading that paints its rule after its own `padding-top` aligns to a line that is not its box top. The float must adopt `lead + inset`. Hoist the inset into a shared custom property so the heading and the float rule cannot drift apart.
+
+```css
+.prose {
+  --heading-lead: 2rem;
+  --heading-inset: 0.75rem; /* padding above the heading's rule */
+}
+.prose :where(h3) {
+  --flow-space: var(--heading-lead);
+  padding-top: var(--heading-inset);
+}
+.prose :where(h3)::before {
+  content: "";
+  display: block;
+  border-top: 2px solid currentColor;
+}
+
+/* Float top meets the rule, not the heading's box top */
+.prose .figure:has(+ :where(h3)) {
+  --flow-space: calc(var(--heading-lead) + var(--heading-inset));
+}
+```
+
+<CssPreview client:load
+  title="Fix — Float Adopts Lead Plus the Heading's Inset"
+  html={`
+<div class="demo">
+  <div class="demo__col">
+    <p class="demo__label">Lead only (rule still 0.75rem lower)</p>
+    <article class="prose prose--lead-only">
+      <p>Leading paragraph before a figure and an inset heading.</p>
+      <div class="figure"></div>
+      <h3>Inset heading</h3>
+      <p>The heading's box top aligns, but the visible rule is inside the padding.</p>
+    </article>
+  </div>
+  <div class="demo__col">
+    <p class="demo__label">Lead + inset</p>
+    <article class="prose prose--lead-inset">
+      <p>Leading paragraph before a figure and an inset heading.</p>
+      <div class="figure"></div>
+      <h3>Inset heading</h3>
+      <p>The image top meets the rule the reader actually sees.</p>
+    </article>
+  </div>
+</div>
+  `}
+  css={`
+  .demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .demo__col {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+  .demo__label {
+    margin: 0 0 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(215, 15%, 45%);
+  }
+  .prose {
+    --heading-lead: 2rem;
+    --heading-inset: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: hsl(215, 25%, 20%);
+  }
+  .prose > * {
+    margin: 0;
+  }
+  .prose > * + * {
+    margin-block-start: var(--flow-space, 1rem);
+  }
+  .prose :where(h3) {
+    --flow-space: var(--heading-lead);
+    padding-top: var(--heading-inset);
+    font-size: 1.05rem;
+  }
+  .prose :where(h3)::before {
+    content: "";
+    display: block;
+    border-top: 2px solid hsl(350, 80%, 55%);
+    margin-bottom: 0.3em;
+  }
+  .prose > :first-child {
+    margin-block-start: 0;
+  }
+  .prose--lead-only .figure:has(+ :where(h3)) {
+    --flow-space: var(--heading-lead);
+  }
+  .prose--lead-inset .figure:has(+ :where(h3)) {
+    --flow-space: calc(var(--heading-lead) + var(--heading-inset));
+  }
+  .figure {
+    float: left;
+    width: 88px;
+    aspect-ratio: 1;
+    margin-inline-end: 16px;
+    background: linear-gradient(135deg, hsl(30, 90%, 65%), hsl(15, 70%, 45%));
+    outline: 2px solid hsl(210, 80%, 50%);
+    outline-offset: -2px;
+  }
+  `}
+/>
+
+### Floats Do Not Margin-Collapse
+
+A trailing `margin-block-end` owned by the **previous** sibling collapses with the next block's lead — but not with the float between them. The float is pushed down by the full sum; the text beside it is not. Zero the trailing margin on whatever precedes a float.
+
+```css
+/* An hr that owns its own bottom margin */
+.prose hr { margin-block: 1.5rem; }
+
+/* Trailing margins must not reach a float */
+.prose > *:has(+ .figure) { margin-block-end: 0; }
+```
+
+The deeper invariant: inside a flow-spaced container, **no child should own a trailing margin at all**. Use `padding-block-end` for internal visual weight instead.
+
+<CssPreview client:load
+  title="Fix — Zero the Trailing Margin Before a Float"
+  html={`
+<div class="demo">
+  <div class="demo__col">
+    <p class="demo__label">hr owns margin-block-end (float pushed down)</p>
+    <article class="prose">
+      <p>Paragraph before a rule.</p>
+      <hr>
+      <div class="figure"></div>
+      <p>The paragraph's 1rem lead collapsed into the hr's 1.5rem margin. The float's did not, so the image sits 1rem lower.</p>
+      <p>Body text continues after the float.</p>
+    </article>
+  </div>
+  <div class="demo__col">
+    <p class="demo__label">Trailing margin zeroed before the float</p>
+    <article class="prose prose--fixed">
+      <p>Paragraph before a rule.</p>
+      <hr>
+      <div class="figure"></div>
+      <p>Both leads now start from the hr's border-box bottom. Image and text top-align.</p>
+      <p>Body text continues after the float.</p>
+    </article>
+  </div>
+</div>
+  `}
+  css={`
+  .demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+  }
+  .demo__col {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+  .demo__label {
+    margin: 0 0 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(215, 15%, 45%);
+  }
+  .prose {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: hsl(215, 25%, 20%);
+  }
+  .prose > * {
+    margin: 0;
+  }
+  .prose > * + * {
+    margin-block-start: var(--flow-space, 1rem);
+  }
+  .prose > :first-child {
+    margin-block-start: 0;
+  }
+  .prose hr {
+    border: 0;
+    border-top: 1px dashed hsl(215, 15%, 60%);
+    /* A trailing margin — the thing the flow strategy forbids */
+    margin-block-end: 1.5rem;
+  }
+  .figure + p {
+    border-top: 2px solid hsl(350, 80%, 55%);
+    padding-top: 0.2em;
+  }
+  /* The fix */
+  .prose--fixed > *:has(+ .figure) {
+    margin-block-end: 0;
+  }
+  .figure {
+    float: left;
+    width: 88px;
+    aspect-ratio: 1;
+    margin-inline-end: 16px;
+    background: linear-gradient(135deg, hsl(30, 90%, 65%), hsl(15, 70%, 45%));
+    outline: 2px solid hsl(210, 80%, 50%);
+    outline-offset: -2px;
+  }
+  `}
+/>
+
+### Scope Corrections to the Float's Media Query
+
+A figure that floats only above a breakpoint is a full-width block below it. There, its own `padding-block-end` makes the gap, and zeroing the follower's lead **is** correct. Every float correction belongs inside the same media query that turns the float on.
+
+```css
+.figure { padding-block-end: 1rem; }
+
+/* Block mode: the figure's padding is the gap */
+.figure + * { margin-block-start: 0; }
+
+@media (min-width: 480px) {
+  .figure { float: left; width: 40%; margin-inline-end: 1.5rem; }
+
+  /* Float mode: restore the lead and equalise */
+  .figure + * { margin-block-start: var(--flow-space, 1rem); }
+  .figure:has(+ :where(h3)) { --flow-space: 2rem; }
+  .prose > *:has(+ .figure) { margin-block-end: 0; }
+}
+```
+
+<CssPreview client:load
+  title="Float Corrections Scoped to the Breakpoint — Resize to Compare"
+  html={`
+<article class="prose">
+  <p>Switch between the Mobile and Tablet presets. Below 480px the figure is a block and the follower's lead is zero. Above it the figure floats and every correction applies.</p>
+  <div class="figure"></div>
+  <h3>Section heading</h3>
+  <p>In both modes the spacing reads as intended — the rules are scoped so neither mode inherits the other's assumptions.</p>
+  <p>Body text continues after the figure.</p>
+</article>
+  `}
+  css={`
+  .prose {
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: hsl(215, 25%, 20%);
+  }
+  .prose > * {
+    margin: 0;
+  }
+  .prose > * + * {
+    margin-block-start: var(--flow-space, 1rem);
+  }
+  .prose :where(h3) {
+    --flow-space: 2rem;
+    font-size: 1.05rem;
+    border-top: 2px solid hsl(350, 80%, 55%);
+    padding-top: 0.4em;
+  }
+  .prose > :first-child {
+    margin-block-start: 0;
+  }
+  .figure {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    padding-block-end: 1rem;
+    background: linear-gradient(135deg, hsl(30, 90%, 65%), hsl(15, 70%, 45%)) content-box;
+    outline: 2px solid hsl(210, 80%, 50%);
+    outline-offset: -2px;
+  }
+  /* Block mode: the figure's own padding is the gap */
+  .figure + * {
+    margin-block-start: 0;
+  }
+  @media (min-width: 480px) {
+    .figure {
+      float: left;
+      width: 40%;
+      aspect-ratio: 1;
+      padding-block-end: 0;
+      margin-inline-end: 1.5rem;
+    }
+    /* Float mode: restore the lead, then equalise */
+    .figure + * {
+      margin-block-start: var(--flow-space, 1rem);
+    }
+    .figure:has(+ :where(h3)) {
+      --flow-space: 2rem;
+    }
+    .prose > *:has(+ .figure) {
+      margin-block-end: 0;
+    }
+  }
+  `}
+/>
+
+## Diagnostic
+
+Eyeballing this does not work — a 12px offset beside a wrapped paragraph looks like optical alignment. Measure it:
+
+```js
+const float = document.querySelector('.figure');
+const neighbour = float.nextElementSibling;
+neighbour.getBoundingClientRect().top - float.getBoundingClientRect().top; // want 0
+```
+
+Run it across every distinct structural shape the content produces: `p → float → h3`, `h2 → float → p`, `hr → float → dl`, and so on. When the heading paints its rule inside its box, measure the rule element, not the heading. On the production site that motivated this page, 14 shapes across 53 floats were misaligned before the fix, in both directions (+36px to −34px), with zero aligned. After the fix all 14 measured Δ = 0.
+
+## Quick Reference
+
+| Scenario | Technique |
+| --- | --- |
+| Float beside a default-lead block | No rule. Delete any `.float + * { margin-block-start: 0 }` |
+| Float beside a heading with a larger lead | `.float:has(+ h3) { --flow-space: <heading lead> }` |
+| Heading paints its rule below `padding-top` | `--flow-space: calc(var(--heading-lead) + var(--heading-inset))` on the float |
+| Previous sibling owns `margin-block-end` | `> *:has(+ .float) { margin-block-end: 0 }` |
+| Float only above a breakpoint | Put every correction inside that `@media`; keep the zeroed lead below it |
+| Float is the container's first child | `:first-child { margin-block-start: 0 }` defeats the float's lead — avoid the shape or special-case it |
+| Verifying | `neighbour.getBoundingClientRect().top - float.getBoundingClientRect().top === 0` per shape |
+
+## Common AI Mistakes
+
+- **Zeroing the neighbour's lead after a float.** This reads as "the float opened the gap" but moves the text above the image. Leads must be equal, not zero.
+- **Pulling the heading up to meet the float.** The heading's larger lead is the section rhythm. Move the float down instead.
+- **Treating the heading's box top as the alignment target.** When the rule sits below `padding-top`, align to the rule: add the inset to the float's lead.
+- **Hard-coding the inset in two places.** The heading's `padding-top` and the float's `calc()` drift apart on the next redesign. Share one custom property.
+- **Writing the shared lead in `em`.** The float and the heading have different font sizes, so `2em` is a different number of pixels on each. Use `rem` or fixed tokens for `--flow-space` values.
+- **Assuming margin collapse applies to floats.** A previous sibling's `margin-block-end` offsets the float but not the block beside it. Zero trailing margins before floats — or never let a flow child own one.
+- **Applying float corrections at every viewport.** Below the float breakpoint the element is a block and the corrections are wrong. Scope them to the media query.
+- **Judging alignment by eye.** Measure `getBoundingClientRect().top` differences across every shape the content produces.
+
+## When to Use
+
+### Float Adopts the Neighbour's Lead
+
+Use whenever a flow-spaced container allows floated children — markdown articles with floated figures, pull quotes, or sidebars. This is the only correction that preserves the heading rhythm.
+
+### Zero Trailing Margins Before Floats
+
+Use whenever a flow container contains elements that still own `margin-block-end` (third-party components, `hr`, grids). Better: remove the trailing margins entirely and make the invariant hold for every child.
+
+### Zeroing the Follower's Lead
+
+Use only in the non-floating (block) mode of a responsive figure, where the figure's own `padding-block-end` is the gap. Never in float mode.
+
+## References
+
+- [Prose Heading Spacing](./prose-heading-spacing.mdx) — the flow utility this page corrects for floats
+- [float — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/float)
+- [Mastering Margin Collapsing — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing)
+- [CSS 2 — Floats and margin collapsing (8.3.1)](https://www.w3.org/TR/CSS2/box.html#collapsing-margins)
+- [The :has() selector — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/:has)
+- [Axiomatic CSS and Lobotomized Owls — Heydon Pickering, A List Apart](https://alistapart.com/article/axiomatic-css-and-lobotomized-owls)

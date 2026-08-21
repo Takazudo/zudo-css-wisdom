@@ -142,6 +142,10 @@ The flow utility uses the lobotomized owl selector (`* + *`) scoped to a contain
 
 This is the most robust approach. Spacing is owned by one margin direction only (`margin-block-start`), so it works identically in block flow, flex, and grid — no margin collapse dependency.
 
+:::warning[Floats break this strategy]
+A floated child is positioned by its **own** `margin-block-start`, so it top-aligns with the block beside it only when both leads are equal — and a heading's lead is deliberately larger. See [Float and Flow Spacing](./float-and-flow-spacing.mdx) for the mechanism, the backwards "zero the follower" anti-pattern, and the fix.
+:::
+
 <CssPreview client:load
   title="Flow Utility — Consecutive Headings Tightened"
   html={`
@@ -700,6 +704,7 @@ This is an optional refinement layer. Most prose layouts work well with uniform 
 | Reduce preceding heading margin | `:has()` selector | `:is(h2,h3):has(+ :is(h3,h4,h5)) { margin-block-end: ... }` |
 | Pair-specific heading tuning | Explicit pair overrides | `:where(h2) + :where(h3) { --flow-space: 0.75em }` |
 | Flex/grid safe spacing | Single-direction margins | Use `margin-block-start` only, never both directions |
+| Floated figure beside a heading | Float adopts the heading's lead | `.figure:has(+ h3) { --flow-space: 2em }` — see [Float and Flow Spacing](./float-and-flow-spacing.mdx) |
 
 ## Common AI Mistakes
 
@@ -708,6 +713,7 @@ This is an optional refinement layer. Most prose layouts work well with uniform 
 - **Relying on margin collapse as a spacing strategy.** Margin collapse is implicit behavior that breaks when the layout context changes. Explicit single-direction margins are more predictable. **Never design spacing that depends on margin collapse.** It is uncontrollable — margins collapse in block flow but not in flex, grid, or beside floats. When an element has both `margin-bottom` and the next element has `margin-top`, the resulting gap changes depending on the parent layout context. Use only `margin-block-start` via the flow utility and padding for internal spacing within components. If a component needs bottom spacing for visual weight (e.g., decorative borders on headings), use `padding-bottom`, not `margin-bottom`, so it does not interact with the flow utility's `margin-block-start` on the next element.
 - **Using different margin values for the same element type.** One paragraph gets `margin-bottom: 16px`, another gets `20px`. Uniform spacing from a flow utility prevents this.
 - **Not zeroing `margin-block-start` on the first child.** The first element in a prose container should sit flush against the container edge. Without `:first-child { margin-block-start: 0 }`, the flow utility adds unwanted top space.
+- **Zeroing the lead of the block after a float.** The float already carries its own lead, so zeroing the neighbour moves the text *above* the image. Equalise the two leads instead — see [Float and Flow Spacing](./float-and-flow-spacing.mdx).
 - **Forgetting to tighten heading-to-content spacing.** Headings need less space below them than above — the heading should visually "belong" to the content that follows it, not float equidistant between sections.
 
 ## When to Use
