@@ -49,6 +49,7 @@
   "flexbox-and-grid/grid-patterns.mdx": "auto-fill vs auto-fit, minmax(), grid-template-areas",
   "flexbox-and-grid/subgrid.mdx": "Align nested content across sibling grid items",
   "font-sizing/fluid-font-sizing.mdx": "clamp() for responsive font sizes without breakpoints",
+  "font-sizing/px-vs-rem.mdx": "px vs rem: browser default font size preference vs page zoom, rem for text/spacing, em for component-relative, px for borders/shadows/geometry, 62.5% trick, rem breakpoints",
   "font-sizing/line-height-best-practices.mdx": "Unitless line-height, inheritance pitfalls",
   "font-sizing/screen-width-based-font-size.mdx": "Segmented clamp() per breakpoint for piecewise fluid typography",
   "font-sizing/stage-proportional-typography.mdx": "Pure-cqi type scale for slides/fixed-composition stages — uniform floors, zoom trade-off, when to break the rem-dominant rule",

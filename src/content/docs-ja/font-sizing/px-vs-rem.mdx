@@ -1,0 +1,484 @@
+---
+title: px vs rem
+sidebar_position: 1
+description: Internet Explorer 亡き後も rem が意味を持つ理由 — ブラウザのデフォルトフォントサイズ設定、それに追従すべき寸法、そして px が正しい単位となる場面。
+---
+
+import CssPreview from '@/components/CssPreview';
+
+## 問題
+
+`rem` を使う古典的な根拠は Internet Explorer でした。IE は `px` で指定されたテキストを拡大できなかったため、ユーザーが文字サイズを変えるには相対単位しか手段がなかったのです。IE はもうありません。現行ブラウザはすべて `px` と `rem` を同じようにページズームします。ここからよくある結論が導かれます —「もう px でいい。`1rem` より `16px` のほうが直感的だ」。
+
+この結論は、いまも存在するひとつの仕組みを見落としています。**ブラウザのデフォルトフォントサイズ**設定です。Chrome、Edge、Firefox では、サイトごとのズームとは別に、ルートフォントサイズを 20px、24px、32px などに永続的な設定として変更できます。`rem` のテキストはこの設定に追従します。`px` のテキストは追従しません。すべて `px` で組まれたサイトは、24px を望んでいるユーザーにも 16px で表示されます — そのユーザーは、サイトを開くたびにズームに手を伸ばすことになります。
+
+逆のミスもよくあります。チームが `rem` を採用した途端、border、shadow、角丸まで含めてあらゆる値が `rem` になってしまうケースです。ルートが 24px のとき、`0.0625rem` の border は 1.5px になり、ブラウザはそれをデバイスピクセル単位に丸めます — 1× の画面では 1px、2× の画面では 3px — つまりヘアラインの太さがデバイスごとに変わってしまいます。`0.25rem` 刻みのスペーシングスケールはインターフェース全体を 50% 大きくし、拡大したテキストが本来必要としていた行幅を食いつぶします。これと並んで、「1rem = 10px にするため」の `html { font-size: 62.5% }` トリックは、サードパーティやスタイル未指定の `1rem` テキストをすべて黙って 10px に縮めてしまいます。
+
+## 解決方法
+
+単位は、ひとつの問いで選びます。**ユーザーが好みの文字サイズを大きくしたとき、この値も大きくなるべきか？**
+
+| 答え | 単位 | 典型的な値 |
+| --- | --- | --- |
+| はい — テキストそのもの、またはテキストのために存在する値 | `rem` | `font-size`、スペーシングスケール、垂直リズム、テキストコントロールの `min-height` |
+| はい — ただしその要素自身のテキストに対して相対的 | `em` | `letter-spacing`、インラインアイコンのサイズ、`font-size` の上書きに追従すべきボタンの padding |
+| いいえ — 視覚的なディテール、または幾何学的な制約 | `px` | border、`outline`、`box-shadow`、`border-radius`、ヘアライン、ラスター画像のサイズ |
+| どちらでもない — 比率である | 単位なし / `%` / `ch` | `line-height`、本文の行長、パーセント幅 |
+
+ルートフォントサイズには手を触れません — `html { font-size: 100% }` か、何も書かないかです。そうすれば `rem` は「ユーザーが選んだ基準サイズ」を意味し、これこそが `px` より `rem` を選ぶ唯一の理由になります。
+
+## コード例
+
+### デフォルトフォントサイズ設定は何をするのか
+
+このデモは、ルートフォントサイズを変えることでブラウザの設定をシミュレートします — Chrome の「フォントサイズ」設定が使っているのと同じ仕組みです。両方の列は同じ見た目のサイズで書かれています。`rem` の列だけが反応します。
+
+<CssPreview client:load
+  title="デフォルトフォントサイズ 16 / 20 / 24px — px テキストは無視し、rem テキストは追従する"
+  html={`
+    <div class="fs-sim">
+      <div class="fs-sim__controls">
+        <label class="fs-sim__option"><input type="radio" name="fs" class="fs-sim__radio fs-sim__radio--16" checked> 16px (default)</label>
+        <label class="fs-sim__option"><input type="radio" name="fs" class="fs-sim__radio fs-sim__radio--20"> 20px</label>
+        <label class="fs-sim__option"><input type="radio" name="fs" class="fs-sim__radio fs-sim__radio--24"> 24px</label>
+      </div>
+      <div class="fs-sim__columns">
+        <div class="fs-sim__col">
+          <p class="fs-sim__label">font-size: 16px</p>
+          <p class="fs-sim__text fs-sim__text--px">Stays at 16px no matter what the user prefers.</p>
+        </div>
+        <div class="fs-sim__col">
+          <p class="fs-sim__label">font-size: 1rem</p>
+          <p class="fs-sim__text fs-sim__text--rem">Follows the browser default font size.</p>
+        </div>
+      </div>
+    </div>
+    `}
+  css={`
+    /* Simulation of the browser "Font size" preference.
+       Demo chrome (labels, controls) is set in px so it stays put. */
+    :root:has(.fs-sim__radio--20:checked) { font-size: 125%; }
+    :root:has(.fs-sim__radio--24:checked) { font-size: 150%; }
+
+    .fs-sim {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .fs-sim__controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: hsl(215, 15%, 35%);
+    }
+
+    .fs-sim__option {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .fs-sim__columns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .fs-sim__col {
+      flex: 1 1 200px;
+      padding: 12px;
+      background: hsl(210, 45%, 96%);
+      border-radius: 8px;
+    }
+
+    .fs-sim__label {
+      margin: 0 0 6px;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      color: hsl(215, 15%, 45%);
+    }
+
+    .fs-sim__text {
+      margin: 0;
+      line-height: 1.5;
+      color: hsl(220, 20%, 20%);
+    }
+
+    .fs-sim__text--px { font-size: 16px; }
+    .fs-sim__text--rem { font-size: 1rem; }
+    `}
+  height={220} />
+
+### ページズームは別のコントロール
+
+ページズームとデフォルトフォントサイズは独立した設定で、効果も異なります。
+
+| ユーザーの操作 | `16px` テキスト | `1rem` テキスト（ルート未変更） | レイアウト |
+| --- | --- | --- | --- |
+| ページズーム 200%（Cmd/Ctrl +） | 2 倍 | 2 倍 | CSS px でのビューポートが縮み、ブレークポイントが再評価される |
+| デフォルトフォントサイズ 16 → 24px（Chrome、Edge、Firefox） | 変化なし | 1.5 倍 | ビューポートは変化なし。`rem`/`em` ブレークポイントは再評価され、`px` ブレークポイントはされない |
+| Firefox「文字サイズのみ変更」 | ブラウザ依存。通常は両方拡大 | 拡大 | ビューポートは変化なし |
+| 最小フォントサイズ（Safari、Firefox） | 下限で切り上げ | 下限で切り上げ | — |
+
+ページズームは IE 時代の問題を解消しています。`px` テキストはもはや「拡大できないもの」ではありません。残っているギャップがデフォルトフォントサイズ設定で、ここが `rem` の存在意義です。macOS の Safari は汎用のデフォルトフォントサイズを公開しておらず、最小サイズしかありません。そのため Safari だけでテストしても、`px` テキストが設定を無視していることは見えてきません。
+
+デフォルトを変更しているユーザーはどれくらいいるのでしょうか。一般ユーザーを対象とした唯一の測定値は古いもので、2018 年の Internet Archive 訪問者のうち約 3% が 16px 以外のルートサイズを持っていました。ロービジョンのユーザーを対象とした調査では、はるかに高い割合（対象により 8〜27%）が報告されています。WCAG 1.4.4（Resize Text）は `rem` を要求していません — 全ページズームが達成方法として挙げられています — ので、`px` テキストが自動的に不適合になるわけではありません。`rem` を選ぶ理由は、この設定への対応はプロジェクト開始時ならコストがゼロで、後付けにはコストがかかる、という点にあります。
+
+### どの寸法がテキストに追従すべきか
+
+周囲のスペースを拡大せずにテキストだけ拡大すると窮屈なコンポーネントになり、すべてを拡大すると border の太さがデバイス依存になり、shadow と角丸が大きくなりすぎます。このデモでは、3 枚のカードを同じシミュレーション設定の下に置いています。
+
+<CssPreview client:load
+  title="すべて px / すべて rem / 混在 — デフォルトフォントサイズ 24px をシミュレート"
+  html={`
+    <div class="unit-sim">
+      <label class="unit-sim__control">
+        <input type="checkbox" class="unit-sim__toggle">
+        Simulate default font size 24px
+      </label>
+      <div class="unit-sim__cards">
+        <div class="unit-card unit-card--px">
+          <p class="unit-card__tag">all px</p>
+          <h4 class="unit-card__title">Text stays small</h4>
+          <p class="unit-card__body">Ignores the preference entirely.</p>
+          <button class="unit-card__button">Action</button>
+        </div>
+        <div class="unit-card unit-card--rem">
+          <p class="unit-card__tag">all rem</p>
+          <h4 class="unit-card__title">Border thickens, radius grows</h4>
+          <p class="unit-card__body">Shadow and hairline scale too.</p>
+          <button class="unit-card__button">Action</button>
+        </div>
+        <div class="unit-card unit-card--mixed">
+          <p class="unit-card__tag">rem text + px details</p>
+          <h4 class="unit-card__title">Text and spacing grow</h4>
+          <p class="unit-card__body">Border, radius, shadow stay crisp.</p>
+          <button class="unit-card__button">Action</button>
+        </div>
+      </div>
+    </div>
+    `}
+  css={`
+    :root:has(.unit-sim__toggle:checked) { font-size: 150%; }
+
+    .unit-sim {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .unit-sim__control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: hsl(215, 15%, 35%);
+      cursor: pointer;
+    }
+
+    .unit-sim__cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .unit-card {
+      flex: 1 1 180px;
+      background: hsl(0, 0%, 100%);
+      color: hsl(220, 20%, 20%);
+    }
+
+    .unit-card__tag {
+      margin: 0 0 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: hsl(215, 15%, 45%);
+    }
+
+    .unit-card__title { margin: 0 0 4px; font-weight: 700; line-height: 1.2; }
+    .unit-card__body { margin: 0 0 8px; line-height: 1.5; }
+
+    .unit-card__button {
+      font: inherit;
+      font-weight: 600;
+      color: hsl(0, 0%, 100%);
+      background: hsl(215, 70%, 45%);
+      border: 0;
+      cursor: pointer;
+    }
+
+    /* All px: nothing reacts to the preference */
+    .unit-card--px {
+      padding: 12px;
+      border: 1px solid hsl(215, 20%, 80%);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px hsl(215, 30%, 20%, 0.15);
+    }
+    .unit-card--px .unit-card__title { font-size: 16px; }
+    .unit-card--px .unit-card__body { font-size: 13px; }
+    .unit-card--px .unit-card__button { padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+
+    /* All rem: everything scales, including hairlines and shadows */
+    .unit-card--rem {
+      padding: 0.75rem;
+      border: 0.0625rem solid hsl(215, 20%, 80%);
+      border-radius: 0.5rem;
+      box-shadow: 0 0.125rem 0.375rem hsl(215, 30%, 20%, 0.15);
+    }
+    .unit-card--rem .unit-card__title { font-size: 1rem; }
+    .unit-card--rem .unit-card__body { font-size: 0.8125rem; }
+    .unit-card--rem .unit-card__button { padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.8125rem; }
+
+    /* Mixed: text and spacing in rem, visual details in px */
+    .unit-card--mixed {
+      padding: 0.75rem;
+      border: 1px solid hsl(215, 20%, 80%);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px hsl(215, 30%, 20%, 0.15);
+    }
+    .unit-card--mixed .unit-card__title { font-size: 1rem; }
+    .unit-card--mixed .unit-card__body { font-size: 0.8125rem; }
+    .unit-card--mixed .unit-card__button { padding: 0.375rem 0.75rem; border-radius: 6px; font-size: 0.8125rem; }
+    `}
+  height={400} />
+
+### rem のスペーシングスケール — Tailwind v4 のデフォルト
+
+Tailwind CSS v4 は、すべてのスペーシングユーティリティをひとつのトークンから導出します。`--spacing: 0.25rem` なので、`p-4` は `calc(var(--spacing) * 4)` = `1rem` = デフォルトルートで 16px です。テキストサイズも `rem` で、v4 のブレークポイントは `640px` から `40rem` に移行しました。`px` が適切な場所では `px` の逃げ道が残されています。`border` は 1px、`p-px` が存在し、`[4px]` のような任意の値も許可されています。
+
+```css
+:root {
+  --spacing: 0.25rem; /* Tailwind v4 */
+}
+
+.p-4 {
+  padding: calc(var(--spacing) * 4); /* 1rem — 16px at a 16px root, 24px at a 24px root */
+}
+```
+
+`rem` スペーシングスケールのトレードオフは、幅や高さまで駆動してしまうことです。ブラウザのデフォルトが大きくなると、第二の部分的なページズームのように振る舞い、gap や padding が行幅をより多く占めます。通常これは許容範囲です — 大きくなったテキストにはより多くの余白が必要です — が、水平方向のページガター（gutter）や固定幅のクローム（chrome）は、代わりに `px` や `px` 項を含む `clamp()` を検討すべき場所です。後からチームがスケールを固定にすると決めた場合も、トークンをひとつ（`--spacing: 4px`）変えるだけで、マークアップに触れずにすべてのユーティリティが切り替わります。
+
+### ブレークポイント: rem と em はブラウザの初期フォントサイズを読む
+
+メディアクエリの中では、`rem` と `em` はブラウザの初期フォントサイズ — つまりユーザー設定 — に対して解決されます。スタイルシートが `html { font-size }` に何を設定していても関係ありません。デフォルト 24px で 1280px のウィンドウを使うユーザーは、`48rem` のブレークポイントに CSS 幅 1152px で到達します。拡大したテキストが実効スペースを減らしたとき、レイアウトは狭い方の形に切り替わります。`768px` のブレークポイントではこれは起きません。
+
+```css
+/* Geometry-based: fires at 768 CSS px regardless of text size */
+@media (min-width: 768px) { }
+
+/* Text-capacity-based: fires at 768px with a 16px default,
+   at 1152px with a 24px default */
+@media (min-width: 48rem) { }
+```
+
+`em`/`rem` ブレークポイントを避ける古い理由は Safari のズームバグでした。Safari 15 はよく引用されるケースを修正し、Tailwind v4 はそれを根拠に 2024 年にデフォルトを `rem` に切り替えました。コンテナクエリは事情が異なります。`@container (inline-size > 40em)` の `em` はコンテナ自身のフォントサイズに対して解決され、`cqi` 単位はジオメトリだけを追跡します — `cqi` のみのフォントサイズがテキストのスケーリングを無視してしまう理由は [Container Queries](../responsive/container-queries.mdx#トークンスケールとしてのコンテナクエリ単位-rem項を優位に保つ) を参照してください。
+
+### 62.5% トリック
+
+```css
+html { font-size: 62.5%; }   /* 1rem = 10px at a 16px default */
+body { font-size: 1.6rem; }  /* back to 16px */
+```
+
+`62.5%` は依然として相対値なので、ユーザー設定を壊すことはありません — デフォルト 20px ならルートは 12.5px、body テキストは 20px になります。推奨されないのは別の理由です。このトリックは、オプトインしていないすべてのものにとっての `1rem` を再定義してしまいます。サードパーティのウィジェット、ブラウザ拡張の UI、スタイル未指定の `1rem` テキストは、すべて 10px で表示されます。
+
+<CssPreview client:load
+  title="html { font-size: 62.5% } は補正していないすべての 1rem 値を縮める"
+  html={`
+    <div class="trick-sim">
+      <label class="trick-sim__control">
+        <input type="checkbox" class="trick-sim__toggle">
+        Apply html { font-size: 62.5% }
+      </label>
+      <div class="trick-sim__rows">
+        <div class="trick-sim__row">
+          <p class="trick-sim__label">Your body text — font-size: 1.6rem</p>
+          <p class="trick-sim__text trick-sim__text--own">Looks right at 16px, because you compensated.</p>
+        </div>
+        <div class="trick-sim__row">
+          <p class="trick-sim__label">Third-party widget — font-size: 1rem</p>
+          <p class="trick-sim__text trick-sim__text--widget">Assumes 1rem is readable. It is now 10px.</p>
+        </div>
+      </div>
+    </div>
+    `}
+  css={`
+    :root:has(.trick-sim__toggle:checked) { font-size: 62.5%; }
+
+    .trick-sim {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .trick-sim__control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: hsl(215, 15%, 35%);
+      cursor: pointer;
+    }
+
+    .trick-sim__rows {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .trick-sim__row {
+      padding: 12px;
+      background: hsl(210, 45%, 96%);
+      border-radius: 8px;
+    }
+
+    .trick-sim__label {
+      margin: 0 0 6px;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      color: hsl(215, 15%, 45%);
+    }
+
+    .trick-sim__text {
+      margin: 0;
+      line-height: 1.5;
+      color: hsl(220, 20%, 20%);
+    }
+
+    /* Compensated: 1.6rem × 10px = 16px */
+    .trick-sim__text--own { font-size: 1.6rem; }
+
+    /* Not compensated: 1rem × 10px = 10px */
+    .trick-sim__text--widget { font-size: 1rem; }
+    `}
+  height={240} />
+
+`rem` はすでにブラウザのデフォルトサイズに設定されているので、`1rem` を基準にする限り調整は不要です。計算はルートフォントサイズではなくトークンの中に置きましょう。`html { font-size: 10px }` も決して設定しないでください — そこに絶対値を置くと、ユーザー設定を直接上書きしてしまいます。
+
+### プロジェクト開始時のセットアップ
+
+```css
+/* Leave the root alone. Omit entirely, or make the intent explicit. */
+html {
+  font-size: 100%;
+}
+
+:root {
+  /* Text and text-driven rhythm — follow the preference */
+  --font-body: 1rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-4: 1rem;
+  --space-8: 2rem;
+
+  /* Visual details — do not follow the preference */
+  --border-width: 1px;
+  --focus-width: 2px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 2px 6px hsl(215, 30%, 20%, 0.15);
+}
+
+body {
+  font-size: var(--font-body);
+  line-height: 1.5;          /* unitless ratio */
+}
+
+h1 {
+  font-size: clamp(2rem, 1.5rem + 2vw, 3rem); /* rem floor and rem share in the preferred term */
+  letter-spacing: -0.02em;   /* relative to its own size */
+}
+
+.button {
+  min-block-size: 44px;      /* touch target: a physical constraint */
+  padding: 0.625em 1em;      /* follows the button's own font-size */
+  border: var(--border-width) solid currentColor;
+  border-radius: var(--radius-sm);
+}
+
+.button > svg {
+  inline-size: 1em;          /* inline icon: follows the text */
+  block-size: 1em;
+}
+
+.prose {
+  max-inline-size: 65ch;     /* reading measure: ch */
+}
+
+.page-shell {
+  inline-size: min(100% - 32px, 1200px); /* page geometry: px */
+  margin-inline: auto;
+}
+
+@media (min-width: 48rem) { }
+```
+
+テストはプロジェクトの最後だけでなく、セットアップの最後にも行います。Chrome か Firefox でブラウザのデフォルトフォントサイズを 24px に設定し、テキストとスペーシングが大きくなり border は変わらないことを確認したうえで、WCAG 1.4.4 と 1.4.10 のためにページズーム 200% と 400% も確認してください。
+
+## クイックリファレンス
+
+| シナリオ | 手法 |
+| --- | --- |
+| 本文、見出し、ラベルのフォントサイズ | `rem` |
+| スペーシングスケール、垂直リズム | `rem`（特定要素のサイズに紐づく場合は `em`） |
+| ボタン/入力欄の padding、インラインアイコン | `em` — コンポーネント自身の `font-size` に追従 |
+| `letter-spacing` | `em` |
+| `line-height` | 単位なし |
+| border、outline、ヘアライン | `px` |
+| 固定形状の `box-shadow`、`border-radius` | `px` |
+| タッチターゲットの最小サイズ | `px`（44px） |
+| 読みやすい本文カラムの幅 | `ch` と `max-width: 100%` |
+| ページシェルの最大幅、ガター | `px` または `%` — テキストではなくジオメトリ |
+| ビューポートのブレークポイント | `rem`（または `em` — メディアクエリ内では同一） |
+| コンテナのブレークポイント | コンテナのフォントサイズに相対的な `em` |
+| ルートフォントサイズ | 未変更 / `100%` — `62.5%` も `10px` も不可 |
+
+## AIがよくやるミス
+
+- **「IE は消えた」を「px は rem と同等」と解釈する** — ページズームは同等ですが、ブラウザのデフォルトフォントサイズ設定は依然として別個の永続的な設定で、`px` はそれを無視します
+- **すべての値を `rem` に変換する** — ルート 24px では border が小数値になり画面ごとに異なるデバイスピクセル幅に丸められ、shadow と角丸が膨らみ、`rem` のスペーシングスケールは拡大したテキストが必要としていた行幅を食いつぶします
+- **切りのいい数字のために `html { font-size: 62.5% }` を設定する** — サードパーティやスタイル未指定の `1rem` テキストが 10px に落ちます。計算はトークンに置いてください
+- **「リセット」として `html { font-size: 16px }` や `body { font-size: 16px }` を設定する** — 絶対値のルートはユーザー設定を完全に上書きします。絶対値の `body` サイズは、その内側すべてへの継承を断ち切ります
+- **`rem` テキストと並べて `px` ブレークポイントを使う** — 拡大したテキストが狭いレイアウトを決してトリガーしません。メディアクエリでは `rem` か `em` を使ってください
+- **`html { font-size }` が `rem` ブレークポイントを変えると期待する** — メディアクエリの単位はブラウザの初期フォントサイズに対して解決され、`html` への author スタイルは参照されません
+- **WCAG が `rem` を要求していると主張する** — 1.4.4 はページズームを達成方法として挙げています。`rem` を選ぶ理由はユーザー設定であって、適合性ではありません
+- **ネストしたコンポーネントのフォントサイズに `em` を使う** — サイズが祖先を通じて複利的に増減します。`font-size` には `rem` を使い、`em` はそのフォントサイズに追従すべき寸法のために取っておいてください
+
+## 使い分け
+
+### rem
+
+フォントサイズ、スペーシングスケール、垂直リズム、そしてテキストのために存在するあらゆる寸法 — 入力欄の `min-height`、本文を収めるダイアログの `max-width` など。
+
+### em
+
+要素自身の `font-size` の上書きに追従すべき値: ボタンの padding、インラインアイコンのサイズ、`letter-spacing`、見出しレベルでサイズが決まる prose コンポーネント内の margin。
+
+### px
+
+border、outline、shadow、固定形状の角丸、タッチターゲットの最小サイズ、ページシェルのジオメトリ、そしてテキスト拡大時に太く・大きくなると不自然に見えるあらゆるもの。`px` のフォントサイズが正当化されるのは固定コンポジションの内側 — キャンバスの注釈、スライドのステージ — に限られ、そのトレードオフは [Stage-Proportional Typography](./stage-proportional-typography.mdx) がすでに扱っています。
+
+### 使ってはいけないもの
+
+`html { font-size: 62.5% }`、`html { font-size: 10px }`、リセットとしての `body` への `px` の `font-size`。ルートはブラウザのデフォルトのままにして、`rem` が本来の意味を持つようにしましょう。
+
+## References
+
+- [The Surprising Truth About Pixels and Accessibility — Josh W. Comeau](https://www.joshwcomeau.com/css/surprising-truth-about-pixels-and-accessibility/)
+- [Pixels vs. Ems: Users DO Change Font Size — Evan Minto, Internet Archive](https://medium.com/@vamptvo/pixels-vs-ems-users-do-change-font-size-5cfb20831773)
+- [Responsive Type and Zoom — Adrian Roselli](https://adrianroselli.com/2019/12/responsive-type-and-zoom.html)
+- [How browsers zoom text — Manuel Matuzović](https://www.matuzo.at/blog/2023/how-browsers-zoom-text)
+- [Rethinking Text Resizing on Web — Airbnb Engineering](https://medium.com/airbnb-engineering/rethinking-text-resizing-on-web-1047b12d2881)
+- [Understanding SC 1.4.4 Resize Text — W3C](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html)
+- [Media Queries Level 5 — Units](https://www.w3.org/TR/mediaqueries-5/#units)
+- [Don't use em for media queries (and the Safari 15 update) — Adam Wathan](https://adamwathan.me/dont-use-em-for-media-queries/)
+- [Tailwind CSS v4 — Responsive design](https://tailwindcss.com/docs/responsive-design)
+- [Tailwind CSS v4 — Theme variables (`--spacing`)](https://tailwindcss.com/docs/theme)
+- [Chrome Help — Change text, image, and video sizes (zoom)](https://support.google.com/chrome/answer/96810)
+- [What Unit? — Kevin Powell's interactive flowchart](https://whatunit.com/)
