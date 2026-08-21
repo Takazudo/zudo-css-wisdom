@@ -89,6 +89,7 @@
   "states-and-transitions/view-transitions.mdx": "Animated page/state transitions with View Transitions API",
   "text-control/long-url-and-path-wrapping.mdx": "Delimiter-aware wrapping for long URLs/paths via <wbr> injection instead of word-break: break-all or overflow-wrap: anywhere",
   "text-control/prose-heading-spacing.mdx": "Consecutive heading spacing fix, flow utility, heading + * reset, :has() approach",
+  "text-control/float-and-flow-spacing.mdx": "Flow/owl spacing vs floats: equalise leads, never zero the follower, floats do not margin-collapse",
   "text-control/text-overflow-and-clamping.mdx": "Single-line truncation, multi-line -webkit-line-clamp",
   "text-control/text-wrap-balance-pretty.mdx": "text-wrap: balance for headings, pretty for orphan prevention",
   "text-control/vertical-rhythm.mdx": "Consistent spacing with a baseline unit"
