@@ -1,23 +1,23 @@
 ---
 title: Float and Flow Spacing
 sidebar_position: 5
-description: "Why flow/owl prose spacing silently misaligns floated figures, the backwards \"zero the follower\" fix, and how to equalise the leads instead."
+description: フロー/アウル方式の prose スペーシングが float した図版の位置を静かにずらす理由、逆向きの「後続要素をゼロにする」修正、そして代わりにリードを等しくする方法。
 ---
 
 import CssPreview from '@/components/CssPreview';
 
-## The Problem
+## 問題
 
-The flow utility from [Prose Heading Spacing](./prose-heading-spacing.mdx) puts every gap on the **following** sibling's `margin-block-start`:
+[Prose Heading Spacing](./prose-heading-spacing.mdx) のフローユーティリティは、すべてのギャップを**後続**の兄弟要素の `margin-block-start` に置きます。
 
 ```css
 .prose > * + * { margin-block-start: var(--flow-space, 1rem); }
 .prose :where(h3) { --flow-space: 2rem; }
 ```
 
-This is robust for blocks. It is wrong for floats, and it fails without any diagnostic.
+これはブロック要素に対しては堅牢です。しかし float に対しては誤りであり、何の診断も出さずに失敗します。
 
-A float is positioned by **its own** `margin-block-start`. Its border-box top sits at `previous sibling's bottom margin edge + own margin-block-start`. The block beside it is positioned by **its** `margin-block-start`. The two top-align only when those two leads are **equal**. Nothing in the flow strategy makes that true — headings deliberately carry a larger lead than body text — so a floated figure beside a heading is misaligned by default. The error is invisible until the heading paints a rule or border.
+float は**自身の** `margin-block-start` で位置が決まります。その border-box の上端は「前の兄弟要素の bottom margin edge + 自身の margin-block-start」に置かれます。一方、隣のブロックは**そのブロック自身の** `margin-block-start` で位置が決まります。両者の上端が揃うのは、この 2 つのリード（上マージン）が**等しい**ときだけです。フロー戦略にはそれを保証する仕組みがありません。見出しは本文より意図的に大きなリードを持つため、見出しの横に float した図版はデフォルトでずれます。このずれは、見出しが罫線やボーダーを描くまで目に見えません。
 
 <CssPreview client:load
   title="Flow Spacing Misaligns a Float Beside a Heading"
@@ -95,18 +95,18 @@ A float is positioned by **its own** `margin-block-start`. Its border-box top si
   `}
 />
 
-The left column aligns only by coincidence: both leads are the default `1rem`. Change the neighbour to a heading, and the heading drops below the image by exactly the difference between the two leads.
+左のカラムが揃っているのは偶然にすぎません。どちらのリードもデフォルトの `1rem` だからです。隣の要素を見出しに変えると、見出しは 2 つのリードの差分だけ画像より下に落ちます。
 
-## The Seductive Wrong Fix
+## 魅力的に見える誤った修正
 
-The first instinct is "the float already opened the gap, so zero the neighbour":
+最初に思いつくのは「float がすでにギャップを空けているのだから、隣の要素をゼロにすればいい」という発想です。
 
 ```css
 /* Backwards — do not ship this */
 .prose .figure + * { margin-block-start: 0; }
 ```
 
-This drops the neighbour to the previous block's bottom edge while the float stays one lead lower. The text now starts **above** the image. A production site shipped exactly this rule, with a code comment claiming it aligned things.
+これは隣の要素を前のブロックの下端まで引き上げますが、float はリード 1 つ分だけ下に残ったままです。結果、テキストは画像より**上**から始まります。ある本番サイトでは、まさにこのルールが「これで揃う」というコードコメント付きで出荷されていました。
 
 <CssPreview client:load
   title="Anti-Pattern — Zeroing the Neighbour's Lead Puts Text Above the Image"
@@ -185,23 +185,23 @@ This drops the neighbour to the previous block's bottom edge while the float sta
   `}
 />
 
-## The Solution
+## 解決策
 
-Equalise the two leads instead of zeroing one. Move the **float** to meet the neighbour — never pull the neighbour up, because its lead is the section rhythm the whole strategy exists to protect.
+片方をゼロにするのではなく、2 つのリードを等しくします。動かすのは**float** の側で、隣の要素に合わせます。隣の要素を引き上げてはいけません。そのリードこそが、この戦略全体が守ろうとしているセクションのリズムだからです。
 
-| Shape | Leads | Action |
+| 構造 | リード | 対応 |
 | --- | --- | --- |
-| `p → float → p` | Both default | None. Delete any zeroing rule. |
-| `p → float → h3` | Heading lead is larger | Float adopts the heading's lead: `.figure:has(+ h3) { --flow-space: 2rem }` |
-| Heading paints its rule below its own `padding-top` | Heading lead + inset | Float adopts `lead + inset`, sharing the inset through one custom property |
-| Previous sibling owns a `margin-block-end` | Collapses with the block, not with the float | Zero it: `> *:has(+ .figure) { margin-block-end: 0 }` |
-| Float only above a breakpoint | Below it the element is a block | Scope every correction to that media query |
+| `p → float → p` | どちらもデフォルト | 何もしない。ゼロ化ルールがあれば削除する |
+| `p → float → h3` | 見出しのリードが大きい | float が見出しのリードを採用する: `.figure:has(+ h3) { --flow-space: 2rem }` |
+| 見出しが自身の `padding-top` の下に罫線を描く | 見出しのリード + インセット | float が `リード + インセット` を採用する。インセットは 1 つのカスタムプロパティで共有する |
+| 前の兄弟要素が `margin-block-end` を持つ | ブロックとは相殺されるが float とは相殺されない | ゼロにする: `> *:has(+ .figure) { margin-block-end: 0 }` |
+| ブレークポイント以上でのみ float する | それ未満では要素はブロック | すべての補正をそのメディアクエリにスコープする |
 
-## Code Examples
+## コード例
 
-### Float Adopts the Heading's Lead
+### float が見出しのリードを採用する
 
-The flow utility reads `--flow-space` from the element it positions. Set it on the float when a heading follows, and the float moves **down** to meet the heading.
+フローユーティリティは、位置を決める要素自身から `--flow-space` を読み取ります。見出しが後続する場合に float 側へ設定すれば、float が**下に**移動して見出しに揃います。
 
 ```css
 .prose > * + * { margin-block-start: var(--flow-space, 1rem); }
@@ -211,8 +211,8 @@ The flow utility reads `--flow-space` from the element it positions. Set it on t
 .prose .figure:has(+ :where(h3)) { --flow-space: 2rem; }
 ```
 
-:::warning[Define leads in `rem`, not `em`]
-`em` resolves against the element that uses it. A float at `14px` and an `h3` at `16.8px` get different pixel values from the same `2em`, so the leads are still unequal after the "fix". Put the lead values in `rem` or fixed-unit tokens, as the examples on this page do.
+:::warning[リードは `em` ではなく `rem` で定義する]
+`em` はそれを使う要素のフォントサイズ基準で解決されます。`14px` の float と `16.8px` の `h3` では同じ `2em` が異なるピクセル値になるため、「修正」後もリードは等しくなりません。このページの例のように、リードの値は `rem` か固定単位のトークンで定義してください。
 :::
 
 <CssPreview client:load
@@ -293,9 +293,9 @@ The flow utility reads `--flow-space` from the element it positions. Set it on t
   `}
 />
 
-### Heading With an Internal Inset
+### 内側にインセットを持つ見出し
 
-A heading that paints its rule after its own `padding-top` aligns to a line that is not its box top. The float must adopt `lead + inset`. Hoist the inset into a shared custom property so the heading and the float rule cannot drift apart.
+自身の `padding-top` の後に罫線を描く見出しは、ボックスの上端ではない線に揃えて見えます。float は `リード + インセット` を採用しなければなりません。インセットを共有のカスタムプロパティに引き上げておけば、見出しと float のルールが食い違うことはありません。
 
 ```css
 .prose {
@@ -405,9 +405,9 @@ A heading that paints its rule after its own `padding-top` aligns to a line that
   `}
 />
 
-### Floats Do Not Margin-Collapse
+### float はマージンの相殺をしない
 
-A trailing `margin-block-end` owned by the **previous** sibling collapses with the next block's lead — but not with the float between them. The float is pushed down by the full sum; the text beside it is not. Zero the trailing margin on whatever precedes a float.
+**前の**兄弟要素が持つ末尾の `margin-block-end` は、次のブロックのリードとは相殺されます。しかし、その間にある float とは相殺されません。float は両方の合計分だけ押し下げられ、横のテキストはそうなりません。float の前にある要素の末尾マージンはゼロにしましょう。
 
 ```css
 /* An hr that owns its own bottom margin */
@@ -417,7 +417,7 @@ A trailing `margin-block-end` owned by the **previous** sibling collapses with t
 .prose > *:has(+ .figure) { margin-block-end: 0; }
 ```
 
-The deeper invariant: inside a flow-spaced container, **no child should own a trailing margin at all**. Use `padding-block-end` for internal visual weight instead.
+より根本的な不変条件は、フロースペーシングのコンテナ内では**どの子要素も末尾マージンを持つべきではない**ということです。内側の視覚的な余白が必要なら、代わりに `padding-block-end` を使います。
 
 <CssPreview client:load
   title="Fix — Zero the Trailing Margin Before a Float"
@@ -503,9 +503,9 @@ The deeper invariant: inside a flow-spaced container, **no child should own a tr
   `}
 />
 
-### Scope Corrections to the Float's Media Query
+### 補正を float のメディアクエリにスコープする
 
-A figure that floats only above a breakpoint is a full-width block below it. There, its own `padding-block-end` makes the gap, and zeroing the follower's lead **is** correct. Every float correction belongs inside the same media query that turns the float on.
+ブレークポイント以上でのみ float する図版は、それ未満では全幅のブロックです。その状態では図版自身の `padding-block-end` がギャップを作るので、後続要素のリードをゼロにするのが**正しい**対応になります。float の補正はすべて、float を有効にするのと同じメディアクエリの中に置きます。
 
 ```css
 .figure { padding-block-end: 1rem; }
@@ -591,9 +591,9 @@ A figure that floats only above a breakpoint is a full-width block below it. The
   `}
 />
 
-## Diagnostic
+## 診断
 
-Eyeballing this does not work — a 12px offset beside a wrapped paragraph looks like optical alignment. Measure it:
+目視では判断できません。折り返された段落の横にある 12px のずれは、光学的な調整のように見えてしまいます。計測しましょう。
 
 ```js
 const float = document.querySelector('.figure');
@@ -601,48 +601,48 @@ const neighbour = float.nextElementSibling;
 neighbour.getBoundingClientRect().top - float.getBoundingClientRect().top; // want 0
 ```
 
-Run it across every distinct structural shape the content produces: `p → float → h3`, `h2 → float → p`, `hr → float → dl`, and so on. When the heading paints its rule inside its box, measure the rule element, not the heading. On the production site that motivated this page, 14 shapes across 53 floats were misaligned before the fix, in both directions (+36px to −34px), with zero aligned. After the fix all 14 measured Δ = 0.
+コンテンツが生み出すすべての構造パターンで実行してください。`p → float → h3`、`h2 → float → p`、`hr → float → dl` などです。見出しがボックス内側に罫線を描く場合は、見出しではなく罫線の要素を計測します。このページを書くきっかけになった本番サイトでは、修正前は 53 個の float にわたる 14 パターンがすべてずれており、その方向も両側（+36px から −34px）に及び、揃っているものは 1 つもありませんでした。修正後は 14 パターンすべてで Δ = 0 を計測しました。
 
-## Quick Reference
+## クイックリファレンス
 
-| Scenario | Technique |
+| シナリオ | テクニック |
 | --- | --- |
-| Float beside a default-lead block | No rule. Delete any `.float + * { margin-block-start: 0 }` |
-| Float beside a heading with a larger lead | `.float:has(+ h3) { --flow-space: <heading lead> }` |
-| Heading paints its rule below `padding-top` | `--flow-space: calc(var(--heading-lead) + var(--heading-inset))` on the float |
-| Previous sibling owns `margin-block-end` | `> *:has(+ .float) { margin-block-end: 0 }` |
-| Float only above a breakpoint | Put every correction inside that `@media`; keep the zeroed lead below it |
-| Float is the container's first child | `:first-child { margin-block-start: 0 }` defeats the float's lead — avoid the shape or special-case it |
-| Verifying | `neighbour.getBoundingClientRect().top - float.getBoundingClientRect().top === 0` per shape |
+| デフォルトリードのブロックの横に float | ルール不要。`.float + * { margin-block-start: 0 }` があれば削除する |
+| リードが大きい見出しの横に float | `.float:has(+ h3) { --flow-space: <見出しのリード> }` |
+| 見出しが `padding-top` の下に罫線を描く | float 側に `--flow-space: calc(var(--heading-lead) + var(--heading-inset))` |
+| 前の兄弟要素が `margin-block-end` を持つ | `> *:has(+ .float) { margin-block-end: 0 }` |
+| ブレークポイント以上でのみ float | すべての補正をその `@media` 内に置く。それ未満ではゼロ化したリードを維持する |
+| float がコンテナの最初の子要素 | `:first-child { margin-block-start: 0 }` が float のリードを打ち消す。この構造を避けるか、個別に対応する |
+| 検証 | パターンごとに `neighbour.getBoundingClientRect().top - float.getBoundingClientRect().top === 0` |
 
-## Common AI Mistakes
+## AI がよくやるミス
 
-- **Zeroing the neighbour's lead after a float.** This reads as "the float opened the gap" but moves the text above the image. Leads must be equal, not zero.
-- **Pulling the heading up to meet the float.** The heading's larger lead is the section rhythm. Move the float down instead.
-- **Treating the heading's box top as the alignment target.** When the rule sits below `padding-top`, align to the rule: add the inset to the float's lead.
-- **Hard-coding the inset in two places.** The heading's `padding-top` and the float's `calc()` drift apart on the next redesign. Share one custom property.
-- **Writing the shared lead in `em`.** The float and the heading have different font sizes, so `2em` is a different number of pixels on each. Use `rem` or fixed tokens for `--flow-space` values.
-- **Assuming margin collapse applies to floats.** A previous sibling's `margin-block-end` offsets the float but not the block beside it. Zero trailing margins before floats — or never let a flow child own one.
-- **Applying float corrections at every viewport.** Below the float breakpoint the element is a block and the corrections are wrong. Scope them to the media query.
-- **Judging alignment by eye.** Measure `getBoundingClientRect().top` differences across every shape the content produces.
+- **float の後で隣の要素のリードをゼロにする。** 「float がギャップを空けた」ように読めますが、テキストが画像より上に移動します。リードはゼロではなく等しくしなければなりません。
+- **見出しを引き上げて float に合わせる。** 見出しの大きなリードはセクションのリズムです。代わりに float を下に動かします。
+- **見出しのボックス上端を揃える対象とみなす。** 罫線が `padding-top` の下にある場合は罫線に揃えます。float のリードにインセットを加えてください。
+- **インセットを 2 箇所にハードコードする。** 見出しの `padding-top` と float の `calc()` は次のリデザインで食い違います。1 つのカスタムプロパティを共有しましょう。
+- **共有するリードを `em` で書く。** float と見出しはフォントサイズが異なるため、`2em` はそれぞれ別のピクセル数になります。`--flow-space` の値には `rem` か固定トークンを使います。
+- **マージンの相殺が float にも適用されると思い込む。** 前の兄弟要素の `margin-block-end` は float の位置をずらしますが、横のブロックはずらしません。float の前の末尾マージンはゼロにするか、そもそもフローの子要素に末尾マージンを持たせないでください。
+- **float の補正をすべてのビューポートに適用する。** float のブレークポイント未満では要素はブロックであり、補正は誤りになります。メディアクエリにスコープしてください。
+- **揃っているかを目で判断する。** コンテンツが生み出すすべてのパターンで `getBoundingClientRect().top` の差を計測してください。
 
-## When to Use
+## 使い分け
 
-### Float Adopts the Neighbour's Lead
+### float が隣の要素のリードを採用する
 
-Use whenever a flow-spaced container allows floated children — markdown articles with floated figures, pull quotes, or sidebars. This is the only correction that preserves the heading rhythm.
+フロースペーシングのコンテナが float した子要素を許容する場合は常に使います。float した図版、プルクオート、サイドバーを含む markdown 記事などです。見出しのリズムを保てる唯一の補正です。
 
-### Zero Trailing Margins Before Floats
+### float の前の末尾マージンをゼロにする
 
-Use whenever a flow container contains elements that still own `margin-block-end` (third-party components, `hr`, grids). Better: remove the trailing margins entirely and make the invariant hold for every child.
+フローコンテナ内に、まだ `margin-block-end` を持つ要素（サードパーティのコンポーネント、`hr`、グリッドなど）がある場合に使います。より望ましいのは、末尾マージンを完全に取り除き、すべての子要素で不変条件が成り立つようにすることです。
 
-### Zeroing the Follower's Lead
+### 後続要素のリードをゼロにする
 
-Use only in the non-floating (block) mode of a responsive figure, where the figure's own `padding-block-end` is the gap. Never in float mode.
+レスポンシブな図版の非 float（ブロック）モードでのみ使います。そこでは図版自身の `padding-block-end` がギャップになります。float モードでは決して使いません。
 
-## References
+## 参考リンク
 
-- [Prose Heading Spacing](./prose-heading-spacing.mdx) — the flow utility this page corrects for floats
+- [Prose Heading Spacing](./prose-heading-spacing.mdx) — このページが float 向けに補正するフローユーティリティ
 - [float — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/float)
 - [Mastering Margin Collapsing — MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing)
 - [CSS 2 — Floats and margin collapsing (8.3.1)](https://www.w3.org/TR/CSS2/box.html#collapsing-margins)
