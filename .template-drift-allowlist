@@ -31,6 +31,14 @@
 pages/docs/[[...slug]].tsx
 pages/[locale]/docs/[[...slug]].tsx
 
+# ── Minified HTML compatibility: check-links.js ───────────────────────────
+# zfb's production HTML emits unquoted href/id attributes. The 5.13.1
+# scaffold checker only recognizes quoted values, which makes its built-site
+# pass silently skip navigation links and anchors. Keep the scaffold checker
+# plus the small unquoted-attribute compatibility patch guarded by
+# scripts/check-links.test.mjs. Tracked upstream as zudolab/zudo-doc#3720.
+scripts/check-links.js
+
 # ── Host brand customization: global.css ──────────────────────────────────
 # global.css carries host brand overrides on top of the v4 base template: the
 # Noto Sans JP `--font-sans` stack (theme.css defaults to system-ui), the

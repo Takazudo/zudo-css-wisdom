@@ -16,6 +16,7 @@
     "check:pin-parity": "node scripts/check-pin-parity.mjs",
     "check:wrangler-pin": "node scripts/check-wrangler-pin.mjs",
     "check:template-drift": "bash scripts/check-template-drift.sh",
+    "test:links": "node --test scripts/check-links.test.mjs",
     "check:links": "node scripts/check-links.js --strict-broken --allowlist=.check-links-allowlist",
     "check:redirects": "node scripts/check-redirects.mjs",
     "format:md": "pnpm dlx @takazudo/mdx-formatter --write \"src/content/**/*.{md,mdx}\"",

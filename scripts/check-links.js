@@ -427,18 +427,29 @@ export async function parseContentDirs(configPath) {
 
 export function extractHtmlLinks(html) {
   const links = [];
-  const regex = /<a\s[^>]*?href=(?:"([^"]*)"|'([^']*)')[^>]*>/gi;
+  // zfb's production minifier emits unquoted attributes. Keep this scaffold
+  // compatibility patch until zudolab/zudo-doc#3720 is released upstream.
+  const regex = /<a\s[^>]*?href=(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`\\]+))[^>]*>/gi;
   let match;
   let lastIndex = 0;
   let line = 1;
   while ((match = regex.exec(html)) !== null) {
-    const href = match[1] ?? match[2];
-    if (/^(?:https?:|mailto:|javascript:|data:|tel:)/i.test(href)) continue;
+    const href = decodeHtmlAttribute(match[1] ?? match[2] ?? match[3]);
+    if (/^(?:https?:|\/\/|mailto:|javascript:|data:|tel:)/i.test(href)) continue;
     for (let i = lastIndex; i < match.index; i += 1) if (html[i] === "\n") line += 1;
     lastIndex = match.index;
     links.push({ href, line });
   }
   return links;
+}
+
+function decodeHtmlAttribute(value) {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'");
 }
 
 function safeDecodePath(path) {
@@ -704,9 +715,11 @@ export async function checkHtmlLinksAndTrailing(
           if (ids === undefined) {
             const targetHtml = await readFile(detail.targetFile, "utf-8");
             ids = new Set();
-            const idRegex = /\bid\s*=\s*(?:"([^"]*)"|'([^']*)')/gi;
+            const idRegex = /\bid\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`\\]+))/gi;
             let idMatch;
-            while ((idMatch = idRegex.exec(targetHtml)) !== null) ids.add(idMatch[1] ?? idMatch[2]);
+            while ((idMatch = idRegex.exec(targetHtml)) !== null) {
+              ids.add(decodeHtmlAttribute(idMatch[1] ?? idMatch[2] ?? idMatch[3]));
+            }
             idCache.set(detail.targetFile, ids);
           }
           if (!ids.has(detail.fragment)) reason = "missing target id";
