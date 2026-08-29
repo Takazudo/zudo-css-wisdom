@@ -12,4 +12,4 @@ Updated by /dev-bump-zudo-deps on every sync — keep `pinned:` accurate.
 - track: releases
 - pinned: 7ca73f197021961603c22042748c23d9ce9d6c50 (v5.13.1)
 - updated: 2026-08-29
-- notes: Preserve the DocHistory and host chrome-binding route patches, root-level zfb shim coverage in tsconfig, css-wisdom generator/setup wiring, host global.css divergence, and the custom orange C favicon set; every intentional divergence is documented in .template-drift-allowlist, while non-allowlisted files must match the scaffold exactly.
+- notes: Preserve the DocHistory and host chrome-binding route patches, root-level zfb shim coverage in tsconfig, css-wisdom generator/setup wiring, host global.css divergence, the custom orange C favicon set, and check-links.js support for unquoted attributes in minified zfb HTML (zudolab/zudo-doc#3720); every intentional divergence is documented in .template-drift-allowlist, while non-allowlisted files must match the scaffold exactly.

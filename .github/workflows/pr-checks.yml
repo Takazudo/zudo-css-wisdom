@@ -188,6 +188,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # zfb production HTML uses unquoted href/id attributes. Keep the local
+      # compatibility patch covered until zudolab/zudo-doc#3720 lands upstream.
+      - name: Run link checker regression tests
+        run: pnpm test:links
+
       # Backstop for the local b4push gate: catch a zfb bump that left the
       # wrangler pin stale (would silently break local `zfb dev`/`preview`).
       # Needs node_modules, so it rides the typecheck job rather than the
