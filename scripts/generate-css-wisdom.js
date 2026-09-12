@@ -221,7 +221,8 @@ documentation in this repo.
    - Link to other docs using relative paths with \`.mdx\` extension.
 5. **Update Japanese docs**: Create or update the corresponding file under
    \`docs-ja/\` mirroring the English directory structure. Keep code blocks
-   and \`<CssPreview>\` blocks identical — only translate surrounding prose.
+   and \`<CssPreview>\` payload bodies (\`html={}\`, \`css={}\`, \`height={}\`)
+   identical — only translate surrounding prose and the \`title\` prop.
 6. **Update skill index**: Run \`pnpm generate:css-wisdom\` to regenerate the
    topic index. Add descriptions for new articles to
    \`.claude/skills/css-wisdom/descriptions.json\`.

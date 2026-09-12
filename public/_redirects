@@ -473,13 +473,24 @@
 /ja/docs/inbox/ /ja/docs/overview 301
 
 # --- Dynamic: dissolved umbrella / junk-drawer category catch-alls (EN) ---
-# Longer/more-specific prefixes MUST precede their umbrella prefix -- first match
-# wins, so /docs/layout/specialized/* and /docs/typography/text-effects/* would be
-# unreachable dead rules if listed after their broader /docs/layout/* /
-# /docs/typography/* umbrella catch-alls (codex-review finding on #198). This is a
-# safety net for any old route not covered by an explicit static rule above --
-# splat rules don't need trailing-slash duplicates since `*` already matches both
-# `/docs/layout/x` and `/docs/layout/x/` (their captured suffix is slash-agnostic);
+# Static rules MUST precede the splat that would swallow them -- first match wins
+# for static-vs-splat, which is the #198 bug (a static exception listed after a
+# broader splat became unreachable dead code).
+# That ordering rule does NOT hold between two splats. The more-specific
+# /docs/layout/specialized/* and /docs/typography/text-effects/* are listed ahead
+# of their /docs/layout/* / /docs/typography/* umbrellas to record where those
+# routes were meant to land, but Cloudflare ignores file order here: measured in
+# production during the 260912 sweep (#207),
+# /docs/layout/specialized/not-in-inventory resolves to /docs/flexbox-and-grid,
+# not /docs/document-layout. Both specific splats are therefore SHADOWED in
+# production and retained only to document intent -- do not rely on them to
+# disambiguate a new dissolved-category route. (Harmless today: every URL in the
+# epic #196 inventory is covered by a static rule above -- scripts/check-redirects.mjs
+# now fails the build if that ever stops being true.)
+# The splats are a safety net for any old route not covered by an explicit static
+# rule above. Splat rules don't need trailing-slash duplicates since `*` already
+# matches both `/docs/layout/x` and `/docs/layout/x/` (their captured suffix is
+# slash-agnostic);
 # only the umbrella root itself (`/docs/layout`, no further path) needs the explicit
 # bare+slash static pair above, since a splat's literal prefix requires the slash
 # before it and so does not match the bare root.
@@ -495,6 +506,12 @@
 /docs/inbox/* /docs/overview 301
 
 # --- Dynamic: dissolved umbrella / junk-drawer category catch-alls (JA) ---
+# Same splat-vs-splat caveat as the EN block above: /ja/docs/layout/specialized/*
+# and /ja/docs/typography/text-effects/* are listed first to document intent, but
+# Cloudflare ignores file order between two splats, so both are SHADOWED in
+# production by the broader /ja/docs/layout/* / /ja/docs/typography/* umbrellas
+# below (#207 measured /ja/docs/layout/specialized/not-in-inventory landing on
+# /ja/docs/flexbox-and-grid).
 /ja/docs/layout/specialized/* /ja/docs/document-layout 301
 /ja/docs/typography/text-effects/* /ja/docs/effects 301
 /ja/docs/layout/* /ja/docs/flexbox-and-grid 301

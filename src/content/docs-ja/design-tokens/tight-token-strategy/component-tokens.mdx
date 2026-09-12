@@ -122,157 +122,157 @@ import CssPreview from '@/components/CssPreview';
 
 <CssPreview client:load
   title="コンポーネント内のシステムトークン + 任意の値"
-  html={`    <div class="card-demo">
-      <div class="card-demo__header">
-        <div class="card-demo__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <div class="card-demo__title">Project Dashboard</div>
+  html={`<div class="card-demo">
+  <div class="card-demo__header">
+    <div class="card-demo__icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="card-demo__title">Project Dashboard</div>
+  </div>
+  <div class="card-demo__body">
+    <div class="card-demo__grid">
+      <div class="card-demo__sidebar">
+        <div class="card-demo__nav-item card-demo__nav-item--active">Overview</div>
+        <div class="card-demo__nav-item">Analytics</div>
+        <div class="card-demo__nav-item">Settings</div>
       </div>
-      <div class="card-demo__body">
-        <div class="card-demo__grid">
-          <div class="card-demo__sidebar">
-            <div class="card-demo__nav-item card-demo__nav-item--active">Overview</div>
-            <div class="card-demo__nav-item">Analytics</div>
-            <div class="card-demo__nav-item">Settings</div>
-          </div>
-          <div class="card-demo__content">
-            <div class="card-demo__stat">
-              <div class="card-demo__stat-value">2,847</div>
-              <div class="card-demo__stat-label">Active users</div>
-            </div>
-            <div class="card-demo__stat">
-              <div class="card-demo__stat-value">94.2%</div>
-              <div class="card-demo__stat-label">Uptime</div>
-            </div>
-          </div>
+      <div class="card-demo__content">
+        <div class="card-demo__stat">
+          <div class="card-demo__stat-value">2,847</div>
+          <div class="card-demo__stat-label">Active users</div>
+        </div>
+        <div class="card-demo__stat">
+          <div class="card-demo__stat-value">94.2%</div>
+          <div class="card-demo__stat-label">Uptime</div>
         </div>
       </div>
-      <div class="card-demo__annotations">
-        <div class="card-demo__annotation card-demo__annotation--token">
-          <span class="card-demo__dot card-demo__dot--token"></span>
-          System tokens: padding, gaps, colors
-        </div>
-        <div class="card-demo__annotation card-demo__annotation--arbitrary">
-          <span class="card-demo__dot card-demo__dot--arbitrary"></span>
-          Arbitrary values: icon size, grid columns, stat font
-        </div>
-      </div>
-    </div>`}
+    </div>
+  </div>
+  <div class="card-demo__annotations">
+    <div class="card-demo__annotation card-demo__annotation--token">
+      <span class="card-demo__dot card-demo__dot--token"></span>
+      System tokens: padding, gaps, colors
+    </div>
+    <div class="card-demo__annotation card-demo__annotation--arbitrary">
+      <span class="card-demo__dot card-demo__dot--arbitrary"></span>
+      Arbitrary values: icon size, grid columns, stat font
+    </div>
+  </div>
+</div>`}
   css={`.card-demo {
-      font-family: system-ui, sans-serif;
-      font-size: 14px;
-      color: hsl(222 47% 11%);
-      border: 1px solid hsl(214 32% 91%);
-      border-radius: 8px;
-      overflow: hidden;
-    }
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  color: hsl(222 47% 11%);
+  border: 1px solid hsl(214 32% 91%);
+  border-radius: 8px;
+  overflow: hidden;
+}
 
-    /* ── Header: system tokens for padding, arbitrary for icon ── */
-    .card-demo__header {
-      display: flex;
-      align-items: center;
-      gap: 12px;                          /* hsp-xs (system token) */
-      padding: 8px 20px;                  /* vsp-xs / hsp-sm (system tokens) */
-      background: hsl(210 40% 96%);
-      border-bottom: 1px solid hsl(214 32% 91%);
-    }
-    .card-demo__icon {
-      width: 18px;                        /* ARBITRARY: icon-specific size */
-      height: 18px;                       /* ARBITRARY: icon-specific size */
-      color: hsl(221 83% 53%);
-      flex-shrink: 0;
-    }
-    .card-demo__icon svg {
-      width: 100%;
-      height: 100%;
-    }
-    .card-demo__title {
-      font-weight: 700;
-      font-size: 15px;
-    }
+/* ── Header: system tokens for padding, arbitrary for icon ── */
+.card-demo__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;                          /* hsp-xs (system token) */
+  padding: 8px 20px;                  /* vsp-xs / hsp-sm (system tokens) */
+  background: hsl(210 40% 96%);
+  border-bottom: 1px solid hsl(214 32% 91%);
+}
+.card-demo__icon {
+  width: 18px;                        /* ARBITRARY: icon-specific size */
+  height: 18px;                       /* ARBITRARY: icon-specific size */
+  color: hsl(221 83% 53%);
+  flex-shrink: 0;
+}
+.card-demo__icon svg {
+  width: 100%;
+  height: 100%;
+}
+.card-demo__title {
+  font-weight: 700;
+  font-size: 15px;
+}
 
-    /* ── Body: system tokens for padding ── */
-    .card-demo__body {
-      padding: 20px;                      /* vsp-sm / hsp-sm (system tokens) */
-    }
+/* ── Body: system tokens for padding ── */
+.card-demo__body {
+  padding: 20px;                      /* vsp-sm / hsp-sm (system tokens) */
+}
 
-    /* ── Grid: ARBITRARY column template ── */
-    .card-demo__grid {
-      display: grid;
-      grid-template-columns: 120px 1fr;   /* ARBITRARY: component layout */
-      gap: 20px;                          /* hsp-sm (system token) */
-    }
+/* ── Grid: ARBITRARY column template ── */
+.card-demo__grid {
+  display: grid;
+  grid-template-columns: 120px 1fr;   /* ARBITRARY: component layout */
+  gap: 20px;                          /* hsp-sm (system token) */
+}
 
-    /* ── Sidebar nav ── */
-    .card-demo__sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;                           /* vsp-2xs (system token) */
-    }
-    .card-demo__nav-item {
-      padding: 4px 12px;                  /* vsp-2xs / hsp-xs (system tokens) */
-      border-radius: 4px;
-      font-size: 13px;
-      color: hsl(215 16% 47%);
-      cursor: default;
-    }
-    .card-demo__nav-item--active {
-      background: hsl(221 83% 53%);
-      color: hsl(0 0% 100%);
-    }
+/* ── Sidebar nav ── */
+.card-demo__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;                           /* vsp-2xs (system token) */
+}
+.card-demo__nav-item {
+  padding: 4px 12px;                  /* vsp-2xs / hsp-xs (system tokens) */
+  border-radius: 4px;
+  font-size: 13px;
+  color: hsl(215 16% 47%);
+  cursor: default;
+}
+.card-demo__nav-item--active {
+  background: hsl(221 83% 53%);
+  color: hsl(0 0% 100%);
+}
 
-    /* ── Stats ── */
-    .card-demo__content {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;                           /* vsp-xs (system token) */
-    }
-    .card-demo__stat {
-      padding: 8px 12px;                  /* vsp-xs / hsp-xs (system tokens) */
-      background: hsl(210 40% 96%);
-      border-radius: 4px;
-    }
-    .card-demo__stat-value {
-      font-size: 22px;                    /* ARBITRARY: decorative display size */
-      font-weight: 700;
-      line-height: 1.2;
-      color: hsl(222 47% 11%);
-    }
-    .card-demo__stat-label {
-      font-size: 12px;
-      color: hsl(215 16% 47%);
-    }
+/* ── Stats ── */
+.card-demo__content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;                           /* vsp-xs (system token) */
+}
+.card-demo__stat {
+  padding: 8px 12px;                  /* vsp-xs / hsp-xs (system tokens) */
+  background: hsl(210 40% 96%);
+  border-radius: 4px;
+}
+.card-demo__stat-value {
+  font-size: 22px;                    /* ARBITRARY: decorative display size */
+  font-weight: 700;
+  line-height: 1.2;
+  color: hsl(222 47% 11%);
+}
+.card-demo__stat-label {
+  font-size: 12px;
+  color: hsl(215 16% 47%);
+}
 
-    /* ── Annotations ── */
-    .card-demo__annotations {
-      display: flex;
-      gap: 20px;                          /* hsp-sm */
-      padding: 8px 20px;                  /* vsp-xs / hsp-sm */
-      border-top: 1px solid hsl(214 32% 91%);
-      background: hsl(210 40% 96%);
-      font-size: 12px;
-      color: hsl(215 16% 47%);
-    }
-    .card-demo__annotation {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .card-demo__dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .card-demo__dot--token {
-      background: hsl(142 71% 45%);
-    }
-    .card-demo__dot--arbitrary {
-      background: hsl(33 95% 54%);
-    }`}
+/* ── Annotations ── */
+.card-demo__annotations {
+  display: flex;
+  gap: 20px;                          /* hsp-sm */
+  padding: 8px 20px;                  /* vsp-xs / hsp-sm */
+  border-top: 1px solid hsl(214 32% 91%);
+  background: hsl(210 40% 96%);
+  font-size: 12px;
+  color: hsl(215 16% 47%);
+}
+.card-demo__annotation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-demo__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.card-demo__dot--token {
+  background: hsl(142 71% 45%);
+}
+.card-demo__dot--arbitrary {
+  background: hsl(33 95% 54%);
+}`}
   height={320} />
 
 コードの中で、システムトークンはプロジェクトのスペーシング語彙に従う値の場所に現れます — 水平パディングの `hsp-sm`（20px）、垂直パディングの `vsp-xs`（8px）、ギャップの `hsp-xs`（12px）。任意の値はコンポーネント固有の詳細に現れます：アイコンは光学的バランスのために `18px`、グリッドはサイドバー幅に `120px`、統計数値は視覚的インパクトのために `22px` です。これらの任意の値はこのコンポーネント内でのみ意味を持つため、システムトークンセットに属しません。
@@ -283,162 +283,162 @@ import CssPreview from '@/components/CssPreview';
 
 <CssPreview client:load
   title="トークン昇格のビフォー・アフター"
-  html={`    <div class="promo-demo">
-      <div class="promo-demo__section">
-        <div class="promo-demo__label">Before: arbitrary values everywhere</div>
-        <div class="promo-demo__cards promo-demo__cards--before">
-          <div class="promo-demo__card promo-demo__card--before">
-            <div class="promo-demo__card-name">Basic</div>
-            <div class="promo-demo__card-price promo-demo__card-price--before">$9</div>
-            <div class="promo-demo__card-desc">For individuals</div>
-          </div>
-          <div class="promo-demo__card promo-demo__card--before">
-            <div class="promo-demo__card-name">Pro</div>
-            <div class="promo-demo__card-price promo-demo__card-price--before">$29</div>
-            <div class="promo-demo__card-desc">For teams</div>
-          </div>
-          <div class="promo-demo__card promo-demo__card--before">
-            <div class="promo-demo__card-name">Enterprise</div>
-            <div class="promo-demo__card-price promo-demo__card-price--before">$99</div>
-            <div class="promo-demo__card-desc">For organizations</div>
-          </div>
-        </div>
-        <div class="promo-demo__code">
-          <code>gap: 15px;  padding: 18px 22px;  font-size: 28px;</code>
-          <div class="promo-demo__code-note">Each dev picked different values</div>
-        </div>
+  html={`<div class="promo-demo">
+  <div class="promo-demo__section">
+    <div class="promo-demo__label">Before: arbitrary values everywhere</div>
+    <div class="promo-demo__cards promo-demo__cards--before">
+      <div class="promo-demo__card promo-demo__card--before">
+        <div class="promo-demo__card-name">Basic</div>
+        <div class="promo-demo__card-price promo-demo__card-price--before">$9</div>
+        <div class="promo-demo__card-desc">For individuals</div>
       </div>
-      <div class="promo-demo__section">
-        <div class="promo-demo__label">After: promoted to system tokens</div>
-        <div class="promo-demo__cards promo-demo__cards--after">
-          <div class="promo-demo__card promo-demo__card--after">
-            <div class="promo-demo__card-name">Basic</div>
-            <div class="promo-demo__card-price promo-demo__card-price--after">$9</div>
-            <div class="promo-demo__card-desc">For individuals</div>
-          </div>
-          <div class="promo-demo__card promo-demo__card--after">
-            <div class="promo-demo__card-name">Pro</div>
-            <div class="promo-demo__card-price promo-demo__card-price--after">$29</div>
-            <div class="promo-demo__card-desc">For teams</div>
-          </div>
-          <div class="promo-demo__card promo-demo__card--after">
-            <div class="promo-demo__card-name">Enterprise</div>
-            <div class="promo-demo__card-price promo-demo__card-price--after">$99</div>
-            <div class="promo-demo__card-desc">For organizations</div>
-          </div>
-        </div>
-        <div class="promo-demo__code">
-          <code>gap: hsp-sm;  padding: vsp-sm hsp-sm;  font-size: heading;</code>
-          <div class="promo-demo__code-note">Consistent tokens across all cards</div>
-        </div>
+      <div class="promo-demo__card promo-demo__card--before">
+        <div class="promo-demo__card-name">Pro</div>
+        <div class="promo-demo__card-price promo-demo__card-price--before">$29</div>
+        <div class="promo-demo__card-desc">For teams</div>
       </div>
-    </div>`}
+      <div class="promo-demo__card promo-demo__card--before">
+        <div class="promo-demo__card-name">Enterprise</div>
+        <div class="promo-demo__card-price promo-demo__card-price--before">$99</div>
+        <div class="promo-demo__card-desc">For organizations</div>
+      </div>
+    </div>
+    <div class="promo-demo__code">
+      <code>gap: 15px;  padding: 18px 22px;  font-size: 28px;</code>
+      <div class="promo-demo__code-note">Each dev picked different values</div>
+    </div>
+  </div>
+  <div class="promo-demo__section">
+    <div class="promo-demo__label">After: promoted to system tokens</div>
+    <div class="promo-demo__cards promo-demo__cards--after">
+      <div class="promo-demo__card promo-demo__card--after">
+        <div class="promo-demo__card-name">Basic</div>
+        <div class="promo-demo__card-price promo-demo__card-price--after">$9</div>
+        <div class="promo-demo__card-desc">For individuals</div>
+      </div>
+      <div class="promo-demo__card promo-demo__card--after">
+        <div class="promo-demo__card-name">Pro</div>
+        <div class="promo-demo__card-price promo-demo__card-price--after">$29</div>
+        <div class="promo-demo__card-desc">For teams</div>
+      </div>
+      <div class="promo-demo__card promo-demo__card--after">
+        <div class="promo-demo__card-name">Enterprise</div>
+        <div class="promo-demo__card-price promo-demo__card-price--after">$99</div>
+        <div class="promo-demo__card-desc">For organizations</div>
+      </div>
+    </div>
+    <div class="promo-demo__code">
+      <code>gap: hsp-sm;  padding: vsp-sm hsp-sm;  font-size: heading;</code>
+      <div class="promo-demo__code-note">Consistent tokens across all cards</div>
+    </div>
+  </div>
+</div>`}
   css={`.promo-demo {
-      font-family: system-ui, sans-serif;
-      font-size: 14px;
-      color: hsl(222 47% 11%);
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      padding: 16px;
-    }
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  color: hsl(222 47% 11%);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px;
+}
 
-    .promo-demo__section {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+.promo-demo__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-    .promo-demo__label {
-      font-weight: 700;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: hsl(215 16% 47%);
-    }
+.promo-demo__label {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(215 16% 47%);
+}
 
-    /* ── Card grids ── */
-    .promo-demo__cards {
-      display: flex;
-      gap: 12px;
-    }
+/* ── Card grids ── */
+.promo-demo__cards {
+  display: flex;
+  gap: 12px;
+}
 
-    .promo-demo__card {
-      flex: 1;
-      border-radius: 8px;
-      text-align: center;
-      border: 1px solid hsl(214 32% 91%);
-    }
+.promo-demo__card {
+  flex: 1;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid hsl(214 32% 91%);
+}
 
-    /* Before: inconsistent arbitrary padding */
-    .promo-demo__card--before:nth-child(1) {
-    padding: 18px 22px;   /* dev A */
-    }
-    .promo-demo__card--before:nth-child(2) {
-    padding: 14px 20px;   /* dev B */
-    }
-    .promo-demo__card--before:nth-child(3) {
-    padding: 16px 24px;   /* dev C */
-    }
+/* Before: inconsistent arbitrary padding */
+.promo-demo__card--before:nth-child(1) {
+  padding: 18px 22px;   /* dev A */
+}
+.promo-demo__card--before:nth-child(2) {
+  padding: 14px 20px;   /* dev B */
+}
+.promo-demo__card--before:nth-child(3) {
+  padding: 16px 24px;   /* dev C */
+}
 
-    /* After: consistent system tokens */
-    .promo-demo__card--after {
-    padding: 20px 20px;   /* vsp-sm / hsp-sm — system tokens */
-    }
+/* After: consistent system tokens */
+.promo-demo__card--after {
+  padding: 20px 20px;   /* vsp-sm / hsp-sm — system tokens */
+}
 
-    .promo-demo__card-name {
-    font-weight: 700;
-    font-size: 13px;
-    color: hsl(215 16% 47%);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
-    }
+.promo-demo__card-name {
+  font-weight: 700;
+  font-size: 13px;
+  color: hsl(215 16% 47%);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
 
-    /* Before: inconsistent font sizes */
-    .promo-demo__card-price--before {
-    font-weight: 700;
-    line-height: 1.2;
-    }
-    .promo-demo__card--before:nth-child(1) .promo-demo__card-price--before {
-    font-size: 28px;       /* dev A */
-    }
-    .promo-demo__card--before:nth-child(2) .promo-demo__card-price--before {
-    font-size: 32px;       /* dev B */
-    }
-    .promo-demo__card--before:nth-child(3) .promo-demo__card-price--before {
-    font-size: 26px;       /* dev C */
-    }
+/* Before: inconsistent font sizes */
+.promo-demo__card-price--before {
+  font-weight: 700;
+  line-height: 1.2;
+}
+.promo-demo__card--before:nth-child(1) .promo-demo__card-price--before {
+  font-size: 28px;       /* dev A */
+}
+.promo-demo__card--before:nth-child(2) .promo-demo__card-price--before {
+  font-size: 32px;       /* dev B */
+}
+.promo-demo__card--before:nth-child(3) .promo-demo__card-price--before {
+  font-size: 26px;       /* dev C */
+}
 
-    /* After: consistent token-based size */
-    .promo-demo__card-price--after {
-    font-size: 28px;       /* heading token (1.75rem = 28px) */
-    font-weight: 700;
-    line-height: 1.2;
-    }
+/* After: consistent token-based size */
+.promo-demo__card-price--after {
+  font-size: 28px;       /* heading token (1.75rem = 28px) */
+  font-weight: 700;
+  line-height: 1.2;
+}
 
-    .promo-demo__card-desc {
-    font-size: 12px;
-    color: hsl(215 16% 47%);
-    margin-top: 4px;
-    }
+.promo-demo__card-desc {
+  font-size: 12px;
+  color: hsl(215 16% 47%);
+  margin-top: 4px;
+}
 
-    /* ── Code callouts ── */
-    .promo-demo__code {
-    padding: 8px 12px;
-    background: hsl(210 40% 96%);
-    border-radius: 4px;
-    font-size: 12px;
-    }
-    .promo-demo__code code {
-    font-family: ui-monospace, monospace;
-    color: hsl(222 47% 11%);
-    }
-    .promo-demo__code-note {
-    color: hsl(215 16% 47%);
-    margin-top: 2px;
-    font-size: 11px;
-    }`}
+/* ── Code callouts ── */
+.promo-demo__code {
+  padding: 8px 12px;
+  background: hsl(210 40% 96%);
+  border-radius: 4px;
+  font-size: 12px;
+}
+.promo-demo__code code {
+  font-family: ui-monospace, monospace;
+  color: hsl(222 47% 11%);
+}
+.promo-demo__code-note {
+  color: hsl(215 16% 47%);
+  margin-top: 2px;
+  font-size: 11px;
+}`}
   height={420} />
 
 「Before」バージョンでは、3人の開発者が同じプライシングカードコンポーネントに対してそれぞれ微妙に異なるパディングとフォントサイズを選びました。カードは微妙に不揃いに見えます — 垂直パディングが `18px` vs `14px` vs `16px`、価格のフォントサイズが `28px` vs `32px` vs `26px`。チームがこのパターンがプライシング、フィーチャーカード、テスティモニアルカードにわたって繰り返されていることに気づいた後、値をシステムトークンに昇格させました：パディングに `vsp-sm` / `hsp-sm`、価格のフォントサイズに `heading`。これですべてのカードが自動的に一貫性を保ちます。
@@ -449,171 +449,171 @@ import CssPreview from '@/components/CssPreview';
 
 <CssPreview client:load
   title="プロダクションコンポーネント：トークン + 任意の値"
-  html={`    <div class="prod-demo">
-      <div class="prod-demo__section">
-        <div class="prod-demo__section-label">Section with system token spacing</div>
-        <div class="prod-demo__grid">
-          <div class="prod-demo__sidebar">
-            <div class="prod-demo__avatar"></div>
-            <div class="prod-demo__user-name">Jane Smith</div>
-            <div class="prod-demo__user-role">Admin</div>
+  html={`<div class="prod-demo">
+  <div class="prod-demo__section">
+    <div class="prod-demo__section-label">Section with system token spacing</div>
+    <div class="prod-demo__grid">
+      <div class="prod-demo__sidebar">
+        <div class="prod-demo__avatar"></div>
+        <div class="prod-demo__user-name">Jane Smith</div>
+        <div class="prod-demo__user-role">Admin</div>
+      </div>
+      <div class="prod-demo__main">
+        <div class="prod-demo__row">
+          <div class="prod-demo__tag prod-demo__tag--success">Active</div>
+          <div class="prod-demo__tag prod-demo__tag--info">Premium</div>
+        </div>
+        <div class="prod-demo__details">
+          <div class="prod-demo__detail-row">
+            <span class="prod-demo__detail-label">Email</span>
+            <span class="prod-demo__detail-value">jane@example.com</span>
           </div>
-          <div class="prod-demo__main">
-            <div class="prod-demo__row">
-              <div class="prod-demo__tag prod-demo__tag--success">Active</div>
-              <div class="prod-demo__tag prod-demo__tag--info">Premium</div>
-            </div>
-            <div class="prod-demo__details">
-              <div class="prod-demo__detail-row">
-                <span class="prod-demo__detail-label">Email</span>
-                <span class="prod-demo__detail-value">jane@example.com</span>
-              </div>
-              <div class="prod-demo__detail-row">
-                <span class="prod-demo__detail-label">Joined</span>
-                <span class="prod-demo__detail-value">Mar 2024</span>
-              </div>
-            </div>
+          <div class="prod-demo__detail-row">
+            <span class="prod-demo__detail-label">Joined</span>
+            <span class="prod-demo__detail-value">Mar 2024</span>
           </div>
         </div>
       </div>
-      <div class="prod-demo__footer">
-        <button class="prod-demo__btn prod-demo__btn--icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="prod-demo__btn-svg">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
-        </button>
-        <button class="prod-demo__btn prod-demo__btn--primary">View Profile</button>
-      </div>
-    </div>`}
+    </div>
+  </div>
+  <div class="prod-demo__footer">
+    <button class="prod-demo__btn prod-demo__btn--icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="prod-demo__btn-svg">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </button>
+    <button class="prod-demo__btn prod-demo__btn--primary">View Profile</button>
+  </div>
+</div>`}
   css={`.prod-demo {
-      font-family: system-ui, sans-serif;
-      font-size: 14px;
-      color: hsl(222 47% 11%);
-      border: 1px solid hsl(214 32% 91%);
-      border-radius: 8px;
-      overflow: hidden;
-    }
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  color: hsl(222 47% 11%);
+  border: 1px solid hsl(214 32% 91%);
+  border-radius: 8px;
+  overflow: hidden;
+}
 
-    /* ── Section: system token padding ── */
-    .prod-demo__section {
-      padding: 20px;                        /* vsp-sm / hsp-sm */
-    }
-    .prod-demo__section-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: hsl(215 16% 47%);
-      margin-bottom: 8px;                   /* vsp-xs */
-    }
+/* ── Section: system token padding ── */
+.prod-demo__section {
+  padding: 20px;                        /* vsp-sm / hsp-sm */
+}
+.prod-demo__section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(215 16% 47%);
+  margin-bottom: 8px;                   /* vsp-xs */
+}
 
-    /* ── Grid: ARBITRARY column template ── */
-    .prod-demo__grid {
-      display: grid;
-      grid-template-columns: 80px 1fr;     /* ARBITRARY: profile layout */
-      gap: 20px;                            /* hsp-sm (system token) */
-    }
+/* ── Grid: ARBITRARY column template ── */
+.prod-demo__grid {
+  display: grid;
+  grid-template-columns: 80px 1fr;     /* ARBITRARY: profile layout */
+  gap: 20px;                            /* hsp-sm (system token) */
+}
 
-    /* ── Sidebar: ARBITRARY avatar size ── */
-    .prod-demo__sidebar {
-      text-align: center;
-    }
-    .prod-demo__avatar {
-      width: 64px;                          /* ARBITRARY: avatar specific */
-      height: 64px;                         /* ARBITRARY: avatar specific */
-      border-radius: 50%;
-      background: linear-gradient(
-        135deg,
-        hsl(221 83% 53%),
-        hsl(250 80% 68%)
-      );
-      margin: 0 auto 8px;                  /* vsp-xs */
-    }
-    .prod-demo__user-name {
-      font-weight: 700;
-      font-size: 13px;
-    }
-    .prod-demo__user-role {
-      font-size: 11px;
-      color: hsl(215 16% 47%);
-    }
+/* ── Sidebar: ARBITRARY avatar size ── */
+.prod-demo__sidebar {
+  text-align: center;
+}
+.prod-demo__avatar {
+  width: 64px;                          /* ARBITRARY: avatar specific */
+  height: 64px;                         /* ARBITRARY: avatar specific */
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    hsl(221 83% 53%),
+    hsl(250 80% 68%)
+  );
+  margin: 0 auto 8px;                  /* vsp-xs */
+}
+.prod-demo__user-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+.prod-demo__user-role {
+  font-size: 11px;
+  color: hsl(215 16% 47%);
+}
 
-    /* ── Tags: system token padding ── */
-    .prod-demo__row {
-      display: flex;
-      gap: 8px;                             /* vsp-xs */
-      margin-bottom: 8px;                   /* vsp-xs */
-    }
-    .prod-demo__tag {
-      padding: 4px 12px;                    /* vsp-2xs / hsp-xs (system tokens) */
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-    .prod-demo__tag--success {
-      background: hsl(142 71% 92%);
-      color: hsl(142 71% 30%);
-    }
-    .prod-demo__tag--info {
-      background: hsl(221 83% 92%);
-      color: hsl(221 83% 40%);
-    }
+/* ── Tags: system token padding ── */
+.prod-demo__row {
+  display: flex;
+  gap: 8px;                             /* vsp-xs */
+  margin-bottom: 8px;                   /* vsp-xs */
+}
+.prod-demo__tag {
+  padding: 4px 12px;                    /* vsp-2xs / hsp-xs (system tokens) */
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.prod-demo__tag--success {
+  background: hsl(142 71% 92%);
+  color: hsl(142 71% 30%);
+}
+.prod-demo__tag--info {
+  background: hsl(221 83% 92%);
+  color: hsl(221 83% 40%);
+}
 
-    /* ── Detail rows ── */
-    .prod-demo__details {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;                             /* vsp-2xs */
-    }
-    .prod-demo__detail-row {
-      display: flex;
-      gap: 12px;                            /* hsp-xs */
-      font-size: 13px;
-    }
-    .prod-demo__detail-label {
-      color: hsl(215 16% 47%);
-      min-width: 50px;
-    }
-    .prod-demo__detail-value {
-      color: hsl(222 47% 11%);
-    }
+/* ── Detail rows ── */
+.prod-demo__details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;                             /* vsp-2xs */
+}
+.prod-demo__detail-row {
+  display: flex;
+  gap: 12px;                            /* hsp-xs */
+  font-size: 13px;
+}
+.prod-demo__detail-label {
+  color: hsl(215 16% 47%);
+  min-width: 50px;
+}
+.prod-demo__detail-value {
+  color: hsl(222 47% 11%);
+}
 
-    /* ── Footer: system token padding, ARBITRARY button sizing ── */
-    .prod-demo__footer {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;                             /* vsp-xs */
-      padding: 8px 20px;                    /* vsp-xs / hsp-sm (system tokens) */
-      border-top: 1px solid hsl(214 32% 91%);
-      background: hsl(210 40% 96%);
-    }
-    .prod-demo__btn {
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    .prod-demo__btn--icon {
-      width: 32px;                          /* ARBITRARY: icon button size */
-      height: 32px;                         /* ARBITRARY: icon button size */
-      padding: 6px;                         /* ARBITRARY: icon inner spacing */
-      background: hsl(210 40% 96%);
-      color: hsl(215 16% 47%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .prod-demo__btn-svg {
-      width: 16px;                          /* ARBITRARY: icon size */
-      height: 16px;                         /* ARBITRARY: icon size */
-    }
-    .prod-demo__btn--primary {
-      padding: 8px 20px;                    /* vsp-xs / hsp-sm (system tokens) */
-      background: hsl(221 83% 53%);
-      color: hsl(0 0% 100%);
-    }`}
+/* ── Footer: system token padding, ARBITRARY button sizing ── */
+.prod-demo__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;                             /* vsp-xs */
+  padding: 8px 20px;                    /* vsp-xs / hsp-sm (system tokens) */
+  border-top: 1px solid hsl(214 32% 91%);
+  background: hsl(210 40% 96%);
+}
+.prod-demo__btn {
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.prod-demo__btn--icon {
+  width: 32px;                          /* ARBITRARY: icon button size */
+  height: 32px;                         /* ARBITRARY: icon button size */
+  padding: 6px;                         /* ARBITRARY: icon inner spacing */
+  background: hsl(210 40% 96%);
+  color: hsl(215 16% 47%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prod-demo__btn-svg {
+  width: 16px;                          /* ARBITRARY: icon size */
+  height: 16px;                         /* ARBITRARY: icon size */
+}
+.prod-demo__btn--primary {
+  padding: 8px 20px;                    /* vsp-xs / hsp-sm (system tokens) */
+  background: hsl(221 83% 53%);
+  color: hsl(0 0% 100%);
+}`}
   height={280} />
 
 実際の Tailwind プロジェクトでは、このコンポーネントのクラスは次のようになります：

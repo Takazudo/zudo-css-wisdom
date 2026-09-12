@@ -119,6 +119,6 @@ Run parallel `ja-translator` subagent tasks for all missing files.
 
 - The `ja-translator` agent handles prose style and technical-term glossing; `/l-writing` governs content preservation and translation exceptions
 - Always preserve the exact file name — only the directory path changes
-- Preserve JSX props according to `/l-writing`, including CssPreview/TailwindPreview `title` props
+- Preserve JSX props according to `/l-writing`: CssPreview/TailwindPreview payload bodies (`html={}`, `css={}`, `height={}`) stay byte-identical, but translate the `title` prop
 - Code blocks stay entirely in English
 - After translation, the user should visually verify the JA page renders correctly

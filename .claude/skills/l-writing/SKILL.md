@@ -62,7 +62,7 @@ Use headings and whitespace to separate sections. Do not add body-level horizont
 
 ### Bilingual Content and Generated Pages
 
-Create or update the EN and JA versions together, using the same path beneath `src/content/docs/` and `src/content/docs-ja/`. Translate prose and frontmatter text values; keep code blocks and complete JSX blocks identical, including `<CssPreview>`, `<TailwindPreview>`, and their `title` props.
+Create or update the EN and JA versions together, using the same path beneath `src/content/docs/` and `src/content/docs-ja/`. Translate prose and frontmatter text values; keep code blocks identical. For `<CssPreview>` and `<TailwindPreview>`, keep the payload body (`html={}`, `css={}`, `height={}`, including indentation) byte-identical -- they must render the same demo -- but translate the `title` prop like any other prose.
 
 These exceptions are part of the rule:
 

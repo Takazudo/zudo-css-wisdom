@@ -44,13 +44,14 @@ Preserve the exact directory structure and file name. If the category directory 
 - Markdown headings (`##`, `###`, etc.) → Japanese
 - Table headers and cell content (explanatory text) → Japanese
 - Frontmatter text values such as `title` and `description` → Japanese
+- `CssPreview` / `TailwindPreview` `title` props → Japanese (the payload bodies stay English — see below)
 
 ### What to keep in English
 
 - Code blocks (CSS, HTML, JavaScript) — keep entirely in English
 - CSS property names, values, selectors, and class names in prose (e.g., `display: flex`, `.container`, `margin-inline`)
 - HTML element and attribute names in prose (e.g., `<div>`, `class`)
-- Complete JSX blocks — preserve according to `/l-writing`, including `CssPreview` / `TailwindPreview` props (`title`, `html`, `css`, `height`) and demo HTML text
+- `CssPreview` / `TailwindPreview` payload bodies — preserve according to `/l-writing`: `html={}`, `css={}`, and `height={}` stay byte-identical to EN (including indentation and demo HTML text). The `title` prop is prose and IS translated — see "What to translate".
 - Import statements — keep unchanged
 - Frontmatter `sidebar_position` — keep as-is
 - Reference links (MDN links, spec links, etc.) — keep URLs as-is
@@ -198,9 +199,9 @@ frequently produce overcomplicated or inappropriate solutions.
   css={`...`}
 />
 
-<!-- Japanese — the complete JSX block is preserved -->
+<!-- Japanese — the title is translated, the payload body is byte-identical -->
 <CssPreview
-  title="Flexbox Centering - Both Axes"
+  title="Flexbox によるセンタリング - 両軸"
   html={`...`}
   css={`...`}
 />
@@ -212,7 +213,7 @@ Before finishing a translation, verify:
 
 - [ ] Prose outside code and JSX blocks is in Japanese
 - [ ] All code blocks remain in English
-- [ ] Complete JSX blocks are identical to EN, including CssPreview `title`/`html`/`css` props
+- [ ] CssPreview `html`/`css`/`height` payload bodies are byte-identical to EN, and the `title` prop is translated
 - [ ] Import statements are unchanged
 - [ ] Frontmatter structure is preserved (`sidebar_position` unchanged)
 - [ ] Technical terms have Japanese gloss on first mention (where appropriate)
