@@ -68,37 +68,39 @@ function ProfileCard({ name, role, avatar }) {
     <p class="profile-card__role">Developer</p>
   </div>
 </div>`}
-  css={`.profile-card {
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  font-family: system-ui, sans-serif;
-}
-.profile-card__avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.profile-card__body {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.profile-card__name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: #1e293b;
-}
-.profile-card__role {
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin: 0.25rem 0 0;
-}`}
+  css={`
+  .profile-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-family: system-ui, sans-serif;
+  }
+  .profile-card__avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .profile-card__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .profile-card__name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: #1e293b;
+  }
+  .profile-card__role {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0.25rem 0 0;
+  }
+  `}
   height={120} />
 
 見た目は問題ありませんが、命名の判断、別の CSS ファイル、そしてプロジェクトの他の Tailwind ベースの部分と競合するスタイリングアプローチを持ち込んでしまいます。

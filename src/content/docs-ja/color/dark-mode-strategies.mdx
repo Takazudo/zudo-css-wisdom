@@ -98,67 +98,67 @@ AIエージェントはダークモードを実装する際、スタイルシー
       </div>
     </div>`}
   css={`.theme-demo {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      font-family: system-ui, sans-serif;
-    }
-    .panel {
-      padding: 1.5rem;
-    }
-    .panel h3 {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin: 0 0 1rem;
-      font-weight: 600;
-    }
-    .light-theme {
-      --bg: oklch(99% 0.005 264);
-      --surface: oklch(97% 0.01 264);
-      --text: oklch(20% 0.02 264);
-      --text-muted: oklch(45% 0.02 264);
-      --border: oklch(85% 0.01 264);
-      --primary: oklch(55% 0.22 264);
-      --primary-text: white;
-      background: var(--bg);
-      color: var(--text);
-    }
-    .dark-theme {
-      --bg: oklch(15% 0.01 264);
-      --surface: oklch(20% 0.015 264);
-      --text: oklch(90% 0.01 264);
-      --text-muted: oklch(60% 0.015 264);
-      --border: oklch(30% 0.015 264);
-      --primary: oklch(70% 0.18 264);
-      --primary-text: oklch(15% 0.01 264);
-      background: var(--bg);
-      color: var(--text);
-    }
-    .light-theme h3 { color: oklch(50% 0.15 264); }
-    .dark-theme h3 { color: oklch(70% 0.12 264); }
-    .component {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem;
-    }
-    .component h4 { margin: 0 0 0.5rem; font-size: 1.1rem; }
-    .component p { margin: 0 0 1rem; font-size: 0.9rem; line-height: 1.5; }
-    .btn {
-      background: var(--primary);
-      color: var(--primary-text);
-      border: none;
-      padding: 0.5rem 1.25rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-right: 0.75rem;
-    }
-    .muted {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }`}
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  font-family: system-ui, sans-serif;
+}
+.panel {
+  padding: 1.5rem;
+}
+.panel h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+.light-theme {
+  --bg: oklch(99% 0.005 264);
+  --surface: oklch(97% 0.01 264);
+  --text: oklch(20% 0.02 264);
+  --text-muted: oklch(45% 0.02 264);
+  --border: oklch(85% 0.01 264);
+  --primary: oklch(55% 0.22 264);
+  --primary-text: white;
+  background: var(--bg);
+  color: var(--text);
+}
+.dark-theme {
+  --bg: oklch(15% 0.01 264);
+  --surface: oklch(20% 0.015 264);
+  --text: oklch(90% 0.01 264);
+  --text-muted: oklch(60% 0.015 264);
+  --border: oklch(30% 0.015 264);
+  --primary: oklch(70% 0.18 264);
+  --primary-text: oklch(15% 0.01 264);
+  background: var(--bg);
+  color: var(--text);
+}
+.light-theme h3 { color: oklch(50% 0.15 264); }
+.dark-theme h3 { color: oklch(70% 0.12 264); }
+.component {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+.component h4 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+.component p { margin: 0 0 1rem; font-size: 0.9rem; line-height: 1.5; }
+.btn {
+  background: var(--primary);
+  color: var(--primary-text);
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 0.75rem;
+}
+.muted {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}`}
   height={300} />
 
 ### JavaScript テーマトグル
