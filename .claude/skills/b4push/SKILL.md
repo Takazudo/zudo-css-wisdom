@@ -31,7 +31,6 @@ pnpm b4push
 ## Link Check Details
 
 The link checker (`scripts/check-links.js --strict`) scans built HTML in `dist/` for:
-
 - Broken internal links (href pointing to non-existent pages)
 - Absolute links in MDX source that bypass the base path (`/pj/zcss/`)
 
