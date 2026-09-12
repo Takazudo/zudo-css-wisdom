@@ -1,125 +1,82 @@
 # Template drift allowlist for zudo-css-wisdom.
-# Generated projects start from create-zudo-doc templates; this file lists
-# intentional divergences from the pinned create-zudo-doc baseline so
-# `pnpm check:template-drift` exits 0.
+# Generated projects start from create-zudo-doc templates; this file records
+# intentional host customizations that `pnpm check:template-drift` preserves.
 #
 # Format: one repo-relative path per line (no leading slash).
 # Blank lines and `#` comments are ignored.
 #
-# Reconciled against the create-zudo-doc 4.4.13 baseline, the first time this
-# check has ever run in this repo (it was added together with the rest of the
-# guard set — see Takazudo/zudo-css-wisdom#183). Every entry below was diffed
-# individually; each one keeps a host customization that adopting the template
-# version would silently destroy. Nothing is listed merely to make the check
-# green.
-#
-# The 4.4.x base template tracks only five files (tsconfig.json,
-# pages/index.tsx, pages/docs/[[...slug]].tsx, src/styles/global.css,
-# scripts/setup-doc-skill.sh) plus one i18n feature file; everything else in
-# this repo is host-owned and not template-tracked at all.
+# Reconciled against the create-zudo-doc 5.22.0 baseline on 2026-09-12.
+# All ten base files plus the i18n doc-route file were compared individually.
+# The eight entries below retain host behavior or branding; no entry exists
+# merely to make the check green. pages/index.tsx, scripts/check-links.js,
+# and src/styles/global.css match the templates and are actively drift-gated.
+# Other feature file sets (tauri / tauriDev) were not scaffolded for this site.
 
-# ── docHistory-patched route stubs ────────────────────────────────────────
-# create-zudo-doc patches the base + i18n doc-route stubs when the docHistory
-# feature is selected: it statically imports DocHistory from
-# "@takazudo/zudo-doc/doc-history" and merges it over chromeBindings in
-# createChrome's hostBindings, so the doc-history button hydrates on these
-# self-contained dynamic routes. `docHistory: true` is set in zfb.config.ts, so
-# the patch is correct here. Verified against the 4.4.13 templates: the
-# DocHistory import + the defineChromeBindings spread are the ONLY differences —
-# both files are otherwise byte-identical to the template, so they are already
-# on the 4.4.x baseline and carry no stale drift.
+# ── DocHistory-patched route stubs ────────────────────────────────────────
+# The 5.22.0 base and i18n stubs receive a DocHistory patch when create-zudo-doc
+# scaffolds the docHistory feature. `docHistory: true` remains enabled here.
+# Keep the imports from "@takazudo/zudo-doc/doc-history" and
+# "@takazudo/zudo-doc/chrome-bindings", plus the defineChromeBindings spread
+# over chromeBindings, so the history button hydrates on both dynamic routes.
+# The updated 5.22.0 route comments are adopted. These imports and the binding
+# merge are the ONLY remaining differences from the unpatched templates.
 pages/docs/[[...slug]].tsx
 pages/[locale]/docs/[[...slug]].tsx
 
-# ── Minified HTML compatibility: check-links.js ───────────────────────────
-# zfb's production HTML emits unquoted href/id attributes. The 5.13.1
-# scaffold checker only recognizes quoted values, which makes its built-site
-# pass silently skip navigation links and anchors. Keep the scaffold checker
-# plus the small unquoted-attribute compatibility patch guarded by
-# scripts/check-links.test.mjs. Tracked upstream as zudolab/zudo-doc#3720.
-scripts/check-links.js
+# ── Retired allowances: checker, stylesheet, home route ───────────────────
+# scripts/check-links.js now matches 5.22.0: upstream shipped the unquoted
+# href/id and entity-decoding fix in 5.14.0 (zudolab/zudo-doc#3720).
+# scripts/check-links.test.mjs remains the host regression guard and passes
+# unchanged against the adopted checker. Its old allowance is unnecessary.
+#
+# src/styles/global.css now matches 5.22.0. Contrary to the old justification,
+# the Noto Sans JP / Futura tokens and header-logo rule were already removed
+# by bac307b9fa9c35583a225257ca8b257ce1b71c99 (the v4 default re-scaffold).
+# zfb.config.ts explicitly records that custom webfonts were dropped. Keep
+# that default-theme decision; do not restore retired fonts. The new template
+# page-loading.css import is inactive here: dynamicPageTransition defaults
+# to false, so no overlay, spinner, or pending-link bootstrap is rendered.
+#
+# pages/index.tsx remains the stock package-route re-export. home.wide in
+# zfb.config.ts supplies the wide layout without a custom host route.
 
-# ── Host brand customization: global.css ──────────────────────────────────
-# global.css carries host brand overrides on top of the v4 base template: the
-# Noto Sans JP `--font-sans` stack (theme.css defaults to system-ui), the
-# `--font-futura` brand face, and the `[data-header-logo]` Futura header rule.
-# Everything else (design tokens, base rules, feature CSS) ships from
-# @takazudo/zudo-doc via theme.css / content.css / features.css.
-src/styles/global.css
-
-# ── (retired) Wide home page override ─────────────────────────────────────
-# `pages/index.tsx` used to be listed here: it was a hand-reconstructed route
-# rendering HomePageView with `wide`, because zudo-doc 4.2.1 exposed no config
-# toggle for the wide home grid. The pattern originated in this repo
-# (css-wisdom PR #182) and upstream tracked it as zudolab/zudo-doc#2959.
+# ── tsconfig.json: preserve the host type-checking contract ────────────────
+# The 5.22.0 template extends "@takazudo/zudo-doc/tsconfig.base.json" and uses
+# include: ["src", "pages", "zfb.config.ts"]. Its base explicitly loads the
+# package's zfb-config-shim.d.ts and virtual-modules.d.ts and uses react-jsx.
 #
-# zudo-doc 4.4.x ships `home: { wide?: boolean }`, read by BOTH the
-# package-owned root and locale index routes, so the override is gone:
-# pages/index.tsx is back to the stock 1-line re-export (and the sibling
-# pages/[locale]/index.tsx override was deleted outright). The entry is
-# deliberately NOT replaced — the file is now template-identical and the drift
-# check actively verifies that.
-
-# ── tsconfig.json: load-bearing, do NOT adopt the template version ────────
-# The template ships a 3-line config that `extends
-# "@takazudo/zudo-doc/tsconfig.base.json"` and sets
-# `include: ["src", "pages", "zfb.config.ts"]`.
-#
-# This repo instead inlines the base compilerOptions and uses `exclude` with NO
-# `include`. That is not stale copy-paste — it is what keeps the repo's own
-# root-level `zfb-shim.d.ts` inside the tsc program. With no `include`, tsc
-# picks up every file under the project root (minus `exclude`), so the shim's
-# ambient `declare module "zfb/config"` is compiled; under the template's
-# `include` allowlist the root-level shim is silently dropped. Measured with
-# `tsc --listFiles`: host config = zfb-shim.d.ts present, template config =
-# absent.
-#
-# That matters because zfb-shim.d.ts is the hand-synced source of truth for the
-# `ZfbConfig` type that `zfb check` binds against (see the long comment at the
-# top of that file — an ambient declare-module wins over node resolution and
-# over tsconfig `paths`). Adopting the template would type-check zfb.config.ts
-# against the package's shim instead, silently changing which contract the
-# config is validated against.
-#
-# Note: the template version does pass `pnpm check` today, so the breakage
-# would not be immediate — it would surface later as a config field that the
-# hand-maintained shim knows about and the package shim does not, or vice
-# versa. That is exactly the silent-drift class this guard set exists to stop.
-#
-# Two host additions here are vestigial rather than load-bearing and could be
-# cleaned up separately: the unused `#doc-history-meta` path alias, and several
-# `exclude` entries for directories this repo does not have (e2e/fixtures,
-# packages, vendor, src/**/__tests__, scripts/__tests__, vitest.config.ts).
+# The host deliberately inlines compilerOptions, uses jsx: "preserve", and
+# has exclude with NO include. TypeScript 5.9.3 config resolution confirms
+# that this includes the root zfb-shim.d.ts; the template excludes that shim
+# and loads the package shim instead. The host ambient "zfb/config" module
+# is the documented, hand-synced contract checked by `pnpm check`.
+# Adopting the template would silently replace that contract and change the
+# checked file set (including pages / worktrees exclusions). Preserve the
+# complete host config; compiler-option and unused-alias cleanup is separate.
 tsconfig.json
 
-# ── scripts/setup-doc-skill.sh: repo-specific skill wiring ────────────────
-# The template's generic version derives the skill name from package.json as
-# `<projectName>-wisdom` — which would produce `zudo-css-wisdom-wisdom` here.
-# This repo pins the skill name to `css-wisdom` (the name referenced by
-# scripts/generate-css-wisdom.js, .gitignore, and the published `/css-wisdom`
-# global skill) and hard-fails on any override, instead of accepting one via
-# `$1` / `$SKILL_NAME` as the template does. The host version is also wired to
-# the generate-css-wisdom.js pre-step that builds SKILL.md, which the template
-# knows nothing about. Adopting the template would rename the skill and break
-# the symlink in ~/.claude/skills/.
+# ── scripts/setup-doc-skill.sh: repo-specific skill wiring ─────────────────
+# The 5.22.0 template is now suffix-aware: its default would be
+# `zudo-css-wisdom`, NOT the old doubled `zudo-css-wisdom-wisdom`. That still
+# differs from this repo's required `css-wisdom` name, referenced by
+# scripts/generate-css-wisdom.js, .gitignore, and the global skill links.
+# Keep the hard pin and rejection of name overrides, and the generator
+# pre-step that supplies this repo's curated CSS topic index. The template
+# instead writes a generic SKILL.md and, by default, also exports tracked
+# project skills. Replacing the host script would change both the skill
+# identity and its generated content / linking scope for Claude and Codex.
+# Adopted 5.22.0's ensure_symlink conflict handling: replace symlinks, but
+# reject existing real files/directories without deleting user-owned content.
 scripts/setup-doc-skill.sh
 
-# ── Host brand favicons: do NOT adopt the template set ────────────────────
-# zudo-doc 5.0.0 added a default favicon set to the base template
-# (favicon.ico + 16x16/32x32 PNGs + favicon.svg) and emits the SVG link
-# AHEAD of the .ico/.png entries. The template artwork is a generic purple
-# "Z" placeholder; this repo ships its own orange (#ff9900) "C" mark across
-# all four files, so adopting the template would replace real branding with a
-# placeholder — and because the SVG link comes first, it would win outright.
+# ── Host brand favicons ──────────────────────────────────────────────────
+# All four host assets retain the orange (#ff9900) "C" mark. The 5.22.0
+# template ships its placeholder favicon set (including the purple "Z" SVG),
+# so adopting it would replace this site's branding. Keep the host SVG too:
+# the package emits its SVG favicon link ahead of the ICO and PNG links.
 #
-# public/favicon.svg is new here: it carries this repo's own "C" artwork, not
-# the template's. It was added precisely so the 5.x SVG-first favicon link
-# resolves to the host brand instead of 404ing.
-#
-# Note for whoever touches these next: public/favicon.ico is not an ICO file —
-# it is SVG markup under a .ico name (`file(1)` reports "SVG Scalable Vector
-# Graphics image"). That predates this migration and is left as-is here rather
-# than fixed silently inside a dependency bump.
+# public/favicon.ico contains SVG markup under an .ico name (`file` reports
+# SVG). That predates this reconciliation; correcting its format is separate.
 public/favicon.ico
 public/favicon-16x16.png
 public/favicon-32x32.png

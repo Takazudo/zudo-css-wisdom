@@ -1,10 +1,8 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource preact */
-// Locked manifest (#2653 Decision 4): a SELF-CONTAINED doc-route stub —
-// REQUIRED because the injected DYNAMIC `/docs/[[...slug]]` route 404s in
-// `zfb dev` (real pre-existing gap in zfb's dev-mode dynamic-route rendering,
-// distinct from the `/`-injection gap zfb#1227; empirically confirmed on
-// #2653). This stub reconstructs the doc route from scratch using ONLY the
+// Locked manifest (#2653 Decision 4): a SELF-CONTAINED doc-route stub retained
+// for explicit host route ownership. zfb 2.13.1 also serves injected dynamic
+// routes in dev. This stub reconstructs the doc route from scratch using ONLY the
 // sanctioned package entrypoints — no `pages/lib`, no `@/config`:
 //   1. the `virtual:zudo-doc-route-context` virtual module (serializable
 //      settings/translations/tagVocabulary/colorSchemes payload),
@@ -14,9 +12,9 @@
 // The bindings import is unconditional: the routes plugin supplies an empty
 // object when `chromeBindingsModule` is unset, while configured projects get
 // their MDX/chrome bindings without editing this stub.
-// Makes `/docs/getting-started/` return 200 in BOTH `zfb dev` and `zfb build`
-// (see the "TM negative guard" case in route-injection-build.slow.test.ts for
-// the no-stub 404 proof this fixes).
+// Makes `/docs/getting-started/` return 200 in BOTH `zfb dev` and `zfb build`.
+// The route-injection build test covers the corresponding package-owned route;
+// this kept file remains the explicit host-owned seam.
 //
 // docHistory note: when the docHistory feature is selected, the generator
 // patches this file to statically import DocHistory from

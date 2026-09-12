@@ -1,15 +1,19 @@
-/* Cascade layers: preflight → flow → (unlayered utilities). Tokens and base
-   rules ship from @takazudo/zudo-doc/theme.css (fully-default theming). */
+/* Cascade layers: preflight → flow → (unlayered utilities). Tokens/base rules
+   ship from @takazudo/zudo-doc/theme.css.
+   NOTE: the `@takazudo/zdtp/styles.css` import is intentionally NOT here —
+   it is inserted right after the @layer line above, ONLY when
+   designTokenPanel is selected (see features/design-token-panel.ts). It
+   can't ship unconditionally because it pulls in zdtp's own bytes. */
 @layer zd-preflight, zd-flow;
 @import "tailwindcss/preflight" layer(zd-preflight);
 @import "tailwindcss/utilities";
 
-/* Package-shipped tokens, safelist, content typography, and feature CSS
-   (incl. the doc-history diff viewer). Order is load-bearing — theme.css MUST
-   precede features.css. Do not reorder. */
+/* Package-shipped tokens, safelist, content typography, and feature CSS.
+   Order is load-bearing — theme.css MUST precede features.css. Do not reorder. */
 @import "@takazudo/zudo-doc/theme.css";
 @import "@takazudo/zudo-doc/safelist.css";
 @import "@takazudo/zudo-doc/content.css";
+@import "@takazudo/zudo-doc/page-loading.css";
 @import "@takazudo/zudo-doc/features.css";
 
 /* Scan this project's own source for Tailwind utility classes. */
@@ -17,7 +21,8 @@
 @source "src/components/**/*.{tsx,ts,jsx,js}";
 @source "pages/**/*.{tsx,ts,jsx,js}";
 
-/* ── Token overrides ──────────────────────────────────────────────────────
+/* ── Your token overrides ──────────────────────────────────────────────
    Override any default @theme token from @takazudo/zudo-doc/theme.css here. */
 @theme {
+  /* e.g. --color-accent: oklch(0.6 0.2 250); */
 }
