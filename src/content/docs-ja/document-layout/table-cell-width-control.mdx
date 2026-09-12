@@ -204,8 +204,9 @@ Avatar 列と Status 列はそれぞれの内容（画像とバッジ）にぴ�
   width: 0;
 }
 .cell-sizer {
-  /* この div が最小列幅を強制する */
-  /* セルは width:0 で縮もうとするが、この div の幅より小さくなれない */
+  /* This div enforces the minimum column width */
+  /* The cell has width:0 so it tries to shrink, */
+  /* but cannot go below this div's width */
 }
 .col-shrink {
   width: 0;
@@ -287,7 +288,7 @@ Product 列は（ヘッダーの `cell-sizer` div によって設定された）
   width: 0;
 }
 .cell-sizer {
-  /* 最小列幅を強制する */
+  /* Enforces minimum column width */
 }
 .col-shrink {
   width: 0;
