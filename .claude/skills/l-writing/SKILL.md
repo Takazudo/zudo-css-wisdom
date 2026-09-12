@@ -1,241 +1,174 @@
 ---
 name: l-writing
 description: >-
-  Writing and formatting rules for MDX articles in zcss. Use when: (1) Writing or editing MDX docs
-  in src/content/docs/, (2) Creating new articles, (3) User says 'writing rules' or 'article
-  format'. Auto-load when working on MDX content.
+  Authoritative writing, MDX formatting, bilingual, and CSS demo rules for zcss articles.
+  Consult before creating or editing docs in src/content/docs/ or src/content/docs-ja/,
+  or when asked about writing rules or article format.
 user-invocable: true
 argument-hint: "[question about writing or formatting rules]"
 ---
 
 # Writing & MDX Rules for zcss Articles
 
-Rules for writing CSS Best Practices articles. Follow these to keep every article consistent, direct, and useful for AI agents.
+Use `/l-writing` before writing or editing documentation in either language. This is the single local authoring skill for shared zudo-doc rules and this site's CSS article conventions.
 
-## Audience
+## Provenance
 
-Primary readers are **AI agents** that consume these articles to learn CSS patterns. Human developers also read and maintain the docs. Write for both: precise enough for machines, clear enough for humans.
+Reconciled with **zudo-doc 5.22.0** (tag `v5.22.0`), upstream `.claude/skills/zudo-doc-writing-rules/SKILL.md`; [published upstream rules](https://zudo-doc.takazudomodular.com/docs/claude-skills/zudo-doc-writing-rules/).
 
-## Tone
+The upstream rules are folded into this skill so they remain available without another repository or skill installation. Configuration paths, related skills, and validation commands below refer to this repository. When reconciling a newer upstream version, retain the CSS-specific article and demo rules.
 
-- Professional, educational, and direct
-- No filler words, unnecessary hedging, or conversational padding
-- Active voice over passive voice
-- Short sentences over long ones
-- State facts; do not editorialize
+## Audience and Style
 
-### OK/NG: Tone
+Primary readers are AI agents learning CSS patterns; human developers also read and maintain the docs. Assume basic CSS knowledge. Explain the specific behavior, trade-offs, and common mistakes directly, using active voice and short sentences. Avoid filler, hedging, and subjective judgments such as "elegant" or "best."
 
-**OK (direct):**
-
-> Flexbox centering requires a defined height on the parent container.
-
-**NG (hedging, filler):**
-
-> It's worth noting that you might want to consider setting a defined height on the parent container when using flexbox centering.
-
-**OK (active voice):**
-
-> Use `margin-inline: auto` to center block elements horizontally.
-
-**NG (passive voice):**
-
-> Block elements can be horizontally centered by using `margin-inline: auto`.
+Keep each article focused on one CSS technique or pattern. Show code before its detailed explanation, and use tables for comparisons and quick references. For a topic that needs sub-pages, use `/l-handle-deep-article`.
 
 ## Article Structure
 
-Every article follows this section order. Not all sections are required, but the order must be preserved.
+Use this section order for CSS technique articles:
 
-1. **The Problem** — common mistakes or misunderstandings. State what goes wrong and why it matters.
-2. **The Solution** — high-level approach. Keep it brief — details belong in code examples.
-3. **Code Examples** — CSS (and HTML when needed) with inline commentary. Each technique gets its own sub-heading. Follow each code block with a `CssPreview` demo.
-4. **Live Previews** — group `CssPreview` components here if not already inline above. Prefer inline placement.
-5. **Quick Reference** — summary table: "Scenario" and "Technique" columns.
-6. **Common AI Mistakes** — specific mistakes AI agents make. Bold the mistake, then explain.
-7. **When to Use** — decision guidance by technique. Sub-headings, one or two sentences each.
-8. **Tailwind CSS** — `TailwindPreview` equivalents. Optional — only when direct utility counterparts exist.
-9. **References** — external links to MDN, web.dev, CSS-Tricks, etc.
+1. `## The Problem` — what goes wrong and why it matters.
+2. `## The Solution` — the recommended approach, illustrated with `CssPreview` demos.
+3. Additional sections as needed: focused examples, a quick-reference table, common AI mistakes, or `TailwindPreview` equivalents when useful. Prefer demos inline beside their explanations.
+4. `## When to Use` — decision guidance and trade-offs.
 
-## CssPreview Demos
+Reference links may follow. Deep-article sub-pages may use a reference-oriented structure for tables, catalogs, or recipes.
 
-Every CSS concept must have a corresponding `CssPreview` demo. Demos are the most valuable part of each article. Prefer more demos over more prose.
+## MDX Rules
 
-- CssPreview renders in an iframe with no JavaScript — all interactions must be CSS-only
-- Use `hsl()` colors, not hex
-- Use descriptive BEM-ish CSS class names (e.g., `.card__title`, `.flex-center`)
-- Keep demos minimal — show only the technique being explained
-- Every demo needs a descriptive `title` prop
+### Titles and Headings
 
-### OK/NG: Demo Colors
-
-**OK:**
-
-```css
-background: hsl(210, 50%, 95%);
-color: hsl(210, 80%, 40%);
-```
-
-**NG:**
-
-```css
-background: #f0f4f8;
-color: #2563eb;
-```
-
-## Writing Rules
-
-### Lead with Problems
-
-Start articles with what goes wrong, not with what works. AI agents learn better from "do not do X because Y" than from "here is how to do X."
-
-### One Concept Per Article
-
-Each article covers one CSS technique or pattern. If the topic has enough depth, use the deep article pattern (folder with `index.mdx` + sub-pages).
-
-### No Subjective Judgment
-
-Do not write "this is elegant" or "this is the best approach." State what the technique does, when to use it, and the trade-offs.
-
-**OK (factual):**
-
-> `place-items: center` is the most concise centering syntax — a single declaration replaces two.
-
-**NG (subjective):**
-
-> `place-items: center` is an elegant and beautiful solution to the centering problem.
-
-### Do Not Repeat Generic CSS Knowledge
-
-Assume the reader knows basic CSS. Focus on patterns, trade-offs, and common mistakes specific to the topic.
-
-### Use Tables for Comparisons
-
-When comparing multiple approaches, use tables instead of prose. Tables are easier for AI agents to parse.
-
-### Code Before Prose
-
-Show the code first, then explain it. Readers (especially AI agents) can often understand the code without explanation.
-
-## Deep Article Pattern
-
-When a topic warrants multiple sub-pages, convert the flat `.mdx` file into a folder:
-
-```
-docs/positioning/centering-techniques/
-  index.mdx          # Overview + navigation
-  margin-auto.mdx    # Sub-page
-  flexbox.mdx        # Sub-page
-  grid.mdx           # Sub-page
-```
-
----
-
-## Markdown & MDX Formatting Rules
-
-### File Naming
-
-Use **kebab-case** for all file names:
-
-```
-centering-techniques.mdx    OK
-centeringTechniques.mdx     NG
-Centering_Techniques.mdx    NG
-```
-
-### Frontmatter
-
-Every MDX file requires YAML frontmatter with at least `sidebar_position`:
-
-```yaml
----
-sidebar_position: 3
----
-```
-
-Category index pages use `sidebar_position: 0`.
-
-### Import Patterns
-
-Place imports immediately after frontmatter, before any content:
+The frontmatter `title` supplies the page h1. Start body headings at `##`; a body-level `#` repeats the title and breaks the heading hierarchy. Do not skip heading levels, and give each heading content before starting the next section.
 
 ```mdx
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
+---
+title: Flexbox Centering
+sidebar_position: 1
+---
+
+## The Problem
+
+The content needs to stay centered as the container changes size.
 ```
 
-### Headings
+### Files and Ordering
 
-- Article titles use `h1` (the `# Title` at the top). All sections use `h2` (`##`) or `h3` (`###`).
-- Do not skip heading levels — go from `h2` to `h3`, never `h2` to `h4`.
-- Every heading must be followed by content before the next heading.
+Use kebab-case filenames such as `centering-techniques.mdx`. Set `sidebar_position` on every page, including each category's `index.mdx`; otherwise pages sort alphabetically. The index controls its category's position in the parent sidebar, so choose its number accordingly. Small integers with gaps allow later insertions.
 
-### Lists
+### Markdown Formatting
 
-- Do not mix ordered and unordered lists.
-- Do not put code blocks inside list items — place code blocks outside.
+Use headings and whitespace to separate sections. Do not add body-level horizontal rules merely for visual separation; reserve them for cases where the rule itself has meaning, such as a syntax demonstration. Keep code blocks outside list items and use bold for inline emphasis, not as a replacement for headings.
 
-### Bold
+### Bilingual Content and Generated Pages
 
-- Bold is for inline emphasis only — not as section headings or list item headers.
+Create or update the EN and JA versions together, using the same path beneath `src/content/docs/` and `src/content/docs-ja/`. Translate prose and frontmatter text values; keep code blocks and complete JSX blocks identical, including `<CssPreview>`, `<TailwindPreview>`, and their `title` props.
 
-### Tables
+These exceptions are part of the rule:
 
-Use tables for comparisons and quick-reference content. Keep tables simple with two or three columns.
+- Files with `generated: true` are generator-owned. Change their source or generator, then regenerate; do not edit or translate the generated files by hand.
+- Claude/Codex resource generators own their overview and category `index.mdx` targets in the default and configured locale directories. They generate localized indexes from `resource.*` translation keys. Do not create locale stubs. If an authored file occupies a generator target, move or remove that file and express custom titles, descriptions, and labels through `translations` in `zudoDoc()`.
+- Generated resource detail files stay in the default content directory; other locale routes use body fallback. Do not copy those files into locale directories.
+- A route covered by `defaultLocaleOnlyPrefixes` is intentionally default-locale-only and needs no JA mirror. Read the current value in the `zudoDoc()` options in `zfb.config.ts`; do not assume the upstream repository's setting applies here.
 
-### Horizontal Rules
+## Frontmatter Schema
 
-Do not use `---` between sections. Headings provide sufficient visual separation. Use `---` only for major topic shifts (e.g., separating appendix content).
+The schema belongs to `@takazudo/zudo-doc/docs-schema`. Its default `buildDocsSchema` is wired in by `zudoDoc()`; this host has no `src/content.config.ts`. The following fields reflect upstream 5.22.0:
 
-### Admonitions
+| Field | Type | Required? | Notes |
+| --- | --- | --- | --- |
+| `title` | string | Yes | Renders as the page h1 |
+| `sidebar_position` | number | Authoring rule | Schema-optional, but set it on every page for predictable ordering |
+| `description` | string | No | Subtitle below the h1 |
+| `sidebar_label` | string | No | Overrides the sidebar label |
+| `category_shape` | `"note-tray"` | No | Declares a flat, top-level note-tray category on its index |
+| `note_tray_dated` | boolean | No | Requires `date` on all tray items, including unlisted items |
+| `note_tray_sidebar` | `"index" \| "year" \| "month"` | No | Grouped styles require a dated tray |
+| `category_sort_order` | `"asc" \| "desc"` | No | Category/tray display direction; defaults to `"asc"` |
+| `date` | `"YYYY-MM-DD"` | For dated tray items | Quotes are optional; zfb retains date scalars as strings |
+| `updated` | `"YYYY-MM-DD"` | No | Optional update date; quotes are optional |
+| `tags` | string[] | No | Cross-category grouping |
+| `draft` | boolean | No | Excludes the page from the build |
+| `unlisted` | boolean | No | Builds the page but hides it from sidebar/navigation |
+| `generated` | boolean | No | Marks generator-owned content |
+| `hide_sidebar` | boolean | No | Hides the left sidebar |
+| `hide_toc` | boolean | No | Hides the right-side table of contents |
 
-Use sparingly. No imports needed.
+Zod validates known fields, but the schema uses `.passthrough()`: custom keys survive without acquiring built-in behavior. A typo such as `sidebar_postion` therefore passes validation and silently loses ordering. Check field spelling; a successful build does not catch unknown keys.
+
+## Linking Between Docs
+
+Use relative file paths with the `.mdx` extension so the framework can resolve and validate the target during the build:
 
 ```markdown
+[Sibling page](./sibling-page.mdx)
+[Another category](../other-category/page.mdx#anchor)
+```
+
+Do not use absolute `/docs/...` URLs or extensionless paths for authored cross-references. Keep equivalent relative links in both languages; external references use standard URLs. Check built links with `pnpm check:links`.
+
+## MDX Components
+
+`CssPreview` and `TailwindPreview` are registered through `src/chrome-bindings.ts`. Use them directly in MDX without imports or Astro `client:load` directives. The package also supplies admonitions globally.
+
+Use admonitions sparingly. Directive syntax suits prose:
+
+```mdx
 :::note[Optional Title]
 Supplementary information.
 :::
 ```
 
-Available types: `note`, `tip`, `info`, `warning`, `danger`. Use `note` and `info` for most cases.
-
-### CssPreview in MDX
+Use JSX when nesting JSX content:
 
 ```mdx
-<CssPreview client:load
-  title="Flexbox Centering"
+<Note title="Optional Title">Supplementary information.</Note>
+```
+
+Admonition types include `note`, `tip`, `info`, `warning`, `danger`, and `caution`, with matching capitalized JSX components and optional `title` props. JSX also provides `<Important>` for GitHub-style important alerts.
+
+## CssPreview Demos
+
+Include a `<CssPreview>` for each CSS concept. Keep each demo focused, give it a descriptive `title`, and prefer showing behavior over adding prose.
+
+- Previews run inside an isolated iframe. Interactions must use CSS states such as `:hover`, `:focus`, `:checked`, or `:target`; no JavaScript or `<script>` tags.
+- Viewport buttons are **Mobile (320px)**, **Tablet (768px)**, and **Full** (100% of the available width, typically about 900–1100px).
+- For code-panel `defaultOpen` choices, sizing, and responsive demo breakpoints, use `/l-demo-component`.
+
+### CSS Conventions
+
+- Use `hsl()` colors, not hex.
+- Use descriptive BEM-ish demo class names, such as `.card-demo__header`.
+- Use `font-family: system-ui, sans-serif` for body text.
+- Keep labels at a minimum font size of **0.75rem / 12px**.
+- Consult `/css-wisdom <topic>` before writing non-trivial demo CSS.
+
+### Template Literal Indentation
+
+Indent the template-literal content in both `css={}` and `html={}` by **at least 2 spaces**, including top-level selectors and HTML elements. The preview's `dedent()` utility removes common leading whitespace for the code panel. Content at column 0 produces an unindented code display; preserve relative nesting as well as the common indent.
+
+```mdx
+<CssPreview
+  title="Card Header"
   html={`
-<div class="flex-center">
-  <div class="box">Centered</div>
-</div>
+    <div class="card-demo__header">Card header</div>
   `}
   css={`
-.flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  background: hsl(210, 50%, 97%);
-}
-.box {
-  padding: 16px 24px;
-  background: hsl(210, 80%, 55%);
-  color: hsl(0, 0%, 100%);
-  border-radius: 8px;
-  font-family: system-ui, sans-serif;
-}
+    .card-demo__header {
+      padding: 16px;
+      font-family: system-ui, sans-serif;
+      font-size: 0.875rem;
+      background: hsl(210, 50%, 95%);
+      color: hsl(210, 80%, 40%);
+    }
   `}
 />
 ```
 
-Rules:
+## Authoring Workflow
 
-- Always provide a descriptive `title` prop
-- Use `hsl()` for all colors
-- Use descriptive BEM-ish class names
-- Keep HTML and CSS minimal
-- CSS-only interactions: `:hover`, `:focus`, `:checked`, `:target`, etc.
-- No JavaScript, no `<script>` tags
-
-## Related Skills
-
-- **`/css-wisdom`** — Before writing non-trivial CSS in demos or articles, invoke `/css-wisdom <topic>` to look up best practices. This ensures demos and article content align with the project's CSS guidance.
+1. Choose the category using `CLAUDE.md`'s content and navigation guidance.
+2. Write or update the article following the rules above; use `/l-handle-deep-article` when sub-pages are needed.
+3. Update the matching language version through `/l-translate`, respecting the generated/default-locale-only exceptions above.
+4. Run `pnpm format:md` and `pnpm check`, then `pnpm build`. Review any formatter changes and run `pnpm format:md:check` to confirm formatting. The build validates required frontmatter and MDX; use `pnpm check:links` for built-site links.
+5. After adding, moving, or removing articles, run `pnpm generate:css-wisdom` to refresh the generated topic index.

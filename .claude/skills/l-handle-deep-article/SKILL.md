@@ -2,7 +2,7 @@
 name: l-handle-deep-article
 description: >-
   Create or convert CSS best-practices articles into "deep articles" with sub-pages in the zcss
-  Astro site. Use when: (1) An article topic has enough depth to warrant "see more" reference
+  zudo-doc site (zfb stack). Use when: (1) An article topic has enough depth to warrant "see more" reference
   sub-pages, (2) Converting a flat .mdx article into a category with index + child pages, (3) Adding
   deep reference content to an existing article, (4) User says 'deep article', 'add sub-pages',
   'expand article', or 'add reference pages'.
@@ -13,6 +13,8 @@ argument-hint: "[article path or topic name]"
 # Deep Article Handler
 
 Convert a flat `.mdx` article into a folder with `index.mdx` + sub-pages when the topic has enough depth.
+
+Invoke `/l-writing` for the authoritative MDX, demo, and bilingual rules before applying this structure.
 
 ## When to Use
 
@@ -42,22 +44,21 @@ Add a "Deep Dive" section at bottom:
 ```mdx
 ## Deep Dive
 
-- [Sub-page Title](./sub-page-1) - Brief description
-- [Sub-page Title](./sub-page-2) - Brief description
+- [Sub-page Title](./sub-page-1.mdx) - Brief description
+- [Sub-page Title](./sub-page-2.mdx) - Brief description
 ```
 
 ### 3. Create sub-pages
 
-Each sub-page: standalone `.mdx` with `sidebar_position`, CssPreview demos, focused on one aspect.
+Each sub-page follows `/l-writing` and focuses on one aspect:
 
 ```mdx
 ---
+title: Sub-page Title
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
-# Sub-page Title
+## Recipes
 
 (CssPreview demos and content)
 ```
@@ -66,6 +67,6 @@ import CssPreview from '@/components/CssPreview';
 
 - Main article keeps Problem/Solution/Demo structure
 - Sub-pages can be reference-oriented (tables, catalogs, recipes)
-- Follow all CSS/demo conventions from `CLAUDE.md`
+- Follow `/l-writing` for content and CSS/demo conventions
 - File naming: kebab-case
 - After conversion, regenerate css-wisdom index: `pnpm run generate:css-wisdom`

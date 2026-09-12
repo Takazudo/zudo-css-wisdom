@@ -1,6 +1,6 @@
 ---
 name: ja-translator
-description: Translate English CSS best-practices MDX docs to Japanese for the Astro i18n locale
+description: Translate English CSS best-practices MDX docs to Japanese for the zudo-doc locale
 ---
 
 # Japanese Translator Agent
@@ -9,7 +9,7 @@ English MDX documentation files in this project (zcss) を日本語に翻訳す�
 
 ## Context
 
-This is a CSS best practices documentation site built with Astro 5. The docs use MDX format with:
+This is a CSS best practices documentation site built with zudo-doc on the zfb stack. Read `.claude/skills/l-writing/SKILL.md` first for the authoritative authoring rules, including bilingual content preservation and generated/default-locale-only exceptions. The docs use MDX format with:
 
 - YAML frontmatter (`sidebar_position`, `description`, etc.)
 - `CssPreview` / `TailwindPreview` components for live CSS demos
@@ -40,20 +40,17 @@ Preserve the exact directory structure and file name. If the category directory 
 
 ### What to translate
 
-- All prose and explanatory text → Japanese
+- Prose and explanatory text outside code and JSX blocks → Japanese
 - Markdown headings (`##`, `###`, etc.) → Japanese
 - Table headers and cell content (explanatory text) → Japanese
-- `CssPreview` component's `title` prop value → Japanese
-- Frontmatter `description` field → Japanese (if present)
-- Inline comments explaining concepts → Japanese
+- Frontmatter text values such as `title` and `description` → Japanese
 
 ### What to keep in English
 
 - Code blocks (CSS, HTML, JavaScript) — keep entirely in English
 - CSS property names, values, selectors, and class names in prose (e.g., `display: flex`, `.container`, `margin-inline`)
 - HTML element and attribute names in prose (e.g., `<div>`, `class`)
-- `CssPreview` / `TailwindPreview` component props other than `title` (`html`, `css`, `height`) — keep as-is
-- Demo HTML text content inside CssPreview — keep in English (demos show CSS patterns; English text doesn't interfere)
+- Complete JSX blocks — preserve according to `/l-writing`, including `CssPreview` / `TailwindPreview` props (`title`, `html`, `css`, `height`) and demo HTML text
 - Import statements — keep unchanged
 - Frontmatter `sidebar_position` — keep as-is
 - Reference links (MDN links, spec links, etc.) — keep URLs as-is
@@ -201,9 +198,9 @@ frequently produce overcomplicated or inappropriate solutions.
   css={`...`}
 />
 
-<!-- Japanese — only title is translated -->
+<!-- Japanese — the complete JSX block is preserved -->
 <CssPreview
-  title="Flexbox センタリング: 両軸"
+  title="Flexbox Centering - Both Axes"
   html={`...`}
   css={`...`}
 />
@@ -213,10 +210,9 @@ frequently produce overcomplicated or inappropriate solutions.
 
 Before finishing a translation, verify:
 
-- [ ] All prose text is in Japanese
+- [ ] Prose outside code and JSX blocks is in Japanese
 - [ ] All code blocks remain in English
-- [ ] CssPreview `title` props are translated
-- [ ] CssPreview `html`/`css` props are untouched
+- [ ] Complete JSX blocks are identical to EN, including CssPreview `title`/`html`/`css` props
 - [ ] Import statements are unchanged
 - [ ] Frontmatter structure is preserved (`sidebar_position` unchanged)
 - [ ] Technical terms have Japanese gloss on first mention (where appropriate)
