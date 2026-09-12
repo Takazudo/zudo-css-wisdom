@@ -72,10 +72,6 @@ pnpm b4push           # Pre-push validation (typecheck + build + link check)
 
 The header nav also has a **Claude** item (`categoryMatch: "claude"`) pointing at build-time-generated `.claude/`-derived resource docs -- it is not a `src/content/docs/` category.
 
-Auto-generated directory (no header nav entry):
-
-- `inbox/` - Draft/work-in-progress articles (skipped by css-wisdom skill)
-
 ## Writing Docs
 
 All documentation files use `.mdx` format with YAML frontmatter.
