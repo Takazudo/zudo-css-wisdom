@@ -82,7 +82,7 @@ All documentation files use `.mdx` format with YAML frontmatter.
 
 ### Frontmatter Fields
 
-Schema defined in `src/content.config.ts`:
+Schema provided by `@takazudo/zudo-doc/docs-schema`, wired in by `zudoDoc()` in `zfb.config.ts`:
 
 | Field | Type | Required | Description |
 |---|---|---|---|
@@ -220,10 +220,10 @@ The `css-wisdom` skill (`.claude/skills/css-wisdom/SKILL.md`) is **generated** b
 
 ## Claude Code Skills
 
-This repo manages zcss-specific Claude Code skills in `.claude/skills/`:
+The surviving Claude Code skills in `.claude/skills/` are listed below (`css-wisdom` is generated and gitignored):
 
 - **`css-wisdom`** — Generated topic index of all CSS articles. Symlinked to `~/.claude/skills/css-wisdom` so it's available globally. Supports `-u`/`--update` mode.
-- **`l-writing`** — Writing and formatting rules for MDX articles. **Before writing or editing docs, invoke `/l-writing`.**
+- **`l-writing`** — Authoritative MDX, bilingual, and CSS article rules, reconciled with upstream zudo-doc 5.22.0. **Before writing or editing docs, invoke `/l-writing`.**
 - **`l-handle-deep-article`** — Guide for converting flat articles into deep articles with sub-pages. Local to this repo.
 - **`l-demo-component`** — Guide for CssPreview component usage and `defaultOpen` prop conventions. Local to this repo.
 - **`l-translate`** — Translate English docs to Japanese using the `ja-translator` subagent. Invoke `/l-translate <path-or-category>`.

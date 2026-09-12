@@ -10,7 +10,7 @@ argument-hint: "[question about demo component usage]"
 
 # Demo Component Usage Guide
 
-For CssPreview basics (props, rendering behavior, CSS conventions), see `doc/CLAUDE.md`.
+For CssPreview basics, rendering behavior, and CSS conventions, invoke `/l-writing`, the authoritative authoring skill for this repository.
 
 This skill covers **decision patterns** for effective demo usage.
 
