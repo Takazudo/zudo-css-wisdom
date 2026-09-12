@@ -22,7 +22,7 @@ pnpm b4push           # Pre-push validation (typecheck + build + link check)
 - Japanese: `src/content/docs-ja/` -> `/ja/docs/...`
 - Japanese docs should mirror the English directory structure
 
-**Bilingual rule**: When creating or updating any doc page, ALWAYS update both the English (`docs/`) and Japanese (`docs-ja/`) versions in the same PR. Keep code blocks and `<CssPreview>` blocks identical between languages -- only translate surrounding prose. If a Japanese version does not yet exist, create it.
+**Bilingual rule**: When creating or updating any doc page, ALWAYS update both the English (`docs/`) and Japanese (`docs-ja/`) versions in the same PR. Keep code blocks and `<CssPreview>` payload bodies (`html={}`, `css={}`, `height={}`) identical between languages -- only translate surrounding prose and the `title` prop. If a Japanese version does not yet exist, create it.
 
 ## Content Categories
 
@@ -190,7 +190,7 @@ Adding a new header nav item requires editing `zfb.config.ts`.
 3. Write content starting with `## h2` headings (not `# h1`)
 4. Include CssPreview demos to illustrate techniques
 5. Create the matching Japanese file under `src/content/docs-ja/` with the same path
-6. Keep code blocks and `<CssPreview>` blocks identical -- only translate prose
+6. Keep code blocks and `<CssPreview>` payload bodies identical -- only translate prose and the `title` prop
 7. Run `pnpm build` to verify the site builds correctly
 
 ### Adding a New Category
