@@ -23,7 +23,6 @@ const OUTPUT_PATH = join(ROOT, ".claude/skills/css-wisdom/SKILL.md");
 
 const SKIP_CATEGORIES = new Set([
   "overview",
-  "inbox",
   "claude-agents",
   "claude-md",
   "claude-skills",
@@ -125,7 +124,7 @@ async function main() {
     const parts = relPath.split("/");
     const category = parts[0];
 
-    // Skip overview/, inbox/, and auto-generated claude-* scaffold dirs
+    // Skip overview/ and auto-generated claude-* scaffold dirs
     if (SKIP_CATEGORIES.has(category)) continue;
 
     // Skip top-level category index files (e.g. layout/index.mdx)
