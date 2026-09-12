@@ -1,4 +1,4 @@
-# zcss — zudo-css
+# zcss — zudo-css-wisdom
 
 CSS best practices documentation site, built with zudo-doc (zfb stack, MDX, Tailwind CSS v4).
 
@@ -30,7 +30,7 @@ pnpm b4push           # Pre-push validation (typecheck + build + link check)
 
 **Overview** (direct)
 
-- `overview/` - What is zudo-css, css-wisdom skill docs
+- `overview/` - What is zudo-css-wisdom, css-wisdom skill docs
 
 **Layout** (group)
 
