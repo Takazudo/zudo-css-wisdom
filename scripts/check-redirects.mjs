@@ -12,12 +12,28 @@
  *   1. Reads scripts/path-migrations.json (the PERMANENT old-route inventory
  *      -- `moves`, `categoryIndexMoves`, `deletedRoutes`) and derives every
  *      pre-migration URL, EN and JA, both the bare and trailing-slash form.
- *   2. Resolves each one through public/_redirects, replaying Cloudflare's
- *      actual matching semantics: rules apply in FILE ORDER, first match
+ *   2. Resolves each one through public/_redirects in FILE ORDER, first match
  *      wins (exact string match for a static rule, prefix match for a `*`
  *      splat rule) -- not "try every static rule, then every dynamic rule".
  *      Static rules merely happen to be listed first in this file, which is
  *      how they win; the resolver does not special-case rule type.
+ *
+ *      HOW FAR THAT MODEL IS EVIDENCED -- read before trusting it. File order
+ *      is confirmed for static rules against each other, and for static-vs-
+ *      splat: that one is the real #198 bug, where a static exception listed
+ *      after a broader splat became unreachable dead code. It is KNOWN FALSE
+ *      for splat-vs-splat. Measured against production during the 260912
+ *      sweep (#207), `/docs/layout/specialized/not-in-inventory` resolves to
+ *      `/docs/flexbox-and-grid`, not the `/docs/document-layout` its
+ *      earlier-listed `/docs/layout/specialized/*` rule intends -- the broader
+ *      umbrella splat wins despite being listed later (same for
+ *      `/docs/typography/text-effects/*` and the `/ja/` counterparts). Nor is
+ *      it longest-prefix matching: the specific rule has the longer literal
+ *      prefix and still loses. #207 establishes only THAT the broader splat
+ *      wins, not the rule Cloudflare actually applies, so this resolver keeps
+ *      plain file order rather than guessing a precedence algorithm. The
+ *      divergence is latent, not user-visible: every URL in the inventory is
+ *      covered by a static rule, and those do take precedence.
  *   3. Asserts the fully-resolved URL is a real page in dist/. A URL with no
  *      matching rule is checked directly (covers old routes that did not
  *      move, e.g. `/docs/responsive/*`, `/docs/overview/*`).
@@ -61,7 +77,8 @@ const MAX_HOPS = 1; // "avoid old -> new -> canonical chains" -- 1 redirect hop 
 
 /**
  * Parses public/_redirects into an ordered rule list, preserving file order
- * (which is what determines first-match-wins on a real Cloudflare deploy).
+ * (which drives this resolver's first-match-wins -- see the splat-vs-splat
+ * caveat in the file header for where that diverges from Cloudflare).
  * Each rule: { kind: "static" | "dynamic", from, to, lineNo }.
  *   static:  `from` is the exact source path.
  *   dynamic: `from` is the splat prefix (pattern with the trailing `*` cut off).
@@ -263,10 +280,15 @@ function runSelfTest() {
     }
   });
 
-  // Adversarial case 3: a more-specific splat prefix must precede its
-  // broader umbrella splat, exactly as public/_redirects orders
-  // /docs/layout/specialized/* before /docs/layout/*.
-  check("more-specific splat wins over broader splat when ordered first", () => {
+  // Adversarial case 3: the LOCAL resolver's file-order rule applied to two
+  // splats. This pins THIS SCRIPT's behaviour and says nothing about the
+  // deployment target: Cloudflare does not honour file order between two
+  // splats. Measured in production (#207), the broader /docs/layout/* wins
+  // over the earlier-listed /docs/layout/specialized/*, i.e. the opposite of
+  // what is asserted below. Kept (rather than inverted) because #207
+  // establishes only THAT the broader splat wins, not the rule Cloudflare
+  // applies -- see the splat-vs-splat note in the file header.
+  check("resolver file order (NOT Cloudflare): specific splat before broader splat wins", () => {
     const { rules } = parseRedirects(
       [
         "/docs/layout/specialized/* /docs/document-layout 301",
@@ -279,8 +301,12 @@ function runSelfTest() {
     }
   });
 
-  // Adversarial case 4: broader splat ordered first incorrectly shadows the
-  // specific one -- proves the resolver doesn't silently "fix" bad ordering.
+  // Adversarial case 4: broader splat ordered first shadows the specific one
+  // -- proves the resolver doesn't silently "fix" bad ordering. The outcome
+  // asserted here is also what Cloudflare produces, but by a different
+  // mechanism: per #207 the broader splat wins regardless of order. Treat the
+  // agreement as coincidence, not as evidence that the resolver's file-order
+  // model matches production for splat-vs-splat.
   check("broader splat shadows more-specific splat when ordered first (regression trap)", () => {
     const { rules } = parseRedirects(
       [
