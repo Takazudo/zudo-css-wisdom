@@ -1,8 +1,8 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource preact */
 // Locked manifest (#2653 Decision 4, i18n addendum): the locale-prefixed
-// counterpart of pages/docs/[[...slug]].tsx — required for the same reason
-// (injected DYNAMIC routes 404 in `zfb dev`). Self-contained: only the
+// counterpart of pages/docs/[[...slug]].tsx, retained for explicit host route
+// ownership; zfb 2.13.1 also serves injected dynamic routes in dev. Self-contained: only the
 // sanctioned package entrypoints — no `pages/lib`, no `@/config`. The
 // `virtual:zudo-doc-chrome-bindings` import is unconditional, just like the
 // default-locale stub: the routes plugin supplies `{}` when no host module is
