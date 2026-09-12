@@ -1,7 +1,7 @@
 ---
 name: l-translate
 description: >-
-  Translate English docs to Japanese for the Astro i18n locale. Use when: (1) User wants to
+  Translate English docs to Japanese for the zudo-doc locale. Use when: (1) User wants to
   translate en docs to ja, (2) User says 'translate', 'ja version', 'Japanese translation', (3) User
   wants to check for missing ja docs.
 user-invocable: true
@@ -11,6 +11,8 @@ argument-hint: "<file-path-or-category> or 'check-missing'"
 # Translate EN Docs to JA
 
 Translate English MDX documentation files to Japanese using the `ja-translator` subagent.
+
+Invoke `/l-writing` first. Its bilingual rule and generated/default-locale-only exceptions govern which files to translate and which content to preserve.
 
 ## Input Parsing
 
@@ -115,8 +117,8 @@ Run parallel `ja-translator` subagent tasks for all missing files.
 
 ## Notes
 
-- The `ja-translator` agent handles all translation rules (what to translate vs keep in English, technical term glossing, writing style, etc.)
+- The `ja-translator` agent handles prose style and technical-term glossing; `/l-writing` governs content preservation and translation exceptions
 - Always preserve the exact file name — only the directory path changes
-- CssPreview/TailwindPreview `title` props get translated; `html`/`css`/`height` props stay as-is
+- Preserve JSX props according to `/l-writing`, including CssPreview/TailwindPreview `title` props
 - Code blocks stay entirely in English
 - After translation, the user should visually verify the JA page renders correctly

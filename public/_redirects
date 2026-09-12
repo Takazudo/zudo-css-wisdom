@@ -238,6 +238,10 @@
 /docs/typography/text-effects /docs/effects 301
 /docs/typography/text-effects/ /docs/effects 301
 
+# Retired draft category; deliberately not part of the epic #196 old-route inventory.
+/docs/inbox /docs/overview 301
+/docs/inbox/ /docs/overview 301
+
 # --- Static: exact article + category moves (JA) ---
 /ja/docs/layout/flexbox-and-grid/flexbox-patterns /ja/docs/flexbox-and-grid/flexbox-patterns 301
 /ja/docs/layout/flexbox-and-grid/flexbox-patterns/ /ja/docs/flexbox-and-grid/flexbox-patterns 301
@@ -464,6 +468,10 @@
 /ja/docs/typography/text-effects /ja/docs/effects 301
 /ja/docs/typography/text-effects/ /ja/docs/effects 301
 
+# Retired draft category; deliberately not part of the epic #196 old-route inventory.
+/ja/docs/inbox /ja/docs/overview 301
+/ja/docs/inbox/ /ja/docs/overview 301
+
 # --- Dynamic: dissolved umbrella / junk-drawer category catch-alls (EN) ---
 # Longer/more-specific prefixes MUST precede their umbrella prefix -- first match
 # wins, so /docs/layout/specialized/* and /docs/typography/text-effects/* would be
@@ -483,6 +491,9 @@
 /docs/interactive/* /docs/states-and-transitions 301
 /docs/methodology/* /docs/architecture 301
 
+# Retired draft category; deliberately not part of the epic #196 old-route inventory.
+/docs/inbox/* /docs/overview 301
+
 # --- Dynamic: dissolved umbrella / junk-drawer category catch-alls (JA) ---
 /ja/docs/layout/specialized/* /ja/docs/document-layout 301
 /ja/docs/typography/text-effects/* /ja/docs/effects 301
@@ -491,3 +502,6 @@
 /ja/docs/styling/* /ja/docs/color 301
 /ja/docs/interactive/* /ja/docs/states-and-transitions 301
 /ja/docs/methodology/* /ja/docs/architecture 301
+
+# Retired draft category; deliberately not part of the epic #196 old-route inventory.
+/ja/docs/inbox/* /ja/docs/overview 301

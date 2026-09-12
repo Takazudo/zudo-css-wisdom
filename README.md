@@ -12,7 +12,7 @@ Not official CSS documentation. Written for practical reference and AI-assisted 
 
 21 flat categories, grouped into 7 header-nav topic items (plus a separate Claude nav item that is not a content category):
 
-- **Overview**: What is zudo-css, css-wisdom skill docs
+- **Overview**: What is zudo-css-wisdom, css-wisdom skill docs
 - **Layout**: Flexbox & Grid, positioning, sizing, media, document layout
 - **Typography**: Font sizing, fonts, text control
 - **Styling**: Color, effects, shadows and borders

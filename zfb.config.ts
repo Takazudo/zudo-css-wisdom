@@ -25,7 +25,21 @@ export default defineConfig(
       twitterCreator: "@Takazudo",
     },
     locales: {
-      ja: { label: "JA", dir: "src/content/docs-ja" },
+      ja: {
+        label: "JA",
+        dir: "src/content/docs-ja",
+        description: "AI のための実践的な CSS リファレンス",
+        introMarkdown: `zudo-css-wisdom は、AI コーディングエージェントが実装中に参照できる CSS のベストプラクティス集です。AI が書いたコードをレビューする開発者にも、実装を選ぶ理由が伝わるようにしています。各記事は、よくある問題から始まり、推奨する実装と使いどころを紹介します。
+
+記事の中心は、実際の表示とコードを見比べられる \`CssPreview\` のデモです。デモは iframe で表示し、CSS をページ本体から分離しています。表示幅をモバイル・タブレット・全幅に切り替えて、幅が変わったときの挙動を確かめられます。
+
+Claude Code 用の \`css-wisdom\` スキルには、CSS 記事を網羅したトピック索引があります。インストール後は \`/css-wisdom <topic>\` で、作業中に必要なパターンと実装上の注意点を調べられます。
+
+- [概要](docs/overview/) — サイトの使い方とスキルの導入方法
+- [タイトトークン戦略](docs/design-tokens/tight-token-strategy/) — 意味を持つ少数のトークンに設計の選択肢を絞る
+- [コンポーネントファースト戦略](docs/architecture/component-first-strategy/) — UI コンポーネントを単位にユーティリティクラスをまとめる
+- [3層カラー戦略](docs/color/three-tier-color-strategy/) — パレット・テーマ・コンポーネントで色の役割を分ける`,
+      },
     },
     // Home-hero brand mark. MUST be set explicitly: zudo-doc's default is
     // `"auto"`, a generated SVG seeded by `siteName` that silently replaces
@@ -40,7 +54,19 @@ export default defineConfig(
     // PR #182). 4.4.x added `home.wide`, read by BOTH the package-owned root
     // and locale index routes, so those host overrides are gone and the
     // package routes are used again.
-    home: { wide: true },
+    home: {
+      wide: true,
+      introMarkdown: `zudo-css-wisdom is a CSS best practices reference written primarily for AI coding agents. It also helps developers review the CSS those agents produce. Each technique article starts with a concrete problem, explains the recommended approach, and shows when to use it.
+
+The live \`CssPreview\` demos are the core of the articles. They run in isolated iframes, so you can compare the CSS with its result and switch between mobile, tablet, and full-width previews to see how the layout responds.
+
+The \`css-wisdom\` Claude Code skill indexes every CSS article. Once installed, use \`/css-wisdom <topic>\` during a coding task to find a relevant pattern and read its guidance before applying it.
+
+- [Overview](/docs/overview/) — how to use the site and install the skill.
+- [Tight Token Strategy](/docs/design-tokens/tight-token-strategy/) — limit design choices to a small set of semantic tokens.
+- [Component First Strategy](/docs/architecture/component-first-strategy/) — organize utility-based styling around UI components.
+- [Three-Tier Color Strategy](/docs/color/three-tier-color-strategy/) — separate palette values, theme roles, and component overrides.`,
+    },
     // v4 default is `true` — this site does not use mermaid, so keep it off.
     mermaid: false,
     sitemap: true,
@@ -234,14 +260,6 @@ export default defineConfig(
       { type: "component", component: "theme-toggle" },
       { type: "component", component: "search" },
       { type: "component", component: "language-switcher" },
-    ],
-    // Build-time-generated Claude resource docs are EN-only (gitignored); the
-    // language switcher hides locale options under these prefixes.
-    defaultLocaleOnlyPrefixes: [
-      "/docs/claude-md/",
-      "/docs/claude-skills/",
-      "/docs/claude-commands/",
-      "/docs/claude-agents/",
     ],
     // Host module supplying the custom MDX demo components (CssPreview /
     // TailwindPreview) via `chromeBindings.mdxExtras`.

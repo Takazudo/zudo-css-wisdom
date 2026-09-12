@@ -59,8 +59,11 @@ fi
 ensure_symlink() {
   local link_path="$1"
   local target="$2"
-  if [ -L "$link_path" ] || [ -e "$link_path" ]; then
-    rm -rf "$link_path"
+  if [ -L "$link_path" ]; then
+    rm "$link_path"
+  elif [ -e "$link_path" ]; then
+    echo "Error: '$link_path' already exists and is not a symlink. Move or remove it and rerun setup:doc-skill." >&2
+    exit 1
   fi
   ln -s "$target" "$link_path"
 }

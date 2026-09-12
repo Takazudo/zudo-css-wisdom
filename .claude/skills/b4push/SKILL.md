@@ -1,7 +1,7 @@
 ---
 name: b4push
 description: >-
-  Run before-push quality checks for the zudo-css project. Use when: (1) User says 'b4push', 'before
+  Run before-push quality checks for the zudo-css-wisdom project. Use when: (1) User says 'b4push', 'before
   push', or 'run checks', (2) Before pushing to remote, (3) After completing implementation work.
 user-invocable: true
 ---
