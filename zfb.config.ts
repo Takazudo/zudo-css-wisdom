@@ -228,6 +228,16 @@ The \`css-wisdom\` Claude Code skill indexes every CSS article. Once installed, 
         // Each label matches the `title` / `sidebar_label` of the matching
         // src/content/docs-ja/<category>/index.mdx so the header and the page
         // it opens read the same (#204).
+        //
+        // The no-`···`-overflow criterion is locale-dependent: EN stays clean
+        // at 1280px+, but JA needs ~1360px+ (measured: 1280-1320px hides
+        // CSS設計 and/or Claude behind the overflow menu; JA labels render
+        // ~80px wider in total than EN at the same 8-item count). Shortening
+        // the JA labels was considered and rejected (#208, #236) to preserve
+        // the vocabulary carried over verbatim from the pre-restructure
+        // docs-ja/*/index.mdx titles. The real fix (header item padding/gap,
+        // or a width-aware overflow threshold) belongs upstream in
+        // @takazudo/zudo-doc: https://github.com/zudolab/zudo-doc/issues/4166
         "nav.layout": "レイアウト",
         "nav.flexboxAndGrid": "Flexbox & Grid",
         "nav.positioning": "ポジショニング",
