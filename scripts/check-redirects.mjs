@@ -33,7 +33,13 @@
  *      wins, not the rule Cloudflare actually applies, so this resolver keeps
  *      plain file order rather than guessing a precedence algorithm. The
  *      divergence is latent, not user-visible: every URL in the inventory is
- *      covered by a static rule, and those do take precedence.
+ *      covered by a static rule, and those do take precedence. Step 2b below
+ *      keeps it that way instead of leaving it as a comment-only promise.
+ *   2b. FAILS if an inventory URL only resolves because of a splat that
+ *      Cloudflare shadows (a splat whose prefix sits under a broader splat's,
+ *      per #207). Without this, adding an old route under
+ *      `/docs/layout/specialized/` with no static rule would pass here and
+ *      301 to the wrong page in production.
  *   3. Asserts the fully-resolved URL is a real page in dist/. A URL with no
  *      matching rule is checked directly (covers old routes that did not
  *      move, e.g. `/docs/responsive/*`, `/docs/overview/*`).
@@ -136,21 +142,48 @@ function matchRule(url, rules) {
 function resolve(url, rules) {
   let current = url;
   const visited = new Set([current]);
+  const applied = [];
   let hops = 0;
   for (;;) {
     const rule = matchRule(current, rules);
-    if (!rule) return { finalUrl: current, hops, error: null };
+    if (!rule) return { finalUrl: current, hops, applied, error: null };
     hops++;
+    applied.push(rule);
     if (hops > MAX_HOPS) {
-      return { finalUrl: current, hops, error: `redirect chain exceeds ${MAX_HOPS} hop(s) (rule at line ${rule.lineNo})` };
+      return { finalUrl: current, hops, applied, error: `redirect chain exceeds ${MAX_HOPS} hop(s) (rule at line ${rule.lineNo})` };
     }
     const next = rule.to;
     if (visited.has(next)) {
-      return { finalUrl: current, hops, error: `redirect cycle detected at ${next} (rule at line ${rule.lineNo})` };
+      return { finalUrl: current, hops, applied, error: `redirect cycle detected at ${next} (rule at line ${rule.lineNo})` };
     }
     visited.add(next);
     current = next;
   }
+}
+
+/**
+ * Dynamic rules this resolver would apply but Cloudflare would not. Per #207
+ * a splat whose prefix sits under a broader splat's prefix loses to that
+ * broader rule regardless of file order (and two splats with the same prefix
+ * fall back to top-most-wins). Returns Map<shadowedRule, winningRule> so the
+ * caller can fail a URL whose resolution depends on a rule that is dead in
+ * production.
+ */
+function findShadowedDynamicRules(rules) {
+  const dynamic = rules.filter((rule) => rule.kind === "dynamic");
+  const shadowed = new Map();
+  for (const rule of dynamic) {
+    for (const other of dynamic) {
+      if (other === rule) continue;
+      const broader = rule.from.startsWith(other.from) && other.from.length < rule.from.length;
+      const duplicateListedEarlier = other.from === rule.from && other.lineNo < rule.lineNo;
+      if (broader || duplicateListedEarlier) {
+        shadowed.set(rule, other);
+        break;
+      }
+    }
+  }
+  return shadowed;
 }
 
 // ── dist/ existence check ───────────────────────────────────────────────
@@ -354,6 +387,28 @@ function runSelfTest() {
     }
   });
 
+  // Adversarial case 8: the shadowed-splat detector must flag the specific
+  // splat (dead in production per #207) and leave the broader umbrella and
+  // unrelated splats alone -- this is what stops a future migration from
+  // relying on a rule Cloudflare never applies.
+  check("shadowed-splat detector flags the specific splat, not the umbrella", () => {
+    const { rules } = parseRedirects(
+      [
+        "/docs/layout/specialized/* /docs/document-layout 301",
+        "/docs/layout/* /docs/flexbox-and-grid 301",
+        "/docs/styling/* /docs/color 301",
+      ].join("\n"),
+    );
+    const shadowed = findShadowedDynamicRules(rules);
+    const flagged = [...shadowed.keys()].map((r) => r.from);
+    if (flagged.length !== 1 || flagged[0] !== "/docs/layout/specialized/") {
+      throw new Error(`expected only /docs/layout/specialized/ flagged, got ${JSON.stringify(flagged)}`);
+    }
+    if (shadowed.get([...shadowed.keys()][0]).from !== "/docs/layout/") {
+      throw new Error("expected /docs/layout/* named as the winning rule");
+    }
+  });
+
   console.log(`Self-test: ${pass} passed, ${fail} failed.`);
   for (const c of cases) {
     console.log(`  ${c.ok ? "✅" : "❌"} ${c.name}${c.ok ? "" : ` -- ${c.error}`}`);
@@ -399,13 +454,23 @@ async function main() {
   const inventory = buildInventory(manifest);
   console.log(`Old-route inventory (EN+JA, both slash forms): ${inventory.length} URL(s) to verify.`);
 
+  const shadowedRules = findShadowedDynamicRules(rules);
+
   let checkedRedirected = 0;
   let checkedInPlace = 0;
 
   for (const { url, expectedNewUrl, sourceOldRoute } of inventory) {
-    const { finalUrl, hops, error } = resolve(url, rules);
+    const { finalUrl, hops, applied, error } = resolve(url, rules);
     if (error) {
       failures.push(`${url}: ${error}`);
+      continue;
+    }
+    const shadowedHop = applied.find((rule) => shadowedRules.has(rule));
+    if (shadowedHop) {
+      const winner = shadowedRules.get(shadowedHop);
+      failures.push(
+        `${url}: only resolves via the splat \`${shadowedHop.from}*\` (line ${shadowedHop.lineNo}), which Cloudflare shadows with the broader \`${winner.from}*\` (line ${winner.lineNo}) -- production would send it to ${winner.to}, not ${finalUrl} (#207). Add an explicit static rule above the splats.`,
+      );
       continue;
     }
     if (expectedNewUrl !== null && hops === 0) {

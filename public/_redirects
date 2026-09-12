@@ -485,7 +485,8 @@
 # not /docs/document-layout. Both specific splats are therefore SHADOWED in
 # production and retained only to document intent -- do not rely on them to
 # disambiguate a new dissolved-category route. (Harmless today: every URL in the
-# epic #196 inventory is covered by a static rule above.)
+# epic #196 inventory is covered by a static rule above -- scripts/check-redirects.mjs
+# now fails the build if that ever stops being true.)
 # The splats are a safety net for any old route not covered by an explicit static
 # rule above. Splat rules don't need trailing-slash duplicates since `*` already
 # matches both `/docs/layout/x` and `/docs/layout/x/` (their captured suffix is
