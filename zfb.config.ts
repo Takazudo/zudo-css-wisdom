@@ -235,14 +235,6 @@ export default defineConfig(
       { type: "component", component: "search" },
       { type: "component", component: "language-switcher" },
     ],
-    // Build-time-generated Claude resource docs are EN-only (gitignored); the
-    // language switcher hides locale options under these prefixes.
-    defaultLocaleOnlyPrefixes: [
-      "/docs/claude-md/",
-      "/docs/claude-skills/",
-      "/docs/claude-commands/",
-      "/docs/claude-agents/",
-    ],
     // Host module supplying the custom MDX demo components (CssPreview /
     // TailwindPreview) via `chromeBindings.mdxExtras`.
     chromeBindingsModule: "src/chrome-bindings.ts",

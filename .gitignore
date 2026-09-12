@@ -55,6 +55,11 @@ src/content/docs/claude-md/
 src/content/docs/claude-skills/
 src/content/docs/claude-commands/
 src/content/docs/claude-agents/
+src/content/docs-ja/claude/
+src/content/docs-ja/claude-md/
+src/content/docs-ja/claude-skills/
+src/content/docs-ja/claude-agents/
+src/content/docs-ja/claude-commands/
 
 # zcss-specific unversioned data dirs
 src/data/
