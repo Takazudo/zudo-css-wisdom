@@ -11,7 +11,7 @@
 import { access, readFile, readdir, stat } from "node:fs/promises";
 import { dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { extractHeadings, slugify } from "@takazudo/zudo-doc/extract-headings";
+import { extractAllHeadingIds } from "@takazudo/zudo-doc/extract-headings";
 
 const CLI_USAGE = `Usage: pnpm check:links -- [options]
 
@@ -602,45 +602,9 @@ export function extractMdxFragmentLinks(content) {
   return links;
 }
 
-function headingText(raw) {
-  return raw
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/(?<![\w])__([^_]+)__(?![\w])/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/(?<![\w])_([^_]+)_(?![\w])/g, "$1")
-    .trim();
-}
-
+/** Include h5/h6 targets and use the same text extraction as rendered TOC IDs. */
 function allHierarchicalHeadingIds(body) {
-  const ids = new Set(extractHeadings(body).map((heading) => heading.slug));
-  const seen = new Map();
-  const stack = [];
-  let codeFenceOpener = null;
-  for (const line of body.split("\n")) {
-    const fence = /^([`~]{3,})/.exec(line.trimStart())?.[1];
-    if (fence !== undefined) {
-      if (codeFenceOpener === null) codeFenceOpener = fence;
-      else if (fence[0] === codeFenceOpener[0] && fence.length >= codeFenceOpener.length) codeFenceOpener = null;
-      continue;
-    }
-    if (codeFenceOpener !== null) continue;
-    const match = /^(#{2,6})[ \t]+(.+)$/.exec(line.trim());
-    if (match === null) continue;
-    const depth = match[1].length;
-    const base = slugify(headingText(match[2]));
-    if (base === "") continue;
-    while ((stack.at(-1)?.depth ?? -1) >= depth) stack.pop();
-    const parent = stack.at(-1);
-    const candidate = parent === undefined ? base : `${parent.id}-${base}`;
-    const count = seen.get(candidate) ?? 0;
-    seen.set(candidate, count + 1);
-    const id = count === 0 ? candidate : `${candidate}-${count}`;
-    stack.push({ depth, id });
-    ids.add(id);
-  }
-  return ids;
+  return new Set(extractAllHeadingIds(body));
 }
 
 function extractStaticMdxIds(body) {
@@ -663,8 +627,27 @@ function extractStaticMdxIds(body) {
   // (#4048). The rest of this pattern keeps its own semantics — `\bid` also
   // accepts `data-id`, and only non-empty quoted values count, unlike the
   // built-HTML id scan.
+  //
+  // Two extra guards, scoped to this MDX scan only (the shared
+  // HTML_ATTRIBUTE_RUN above is untouched — the built-HTML scans still rely on
+  // multi-line quoted attributes):
+  //
+  // - MDX_UNESCAPED_LT_LOOKBEHIND: an escaped `\<` in prose is valid MDX and
+  //   must not start a fake tag. Parity matters, not just "preceded by a
+  //   backslash" — `\\<` is an escaped backslash followed by an active `<`.
+  //   The lookbehind is anchored at the run's start (`(?<!\\)`) so it judges
+  //   the whole contiguous backslash run, not a suffix of it.
+  // - MDX_ID_ATTRIBUTE_RUN: without this, a fake tag opened by an escaped `<`
+  //   can have prose apostrophes read as a `'...'` quoted value that crosses
+  //   a real `>` and swallows a real element's id on a later line (#4218).
+  //   Disallowing a blank line inside a quoted value bounds the damage to a
+  //   single paragraph while still letting a real JSX tag — including a
+  //   quoted value spanning one newline — match.
+  const MDX_UNESCAPED_LT_LOOKBEHIND = /(?<!(?<!\\)(?:\\\\)*\\)/.source;
+  const MDX_ID_ATTRIBUTE_RUN =
+    /(?:"(?:(?!\r?\n[ \t]*\r?\n)[^"])*"|'(?:(?!\r?\n[ \t]*\r?\n)[^'])*'|[^>"'])/.source;
   const regex = new RegExp(
-    `<[A-Za-z]${HTML_ATTRIBUTE_RUN}*?\\bid\\s*=\\s*(?:"([^"]+)"|'([^']+)')${HTML_ATTRIBUTE_RUN}*>`,
+    `${MDX_UNESCAPED_LT_LOOKBEHIND}<[A-Za-z]${MDX_ID_ATTRIBUTE_RUN}*?\\bid\\s*=\\s*(?:"([^"]+)"|'([^']+)')${MDX_ID_ATTRIBUTE_RUN}*>`,
     "gs",
   );
   let match;
