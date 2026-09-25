@@ -5,7 +5,11 @@
 # Format: one repo-relative path per line (no leading slash).
 # Blank lines and `#` comments are ignored.
 #
-# Reconciled against the create-zudo-doc 5.22.0 baseline on 2026-09-12.
+# Reconciled against the create-zudo-doc 5.22.0 baseline on 2026-09-12 and
+# re-verified against 5.27.0 on 2026-09-25: every tracked template file except
+# scripts/check-links.js is byte-identical between 5.22.0 and 5.27.0, so the
+# "5.22.0" references below still describe the current template. check-links.js
+# was re-adopted verbatim from 5.27.0 and remains drift-gated.
 # All ten base files plus the i18n doc-route file were compared individually.
 # The eight entries below retain host behavior or branding; no entry exists
 # merely to make the check green. pages/index.tsx, scripts/check-links.js,
