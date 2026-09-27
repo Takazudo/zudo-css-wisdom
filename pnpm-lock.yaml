@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@takazudo/zdtp':
-        specifier: ^0.8.5
-        version: 0.8.5(preact@10.29.1)
       '@takazudo/zfb':
         specifier: 2.22.0
         version: 2.22.0
@@ -1792,7 +1789,8 @@ snapshots:
 
   '@speed-highlight/core@1.2.17': {}
 
-  '@tailwindcss/browser@4.3.2': {}
+  '@tailwindcss/browser@4.3.2':
+    optional: true
 
   '@takazudo/zdtp@0.8.5(preact@10.29.1)':
     dependencies:
@@ -1800,6 +1798,7 @@ snapshots:
       culori: 4.0.2
       preact: 10.29.1
       tailwind-merge: 3.6.0
+    optional: true
 
   '@takazudo/zfb-adapter-cloudflare@2.22.0': {}
 
@@ -1914,7 +1913,8 @@ snapshots:
 
   cookie@1.1.1: {}
 
-  culori@4.0.2: {}
+  culori@4.0.2:
+    optional: true
 
   debug@4.4.3:
     dependencies:
@@ -2429,7 +2429,8 @@ snapshots:
 
   supports-color@10.2.2: {}
 
-  tailwind-merge@3.6.0: {}
+  tailwind-merge@3.6.0:
+    optional: true
 
   tslib@2.8.1:
     optional: true
