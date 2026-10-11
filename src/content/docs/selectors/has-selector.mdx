@@ -153,7 +153,7 @@ Use the direct child combinator `>` for better performance. It limits the browse
 
 The intent was "stack the shell on narrow viewports." The `:has(#code-panel)` gate ties that intent to an unrelated condition: whether the page happens to contain a code panel. Pages without one — an index page, a settings page — keep row direction on narrow viewports, and the non-shrinking sidebar pushes the main content off-screen. Every page that has the panel renders correctly, so the bug ships silently.
 
-<CssPreview client:load
+<CssPreview
   title="Broken: Stacking Gated on the Code Panel's Presence"
   html={`
     <p class="demo-hint">Switch to the Mobile viewport (320px) — Page B never stacks and its content is cut off</p>
@@ -268,7 +268,7 @@ Keep unconditional layout unconditional. Gate only the delta the feature introdu
 
 The stacking now applies to every page. A delta on the panel itself needs no gate — `.code-panel` can only match when the panel exists. The `:has()` gate remains only for deltas on other elements that genuinely depend on the panel's presence.
 
-<CssPreview client:load
+<CssPreview
   title="Fixed: Unconditional Stacking, Gated Deltas Only"
   html={`
     <p class="demo-hint">Switch to the Mobile viewport (320px) — both pages stack; the sidebar compacts only on the page with the panel</p>
@@ -399,7 +399,7 @@ Global support exceeds 96%. Feature detection is available with `@supports selec
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title=":has(:focus) — Parent Reacts to Child Focus"
   html={`
     <div class="field-group">
@@ -464,7 +464,7 @@ Global support exceeds 96%. Feature detection is available with `@supports selec
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title=":has(:checked) — Toggle Styles with Checkbox"
   html={`
     <div class="card">

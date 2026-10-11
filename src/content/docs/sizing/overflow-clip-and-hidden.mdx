@@ -50,7 +50,7 @@ Both values clip paint at the box edge. Everything else differs:
 
 The scroll-container difference is not theoretical. A `hidden` box scrolls whenever the browser decides something inside must be revealed: keyboard focus moving to an off-screen descendant, `location.hash` navigation, `scrollIntoView` from a library. The content shifts, there is no scrollbar to shift it back, and the layout looks corrupted. A `clip` box cannot be scrolled by anything.
 
-<CssPreview client:load
+<CssPreview
   title="overflow: hidden Is a Scroll Container"
   height={280}
   html={`    <div class="focus-demo">
@@ -165,7 +165,7 @@ Focusable content hidden behind any clipping is an accessibility smell — keybo
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="visible Next to hidden Is Forced to auto"
   height={300}
   html={`    <div class="forcing-demo">
@@ -256,7 +256,7 @@ Grid and flex tracks have two separate failure layers when content is oversized:
 
 Both steps are required. `min-height: 0` alone leaves the paint-through; `overflow-y: clip` alone leaves the track oversized. And the clip must be the per-axis form: the shorthand `overflow: clip` (or `overflow: hidden`) also clips the inline axis, which shears shadows and outlines — the next section. The `min-width: 0` / `min-height: 0` reset itself is covered in [Flexbox Patterns](../flexbox-and-grid/flexbox-patterns.mdx).
 
-<CssPreview client:load
+<CssPreview
   title="Grid Row Paint-Through and the clip Fix"
   height={440}
   html={`    <div class="overlap-demo">
@@ -360,7 +360,7 @@ Clipping both axes cuts more than layout overflow — it cuts decorations. Full-
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="overflow: hidden Shears Shadows; visible + clip Preserves Them"
   height={320}
   html={`    <div class="shear-demo">
@@ -446,7 +446,7 @@ Both stacks clip the third card at the bottom — the block-axis clip works iden
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="overflow-clip-margin Lets Decorations Survive the Clip"
   height={240}
   html={`    <div class="clip-margin-demo">

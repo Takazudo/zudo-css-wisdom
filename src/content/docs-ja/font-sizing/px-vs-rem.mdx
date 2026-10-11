@@ -33,7 +33,7 @@ import CssPreview from '@/components/CssPreview';
 
 このデモは、ルートフォントサイズを変えることでブラウザの設定をシミュレートします — Chrome の「フォントサイズ」設定が使っているのと同じ仕組みです。両方の列は同じ見た目のサイズで書かれています。`rem` の列だけが反応します。
 
-<CssPreview client:load
+<CssPreview
   title="デフォルトフォントサイズ 16 / 20 / 24px — px テキストは無視し、rem テキストは追従する"
   html={`
     <div class="fs-sim">
@@ -132,7 +132,7 @@ import CssPreview from '@/components/CssPreview';
 
 周囲のスペースを拡大せずにテキストだけ拡大すると窮屈なコンポーネントになり、すべてを拡大すると border の太さがデバイス依存になり、shadow と角丸が大きくなりすぎます。このデモでは、3 枚のカードを同じシミュレーション設定の下に置いています。
 
-<CssPreview client:load
+<CssPreview
   title="すべて px / すべて rem / 混在 — デフォルトフォントサイズ 24px をシミュレート"
   html={`
     <div class="unit-sim">
@@ -288,7 +288,7 @@ body { font-size: 1.6rem; }  /* back to 16px */
 
 `62.5%` は依然として相対値なので、ユーザー設定を壊すことはありません — デフォルト 20px ならルートは 12.5px、body テキストは 20px になります。推奨されないのは別の理由です。このトリックは、オプトインしていないすべてのものにとっての `1rem` を再定義してしまいます。サードパーティのウィジェット、ブラウザ拡張の UI、スタイル未指定の `1rem` テキストは、すべて 10px で表示されます。
 
-<CssPreview client:load
+<CssPreview
   title="html { font-size: 62.5% } は補正していないすべての 1rem 値を縮める"
   html={`
     <div class="trick-sim">

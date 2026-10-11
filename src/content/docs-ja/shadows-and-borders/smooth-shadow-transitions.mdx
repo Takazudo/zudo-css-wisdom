@@ -202,7 +202,7 @@ import CssPreview from '@/components/CssPreview';
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="コストの高い box-shadow トランジション vs 軽量なオパシティアプローチ"
   html={`<div class="demo"><div class="card naive"><h3>Naive Approach</h3><p>Transitions box-shadow directly (triggers repaint every frame)</p><span class="hint">Hover to see effect</span></div><div class="card performant"><h3>Performant Approach</h3><p>Transitions pseudo-element opacity (GPU compositing only)</p><span class="hint">Hover to see effect</span></div></div>`}
   css={`

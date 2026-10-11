@@ -18,7 +18,7 @@ import CssPreview from '@/components/CssPreview';
 1. **モーション削除アプローチ**：通常通りアニメーションを書き、`prefers-reduced-motion: reduce` ブロック内で無効化します。
 2. **ノーモーションファーストアプローチ**：デフォルトで静的なスタイルを書き、`prefers-reduced-motion: no-preference` ブロック内でアニメーションを追加します。この方が安全です。設定を指定していないユーザーでもモーションが軽減されるためです。
 
-<CssPreview client:load
+<CssPreview
   title="prefers-reduced-motion: フルモーション vs 軽減モーション"
   html={`
     <div class="demo">

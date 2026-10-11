@@ -225,7 +225,7 @@ Without `isolation: isolate`, blend modes propagate up the DOM and blend with al
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="mix-blend-mode: Text Over Colorful Background"
   html={`<div class="demo"><div class="blend-container"><h1 class="blend-text">BLEND</h1></div></div>`}
   css={`
@@ -255,7 +255,7 @@ Without `isolation: isolate`, blend modes propagate up the DOM and blend with al
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="background-blend-mode: Duotone Effect"
   html={`<div class="demo"><div class="duotone"><span class="label">luminosity blend</span></div><div class="no-blend"><span class="label">no blend (normal)</span></div></div>`}
   css={`
@@ -296,7 +296,7 @@ Without `isolation: isolate`, blend modes propagate up the DOM and blend with al
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="Isolation Property Demo"
   html={`<div class="demo"><div class="card no-isolate"><div class="overlay"></div><p>Without isolation — blend leaks to page background</p></div><div class="card with-isolate"><div class="overlay"></div><p>With isolation: isolate — blend contained to card</p></div></div>`}
   css={`

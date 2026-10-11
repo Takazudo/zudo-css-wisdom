@@ -71,7 +71,7 @@ Write this decision down (in the token file's comment and the architecture doc),
 | Stage `font-size: Ncqi` + `em` scale | ✓ until the single shared floor | ✗ | One knob, but one floor breaks all sizes at once |
 | `transform: scale()` of a fixed-px canvas | ✓ (everything, incl. hairlines) | ✗ | Abandons DOM-native sizing; text can blur |
 
-<CssPreview client:load
+<CssPreview
   title="rem-dominant vs pure-cqi type in a slide stage — drag the stage narrower"
   html={`
     <div class="stage-demo">

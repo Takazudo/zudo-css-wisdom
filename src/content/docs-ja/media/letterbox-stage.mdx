@@ -58,7 +58,7 @@ import CssPreview from '@/components/CssPreview';
 
 ビューポートボタンを切り替えてみてください。Mobile ではフレームが 16:9 より縦長なのでステージは幅駆動になり、すべて正しく見えます。狭いビューポートのテストが通ってしまう理由がこれです。Tablet と Full ではフレームが 16:9 より横長になります。ステージは幅 391px のレターボックス化されたボックスに縮むべきですが、実際には全幅を保ったままフレームの高さに押しつぶされ、円は楕円になります。
 
-<CssPreview client:load
+<CssPreview
   title="壊れた例: 高さ制約フレーム内の幅駆動ステージ"
   html={`    <div class="frame">
       <div class="stage">
@@ -107,7 +107,7 @@ import CssPreview from '@/components/CssPreview';
 
 マークアップも `.stage` の基本ルールも同じです。フレームに `frame--contain` 修飾子とコンテナスコープの幅ルールを足しただけです。ビューポートボタンを切り替えると、バーの軸が反転するのが分かります。Mobile では幅の軸が先に尽きるのでバーは上下に、Tablet と Full では高さの軸が先に尽きるのでバーは左右に付きます。円はどの状態でも真円のままです。
 
-<CssPreview client:load
+<CssPreview
   title="修正版: サイズコンテナ + min() のレターボックス"
   html={`    <div class="frame frame--contain">
       <div class="stage">
@@ -169,7 +169,7 @@ import CssPreview from '@/components/CssPreview';
 
 `container-type: size` は要素のサイズをコンテンツから独立させます。`height: auto` のラッパーに適用すると、ラッパーは高さゼロに潰れます。コンテンツは描画され続け、高さゼロのボックスからあふれます。
 
-<CssPreview client:load
+<CssPreview
   title="危険: container-type: size は高さ auto のラッパーを潰す"
   html={`    <div class="collapse-demo">
       <div class="collapse-demo__col">
@@ -275,7 +275,7 @@ observer.observe(frame);
 
 レターボックス化されたステージはフレームに合わせてサイズが変わるので、中のコンテンツはビューポートではなくステージに合わせてスケールすべきです。ステージを inline-size コンテナにし、コンテンツを `cqi` 単位でサイズしてください。[コンテナクエリ](../responsive/container-queries.mdx)を参照してください。
 
-<CssPreview client:load
+<CssPreview
   title="内部の流動性: cqi 単位でコンテンツをステージに追従させる"
   html={`    <div class="frame frame--contain">
       <div class="stage stage--fluid">

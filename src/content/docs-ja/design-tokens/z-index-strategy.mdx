@@ -58,7 +58,7 @@ z-index 階層を、**単一の TypeScript 真実のソース**から生成さ�
 2. **単一名前空間** ―― 機能や文脈で分割しない、フラットな階層リスト1本。（z-index は本質的に1つの順序問題です。文脈ごとに分けるべき密度トークンとは違います。）
 3. **TS 真実のソースからのコード生成** ―― CSS ブロックも、スタイルガイドの表も、TypeScript 定数も、すべて1つのファイルから派生します。ドリフトは構造的に起こり得ません。
 
-<CssPreview client:load
+<CssPreview
   title="Semantic Tier Tokens vs Magic Numbers"
   height={340}
   html={`    <div class="ztk-demo">
@@ -250,7 +250,7 @@ export const Z_INDEX_TIERS: ZIndexTier[] = [
 
 子が無関係な UI（例：ページツールバーの上に出るべきポップオーバー）の上にレンダリングされる必要があるなら、それはローカルではありません――グローバル階層であり、名前付きスケールに置くべきです。
 
-<CssPreview client:load
+<CssPreview
   title="Local Promotion Inside a Stacking Context"
   height={300}
   html={`    <div class="zlocal-demo">
@@ -315,7 +315,7 @@ export const Z_INDEX_TIERS: ZIndexTier[] = [
 同じ `--z-local-1` トークンが、すべての isolated な親に対して通用します。`--z-card-bg` や `--z-modal-content` のようなローカル個別トークンは不要です――ローカル階層は匿名のヘルパーであり、コンポーネントごとのセマンティック値ではありません。
 :::
 
-<CssPreview client:load
+<CssPreview
   title="Sibling-Ordered Global Overlays"
   height={320}
   html={`    <div class="zsib-demo">

@@ -32,7 +32,7 @@ Three properties make this spec work. It states the default *first* — an unsta
 
 The default does not have to be 0. A friendly consumer product may declare "default 8px, pills for tag chips." The decision itself is the point: **one default, one exception list, zero per-component improvisation.**
 
-<CssPreview client:load
+<CssPreview
   title="Same Card, Two Shape Languages — the Tone Shift Is the Radius"
   html={`
 <div class="tone-demo">
@@ -148,7 +148,7 @@ The jumps matter more than the values. Moving from 0 to 4px is nearly invisible;
 
 Fully-rounded shapes are the strongest move on the radius axis, the shape equivalent of a filled accent background (see [the accent cost ladder](./color-usage-philosophy.mdx)). They are never a neutral default for badges, chips, or counters — yet generated output reaches for `border-radius: 999px` on nearly every small label, because pills dominate the training data's tag UIs.
 
-<CssPreview client:load
+<CssPreview
   title="One Badge, Three Statements — Square, Softened, Pill"
   html={`
 <div class="badge-demo">
@@ -221,7 +221,7 @@ Within a single composition, sibling elements share one radius value. A 6px card
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Nested Radius — Same Value Looks Wrong, Subtracted Value Tracks the Curve"
   html={`
 <div class="nest-demo">

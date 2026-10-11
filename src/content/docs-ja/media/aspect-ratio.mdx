@@ -40,7 +40,7 @@ import CssPreview from '@/components/CssPreview';
 
 画像はコンテナの幅いっぱいに広がり、16:9の比率を維持します。`object-fit: cover` により、画像は歪みなくボックスを埋め、必要に応じてトリミングされます。
 
-<CssPreview client:load
+<CssPreview
   title="aspect-ratio: 画像コンテナ（16/9）"
   html={`    <div class="container">
       <div class="thumbnail">
@@ -133,7 +133,7 @@ import CssPreview from '@/components/CssPreview';
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="aspect-ratio: カードレイアウトグリッド"
   html={`    <div class="card-grid">
       <div class="card">

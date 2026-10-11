@@ -19,7 +19,7 @@ This is robust for blocks. It is wrong for floats, and it fails without any diag
 
 A float is positioned by **its own** `margin-block-start`. Its border-box top sits at `previous sibling's bottom margin edge + own margin-block-start`. The block beside it is positioned by **its** `margin-block-start`. The two top-align only when those two leads are **equal**. Nothing in the flow strategy makes that true — headings deliberately carry a larger lead than body text — so a floated figure beside a heading is misaligned by default. The error is invisible until the heading paints a rule or border.
 
-<CssPreview client:load
+<CssPreview
   title="Flow Spacing Misaligns a Float Beside a Heading"
   html={`
 <div class="demo">
@@ -108,7 +108,7 @@ The first instinct is "the float already opened the gap, so zero the neighbour":
 
 This drops the neighbour to the previous block's bottom edge while the float stays one lead lower. The text now starts **above** the image. A production site shipped exactly this rule, with a code comment claiming it aligned things.
 
-<CssPreview client:load
+<CssPreview
   title="Anti-Pattern — Zeroing the Neighbour's Lead Puts Text Above the Image"
   html={`
 <div class="demo">
@@ -215,7 +215,7 @@ The flow utility reads `--flow-space` from the element it positions. Set it on t
 `em` resolves against the element that uses it. A float at `14px` and an `h3` at `16.8px` get different pixel values from the same `2em`, so the leads are still unequal after the "fix". Put the lead values in `rem` or fixed-unit tokens, as the examples on this page do.
 :::
 
-<CssPreview client:load
+<CssPreview
   title="Fix — The Float Takes the Heading's Lead"
   html={`
 <div class="demo">
@@ -318,7 +318,7 @@ A heading that paints its rule after its own `padding-top` aligns to a line that
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Fix — Float Adopts Lead Plus the Heading's Inset"
   html={`
 <div class="demo">
@@ -419,7 +419,7 @@ A trailing `margin-block-end` owned by the **previous** sibling collapses with t
 
 The deeper invariant: inside a flow-spaced container, **no child should own a trailing margin at all**. Use `padding-block-end` for internal visual weight instead.
 
-<CssPreview client:load
+<CssPreview
   title="Fix — Zero the Trailing Margin Before a Float"
   html={`
 <div class="demo">
@@ -523,7 +523,7 @@ A figure that floats only above a breakpoint is a full-width block below it. The
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Float Corrections Scoped to the Breakpoint — Resize to Compare"
   html={`
 <article class="prose">

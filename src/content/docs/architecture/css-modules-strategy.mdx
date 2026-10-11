@@ -31,7 +31,7 @@ The build tool (Webpack, Vite, etc.) transforms `.primary` into something like `
 
 When you write a CSS Modules file, the build tool transforms each class name into a unique, hashed version. The original names you write are for readability — the browser sees only the generated names.
 
-<CssPreview client:load
+<CssPreview
   title="Before and After: Class Name Transformation"
   html={`    <div class="scope">
       <h4 class="scope__heading">What you write (authored CSS)</h4>
@@ -128,7 +128,7 @@ function Button({ variant = 'primary', children }) {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="CSS Modules: Component with Style Variants"
   html={`    <div class="button-demo">
       <div class="button-demo__group">
@@ -204,7 +204,7 @@ function Button({ variant = 'primary', children }) {
 
 The key benefit of CSS Modules is that the same class name in different files produces different generated names. Two components can both use `.title` without any conflict.
 
-<CssPreview client:load
+<CssPreview
   title="Same Class Name, Different Components — No Collision"
   html={`    <div class="collision-demo">
       <div class="collision-demo__panel">
@@ -313,7 +313,7 @@ CSS Modules support a `composes` keyword that lets you combine classes from the 
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="CSS Modules: composes for Style Reuse"
   html={`    <div class="compose-demo">
       <div class="compose-demo__section">
@@ -429,7 +429,7 @@ Sometimes you need to target a class name that is not locally scoped — for exa
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="CSS Modules: Local vs Global Selectors"
   html={`    <div class="global-demo">
       <div class="global-demo__row">

@@ -18,7 +18,7 @@ Respect the `prefers-reduced-motion: reduce` preference by **reducing** rather t
 1. **Remove-motion approach**: Write animations normally, then disable them in a `prefers-reduced-motion: reduce` block.
 2. **No-motion-first approach**: Write static styles by default, then add animations in a `prefers-reduced-motion: no-preference` block. This is safer because users without a preference set still get reduced motion.
 
-<CssPreview client:load
+<CssPreview
   title="prefers-reduced-motion: Full Motion vs Reduced Motion"
   html={`
     <div class="demo">

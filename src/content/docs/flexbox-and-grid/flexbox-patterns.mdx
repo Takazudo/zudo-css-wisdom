@@ -33,7 +33,7 @@ Flexbox is a one-dimensional layout model. It excels at distributing space along
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox: Centering"
   html={`    <div class="centered-container">
       <div class="content">Perfectly centered</div>
@@ -83,7 +83,7 @@ Flex items in a row container stretch to the same height by default via `align-i
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox: Equal Height Columns"
   html={`    <div class="columns">
       <div class="column">Short</div>
@@ -138,7 +138,7 @@ main {
 </body>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox: Sticky Footer"
   html={`    <div class="page">
       <header class="header">Header</header>
@@ -193,7 +193,7 @@ When items wrap, `justify-content: space-between` can leave awkward gaps on the 
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox: space-between Wrapping Problem vs gap Solution"
   html={`    <div class="label">space-between (broken last row):</div>
     <div class="bad-wrap">
@@ -323,7 +323,7 @@ Tailwind provides utility classes for all flexbox properties. Here are the key p
 
 ### Centering
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Flexbox Centering"
   html={`    <div class="flex justify-center items-center min-h-[200px] bg-slate-100 rounded-lg">
       <div class="bg-blue-500 text-white px-8 py-4 rounded-lg text-base">
@@ -334,7 +334,7 @@ Tailwind provides utility classes for all flexbox properties. Here are the key p
 
 ### Equal-Height Columns
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Equal Height Columns"
   html={`    <div class="flex gap-3 p-3">
       <div class="flex-1 bg-violet-500 text-white p-4 rounded-lg">Short</div>
@@ -347,7 +347,7 @@ Tailwind provides utility classes for all flexbox properties. Here are the key p
 
 ### Sticky Footer
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Sticky Footer"
   html={`    <div class="flex flex-col min-h-[300px]">
       <header class="bg-blue-500 text-white px-5 py-3">Header</header>

@@ -153,7 +153,7 @@ tr:has(td:empty) {
 
 意図は「狭いビューポートではシェルを縦に積む」でした。`:has(#code-panel)`のゲートは、その意図を無関係な条件 — そのページがたまたまコードパネルを含むかどうか — に結び付けてしまいます。パネルを持たないページ（インデックスページや設定ページ）は狭いビューポートでも横並びのままになり、縮まないサイドバーがメインコンテンツを画面外に押し出します。パネルを持つページはすべて正しく表示されるため、このバグは静かにリリースされてしまいます。
 
-<CssPreview client:load
+<CssPreview
   title="壊れた例：スタッキングがコードパネルの有無にゲートされている"
   html={`
     <p class="demo-hint">Switch to the Mobile viewport (320px) — Page B never stacks and its content is cut off</p>
@@ -268,7 +268,7 @@ tr:has(td:empty) {
 
 スタッキングはすべてのページに適用されるようになりました。パネル自身への差分にはゲートは不要です — `.code-panel`はパネルが存在するときにしかマッチしません。`:has()`のゲートが残るのは、パネルの存在に本当に依存する、他の要素への差分だけです。
 
-<CssPreview client:load
+<CssPreview
   title="修正版：無条件のスタッキング、ゲートは真の差分のみ"
   html={`
     <p class="demo-hint">Switch to the Mobile viewport (320px) — both pages stack; the sidebar compacts only on the page with the panel</p>
@@ -399,7 +399,7 @@ tr:has(td:empty) {
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title=":has(:focus) — 子のフォーカスに親が反応する"
   html={`
     <div class="field-group">
@@ -464,7 +464,7 @@ tr:has(td:empty) {
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title=":has(:checked) — チェックボックスでスタイルを切り替える"
   html={`
     <div class="card">

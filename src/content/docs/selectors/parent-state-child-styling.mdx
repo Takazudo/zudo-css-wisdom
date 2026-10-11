@@ -19,7 +19,7 @@ CSS provides three complementary mechanisms for parent-state-driven child stylin
 
 Together, these cover every scenario that Tailwind's `group-*` utilities handle, and more.
 
-<CssPreview client:load
+<CssPreview
   title="Card — Hover or Tab to see coordinated child changes"
   html={`
     <div class="demo">
@@ -135,7 +135,7 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Search Bar — Click or Tab into the input"
   html={`
     <div class="demo">
@@ -220,7 +220,7 @@ This is what Tailwind's `group` / `group-hover:` compiles to. The parent is the 
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Option Cards — Click to select (uses :has(:checked))"
   html={`
     <div class="demo">
@@ -352,7 +352,7 @@ For robust interactive components, layer both `:hover` and `:focus-within` so th
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Nav Item with Tooltip — Hover or Tab to reveal"
   html={`
     <div class="demo">
@@ -443,7 +443,7 @@ For robust interactive components, layer both `:hover` and `:focus-within` so th
 
 A classic pattern: show/hide content sections based on a checkbox or radio state, with no JavaScript.
 
-<CssPreview client:load
+<CssPreview
   title="Accordion — Click to expand sections (pure CSS)"
   html={`
     <div class="accordion">
@@ -586,7 +586,7 @@ When you need different ancestor levels to drive different child styles, use dis
 
 This is the CSS equivalent of Tailwind's named groups (`group/card`, `group/footer`) — each ancestor's state independently controls its own descendants.
 
-<CssPreview client:load
+<CssPreview
   title="Nested Groups — Hover the card, then hover the footer link"
   html={`
     <div class="demo">

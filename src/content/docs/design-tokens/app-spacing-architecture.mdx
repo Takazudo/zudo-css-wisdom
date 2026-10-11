@@ -77,7 +77,7 @@ Off-ladder:      20 (a fitting value between 16 and 24)
 
 The pairings to avoid are equally teachable: any two *adjacent* steps used as within/between (4↔6, 6↔8, 8↔12, 12↔16, 16↔20…) tend to read as one group, because the ratio lands in the 1.2–1.5× band the eye does not resolve as a boundary. The off-ladder step (20) earns its place in *absolute fitting* — an inset that must clear a specific control — and makes a poor grouping partner because it has no same-ladder rung to pair with. If you catch yourself pairing 16-within with 20-between, 32 is the ladder's answer.
 
-<CssPreview client:load
+<CssPreview
   title="Two-Ladder Pairing — Adjacent Steps vs Same Ladder, One Rung Up"
   html={`
 <div class="ladder-demo">
@@ -170,7 +170,7 @@ Two things to note about enforcement. First, **a value-checking linter cannot se
 
 The menu-row soup (five densities for one role) is not fixed by picking better scale steps — any steps chosen per-file will drift again. It is fixed by naming the **role** and making every occupant of the role consume the name.
 
-<CssPreview client:load
+<CssPreview
   title="Density Soup — Five Densities for One Role vs Two Named Tiers"
   html={`
 <div class="role-demo">
@@ -305,7 +305,7 @@ The proximity rule has a boundary condition that dense app surfaces hit constant
 
 When the within-group rhythm is intrinsic, stop fighting with spacing and switch Gestalt principles: from *proximity* to **common region** — the principle that elements inside one bounded area read as a unit regardless of their internal spacing. Give each card a bounded box — full border, radius, and a fill — and a modest gap between boxes. (The fill also adds a *figure/ground* cue, distinguishing card from background; common region is the load-bearing principle, and the fill reinforces it where the theme provides contrast.)
 
-<CssPreview client:load
+<CssPreview
   title="Intrinsic Rhythm: Gap Ratio Fails, Common Region Wins"
   html={`
 <div class="fg-demo">
@@ -439,7 +439,7 @@ In a display-scaled app ([Display Scale Strategy](./display-scale-strategy.mdx))
 | Prose content | em-based, out of the token system entirely | rides the font size, which scales on its own axis |
 | Platform-quirk px (16px iOS zoom threshold, safe-area math) | fixed, documented in-file | imposed by the platform, not the design |
 
-<CssPreview client:load
+<CssPreview
   title="Display Scale — Token Scales, Arbitrary Freezes, Exceptions Hold"
   html={`
 <div class="ds-demo">

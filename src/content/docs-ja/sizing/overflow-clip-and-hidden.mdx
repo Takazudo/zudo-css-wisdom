@@ -50,7 +50,7 @@ AIエージェントは、望まないオーバーフローに対する万能の
 
 スクロールコンテナかどうかの違いは、机上の話ではありません。`hidden` のボックスは、ブラウザが「内部の何かを見せる必要がある」と判断するたびにスクロールします。キーボードフォーカスが画面外の子孫要素に移ったとき、`location.hash` による遷移、ライブラリからの `scrollIntoView` などです。コンテンツはずれ、戻すためのスクロールバーは存在せず、レイアウトは壊れたように見えます。`clip` のボックスは何をしてもスクロールできません。
 
-<CssPreview client:load
+<CssPreview
   title="overflow: hidden はスクロールコンテナである"
   height={280}
   html={`    <div class="focus-demo">
@@ -165,7 +165,7 @@ AIエージェントは、望まないオーバーフローに対する万能の
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="hidden の隣の visible は auto に強制変換される"
   height={300}
   html={`    <div class="forcing-demo">
@@ -256,7 +256,7 @@ Grid や Flex のトラックでは、コンテンツが大きすぎるときの
 
 両方のステップが必要です。`min-height: 0` だけでは突き抜けが残り、`overflow-y: clip` だけではトラックが伸びたままです。さらに、クリップは軸別の形でなければなりません。ショートハンドの `overflow: clip`（や `overflow: hidden`）はインライン軸もクリップしてしまい、シャドウやアウトラインを切断します — 次のセクションで扱います。`min-width: 0` / `min-height: 0` のリセット自体は [Flexboxパターン](../flexbox-and-grid/flexbox-patterns.mdx) で解説しています。
 
-<CssPreview client:load
+<CssPreview
   title="Grid 行の描画突き抜けと clip による修正"
   height={440}
   html={`    <div class="overlap-demo">
@@ -360,7 +360,7 @@ Grid や Flex のトラックでは、コンテンツが大きすぎるときの
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="overflow: hidden はシャドウを切断し、visible + clip は保持する"
   height={320}
   html={`    <div class="shear-demo">
@@ -446,7 +446,7 @@ Grid や Flex のトラックでは、コンテンツが大きすぎるときの
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="overflow-clip-margin で装飾がクリップを生き延びる"
   height={240}
   html={`    <div class="clip-margin-demo">

@@ -202,7 +202,7 @@ This transitions each shadow parameter on its own timing. The browser still repa
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Expensive box-shadow Transition vs Cheap Opacity Approach"
   html={`<div class="demo"><div class="card naive"><h3>Naive Approach</h3><p>Transitions box-shadow directly (triggers repaint every frame)</p><span class="hint">Hover to see effect</span></div><div class="card performant"><h3>Performant Approach</h3><p>Transitions pseudo-element opacity (GPU compositing only)</p><span class="hint">Hover to see effect</span></div></div>`}
   css={`

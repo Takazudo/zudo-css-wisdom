@@ -47,7 +47,7 @@ A parent element must be declared as a containment context using `container-type
 
 The iframe in this demo acts as the container boundary. Use the viewport buttons to see the card layout adapt to the container width.
 
-<CssPreview client:load
+<CssPreview
   title="Basic Container Query — card layout adapts to container width"
   html={`
     <div class="card-wrapper">
@@ -154,7 +154,7 @@ The shorthand `container` property combines both:
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Named Containers — same component adapts differently in sidebar vs main"
   html={`
     <div class="page-layout">
@@ -375,7 +375,7 @@ For the `clamp()` patterns that combine these units into fluid font sizing — a
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Container Query Units — text and spacing scale with container"
   html={`
     <div class="cqu-demo">
@@ -478,7 +478,7 @@ Rule of thumb: at the width the component is designed for, the `rem` term contri
 
 The demo simulates 200% text zoom by doubling the root font size — the same mechanism browser text scaling uses. The stage width is fixed at 280px, so the `cqi` terms resolve identically before and after the toggle. Both headings start at almost the same size; only the rem-dominant one responds.
 
-<CssPreview client:load
+<CssPreview
   title="rem-dominant vs cqi-dominant tokens under simulated 200% text zoom"
   html={`
     <div class="zoom-sim">
@@ -564,7 +564,7 @@ The rule: a cq-unit token is scoped to the subtree of the container it was desig
 
 In the demo, one `--space-md: 4cqi` token feeds both a toolbar outside the stage and a row inside it. The stage is fixed at 280px, so the inside gap stays at ~11px in every viewport. The toolbar has no ancestor container, so its gap resolves against the iframe viewport: at the Mobile viewport the two happen to match; at the Full viewport the toolbar gap explodes.
 
-<CssPreview client:load
+<CssPreview
   title="One cqi token, consumed inside vs outside its container — switch viewports"
   html={`
     <div class="ctx-demo">
@@ -664,7 +664,7 @@ A 1px hairline is already at the floor of what a screen renders. Give it a `cqi`
 
 Drag the stage's resize handle (bottom-right corner) narrower and compare: the `0.25cqi` border and rule fade toward invisible while the `1px` versions stay crisp.
 
-<CssPreview client:load
+<CssPreview
   title="Fluid cqi hairline vs fixed 1px hairline — drag the stage narrower"
   html={`
     <div class="hairline-demo">
@@ -764,7 +764,7 @@ Drag the stage's resize handle (bottom-right corner) narrower and compare: the `
 
 A common real-world use case is a card component that works in any layout context: a narrow sidebar, a medium-width grid column, or a full-width main area.
 
-<CssPreview client:load
+<CssPreview
   title="Adaptive Card Grid — cards respond to their container, not the viewport"
   html={`
     <div class="card-grid">
@@ -876,7 +876,7 @@ A common real-world use case is a card component that works in any layout contex
 
 The key difference: media queries respond to the **viewport**, while container queries respond to the **parent container**. This demo places the same component in two different-width containers on the same page. The media query version looks identical in both because the viewport hasn't changed. The container query version adapts to each container independently.
 
-<CssPreview client:load
+<CssPreview
   title="Container queries vs media queries — same component, different containers"
   html={`
     <h4 class="demo-heading">Using @container (adapts to each container)</h4>
@@ -1163,7 +1163,7 @@ A homepage "lead" component (thumbnail, title, blurb) is a common case. Its idea
 
 In the demo below, both homepage layouts render at the same viewport. Layout A has no sidebar; layout B has one. Compare the two lead components: same viewport, different container widths, different layouts — driven entirely by `@container`, not by any media query on the lead component itself.
 
-<CssPreview client:load
+<CssPreview
   title="Lead component: same viewport, two different container widths"
   html={`
     <div class="lead-demo">
