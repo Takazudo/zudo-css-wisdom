@@ -3,8 +3,6 @@ title: サブグリッド
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 CSS Gridは直接の子要素のレイアウトに優れていますが、ネストされた要素は親グリッドのトラックサイジングに参加できません。これにより、兄弟コンポーネント間でコンテンツを揃えることが不可能になります — 例えば、カードの行全体でタイトル、説明、ボタンがすべて同じ垂直位置に揃うようにすることができません。AIエージェントが`subgrid`を使うことはほとんどなく、代わりに固定の高さ、JavaScriptベースの揃え、または動的コンテンツで壊れる複雑な回避策に頼ります。
@@ -232,7 +230,7 @@ subgridはデフォルトで親の`gap`を継承します。必要に応じて�
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="Subgrid — 揃えられたカードコンテンツ"
   html={`
     <div class="card-grid">

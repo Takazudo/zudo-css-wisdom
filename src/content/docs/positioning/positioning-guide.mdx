@@ -3,8 +3,6 @@ title: Positioning Guide
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 CSS positioning is frequently misused by AI agents. The most common errors include using `position: absolute` for layout tasks that should use flexbox or grid, forgetting to set `position: relative` on the containing element, using `position: fixed` without considering mobile viewport issues, and failing to understand that `position: sticky` requires a scroll container and a threshold value.
@@ -65,7 +63,7 @@ The element is removed from the document flow and positioned relative to its nea
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Positioning: relative + absolute (Badge on Card)"
   html={`    <div class="card">
       <span class="badge">New</span>
@@ -135,7 +133,7 @@ body {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Positioning: Fixed Element (Floating Button)"
   html={`    <div class="page">
       <div class="content">
@@ -204,7 +202,7 @@ The element acts as `relative` until it crosses a scroll threshold, then behaves
 </table>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Positioning: Sticky Header (Scroll to See)"
   html={`    <div class="scroll-container">
       <div class="sticky-header">Sticky Header — scroll down</div>

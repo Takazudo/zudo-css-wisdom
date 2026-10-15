@@ -4,8 +4,6 @@ description: "Space between groups must clearly exceed space within a group, or 
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Spacing communicates structure. Readers do not parse a page by reading its DOM tree — they parse it by eye, and the eye groups elements by how close together they are. This is the Gestalt law of proximity: elements placed near each other are perceived as related; elements placed farther apart are perceived as separate.
@@ -20,7 +18,7 @@ Make the gap **between** groups clearly larger than the gap **within** a group �
 
 On a dense scale, make the rule mechanical rather than a judgment call. Find the ×2 ladders inside your scale — a scale with steps 4/6/8/12/16/24/32/48 contains two, `4→8→16→32` and `6→12→24→48` — and pick both gaps of any boundary **from the same ladder, one rung apart**. Same ladder, one rung up is exactly 2×, by construction. Adjacent scale steps (12 and 16, 16 and 20) are for different jobs in different places, not the two sides of one grouping boundary. In one measured migration of roughly 3,000 spacing usages, every boundary whose gaps were *authored* was fixed by re-pairing alone — no scale step renamed or deleted. Boundaries whose within-group rhythm was intrinsic needed a different mechanism; see the next section, and [Spacing Architecture for Dense Desktop-Class Web Apps](../design-tokens/app-spacing-architecture.mdx).
 
-<CssPreview client:load
+<CssPreview
   title="Ratio Over Absolute Value — Same Token Scale, Different Grouping"
   html={`
 <div class="ratio-demo">
@@ -107,7 +105,7 @@ HTML defines `<hr>` as a thematic break — nothing more. The spec does not say 
 
 The failure that motivated this article was exactly this simple:
 
-<CssPreview client:load
+<CssPreview
   title="The Disappearing Divider — hr Gaps Tighter Than the Paragraph Rhythm"
   html={`
 <div class="hr-demo">
@@ -208,7 +206,7 @@ The opener role has a common accidental inversion. Tailwind's `border-t` + `pt-*
 
 The border is drawn at the top edge of the box; `padding-top` is space *inside* the box, below that line. If nothing supplies space before the box (no `margin-top` on it, no `margin-bottom` on what precedes it), the line sits flush against the previous section — visually joining it — while the generous padding pushes the next section's content away from its own separator.
 
-<CssPreview client:load
+<CssPreview
   title="The border-top + padding-top Trap"
   html={`
 <div class="trap-demo">
@@ -286,7 +284,7 @@ Compare the result against the intended outline. If a boundary element — a div
 
 In an app with a user-controlled display scale (see [Display Scale Strategy](../design-tokens/display-scale-strategy.mdx)), run the squint pass at the scale extremes too — 0.75× and 1.5×/2.0×. Fractional scales surface rounding and hairline bugs that are invisible at 1.0×: sub-2px smears, half-pixel bars, and components never wired to the multiplier drifting out of alignment with everything around them.
 
-<CssPreview client:load
+<CssPreview
   title="Squint Test — Toggle Blur to Check Grouping"
   html={`
 <div class="squint-demo">

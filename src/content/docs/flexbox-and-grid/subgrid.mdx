@@ -3,8 +3,6 @@ title: Subgrid
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 CSS Grid is excellent for laying out direct children, but nested elements cannot participate in the parent grid's track sizing. This makes it impossible to align content across sibling components — for example, ensuring card titles, descriptions, and buttons all align at the same vertical position across a row of cards. AI agents almost never use `subgrid` and instead resort to fixed heights, JavaScript-based alignment, or complex workarounds that break with dynamic content.
@@ -232,7 +230,7 @@ Global support exceeds 97%. Firefox was the first to ship subgrid in December 20
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Subgrid — Aligned Card Content"
   html={`
     <div class="card-grid">

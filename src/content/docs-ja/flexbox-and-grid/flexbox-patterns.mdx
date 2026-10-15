@@ -3,9 +3,6 @@ title: Flexbox パターン
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 Flexboxは最もよく使われるCSSレイアウトモデルですが、AIエージェントはしばしば誤った使い方をします。よくあるミスとしては、CSS Gridの方が適切な場面でflexboxを使う、オーバーフローを防ぐための `min-width: 0` を忘れる、スティッキーフッターに flex-grow ではなく固定の高さを使う、flex軸を理解せずに `justify-content` と `align-items` をデフォルトで使う、などがあります。
@@ -33,7 +30,7 @@ Flexboxは一次元のレイアウトモデルです。単一の軸（行また�
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox: センタリング"
   html={`    <div class="centered-container">
       <div class="content">Perfectly centered</div>
@@ -83,7 +80,7 @@ Flexboxは一次元のレイアウトモデルです。単一の軸（行また�
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox: 等しい高さのカラム"
   html={`    <div class="columns">
       <div class="column">Short</div>
@@ -138,7 +135,7 @@ main {
 </body>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox: スティッキーフッター"
   html={`    <div class="page">
       <header class="header">Header</header>
@@ -193,7 +190,7 @@ main {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Flexbox: space-between の折り返し問題 vs gap の解決策"
   html={`    <div class="label">space-between (broken last row):</div>
     <div class="bad-wrap">
@@ -323,7 +320,7 @@ Tailwindはすべてのflexboxプロパティに対応するユーティリテ�
 
 ### センタリング
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Flexbox センタリング"
   html={`    <div class="flex justify-center items-center min-h-[200px] bg-slate-100 rounded-lg">
       <div class="bg-blue-500 text-white px-8 py-4 rounded-lg text-base">
@@ -334,7 +331,7 @@ Tailwindはすべてのflexboxプロパティに対応するユーティリテ�
 
 ### 等しい高さのカラム
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: 等しい高さのカラム"
   html={`    <div class="flex gap-3 p-3">
       <div class="flex-1 bg-violet-500 text-white p-4 rounded-lg">Short</div>
@@ -347,7 +344,7 @@ Tailwindはすべてのflexboxプロパティに対応するユーティリテ�
 
 ### スティッキーフッター
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: スティッキーフッター"
   html={`    <div class="flex flex-col min-h-[300px]">
       <header class="bg-blue-500 text-white px-5 py-3">Header</header>

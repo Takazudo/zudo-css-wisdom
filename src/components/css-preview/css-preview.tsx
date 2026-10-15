@@ -1,5 +1,3 @@
-/** @jsxRuntime automatic */
-/** @jsxImportSource preact */
 // Interactive CSS demo — a thin wrapper over the package HtmlPreview.
 //
 // zudo-doc 4.2.0's `fullHeight` prop supplies the `html,body{height:100%}` shim
@@ -7,7 +5,7 @@
 // reset, dedent, viewport switcher, collapsible code panel, sandbox
 // (allow-same-origin; no scripts) and auto-height — is owned by the package.
 
-import type { VNode } from "preact";
+import type { Child } from "@takazudo/zfb/zudo-react";
 import { HtmlPreviewWrapper } from "@takazudo/zudo-doc/html-preview-wrapper";
 
 export interface CssPreviewProps {
@@ -29,17 +27,15 @@ export default function CssPreview({
   title,
   height,
   defaultOpen,
-}: CssPreviewProps): VNode {
+}: CssPreviewProps): Child {
   return (
     <HtmlPreviewWrapper
       html={html}
       css={css}
-      title={title}
-      height={height}
-      defaultOpen={defaultOpen}
+      {...(title === undefined ? {} : { title })}
+      {...(height === undefined ? {} : { height })}
+      {...(defaultOpen === undefined ? {} : { defaultOpen })}
       fullHeight
     />
   );
 }
-
-CssPreview.displayName = "CssPreview";

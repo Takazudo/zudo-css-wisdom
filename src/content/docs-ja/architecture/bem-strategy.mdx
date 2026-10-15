@@ -3,8 +3,6 @@ title: BEM戦略
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 :::note[歴史的背景]
 
 BEM は、CSS のスコープが広く利用可能になる以前の時代に生まれた**伝統的な CSS 命名規約**です。他のプログラミング言語では当たり前に使える「スコープ」を、グローバルなプレーン CSS 上でシミュレートするために考案されました。
@@ -69,7 +67,7 @@ BEM（Block Element Modifier）は、`.block__element--modifier` という厳格
 
 BEM 命名を使った完全な Card コンポーネントです。featured Modifier は、構造を維持しながらカードの外観を変更します。
 
-<CssPreview client:load
+<CssPreview
   title="BEM: Card コンポーネント"
   html={`    <div class="card-grid">
       <div class="card">
@@ -153,7 +151,7 @@ BEM 命名を使った完全な Card コンポーネントです。featured Modi
 
 アクティブ状態を `.active` のような別クラスではなく、Modifier として表現する Nav コンポーネントです。
 
-<CssPreview client:load
+<CssPreview
   title="BEM: Navigation コンポーネント"
   html={`    <nav class="nav">
       <a class="nav__item nav__item--active" href="#">Home</a>
@@ -196,7 +194,7 @@ BEM 命名を使った完全な Card コンポーネントです。featured Modi
 
 BEM を使ったフォームで、入力フィールドにエラー状態の Modifier を適用しています。エラーのスタイリングは親セレクタではなく、命名によって要素にスコープされています。
 
-<CssPreview client:load
+<CssPreview
   title="BEM: Form コンポーネント"
   html={`    <form class="form">
       <div class="form__group">
@@ -338,7 +336,7 @@ CSS ネスティング（CSS nesting）は現在すべての主要ブラウザ�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="BEM と CSS ネスティング"
   html={`    <div class="alert">
       <span class="alert__icon">ℹ️</span>

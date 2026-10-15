@@ -4,8 +4,6 @@ sidebar_position: 5
 description: フロー/アウル方式の prose スペーシングが float した図版の位置を静かにずらす理由、逆向きの「後続要素をゼロにする」修正、そして代わりにリードを等しくする方法。
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 [Prose Heading Spacing](./prose-heading-spacing.mdx) のフローユーティリティは、すべてのギャップを**後続**の兄弟要素の `margin-block-start` に置きます。
@@ -19,7 +17,7 @@ import CssPreview from '@/components/CssPreview';
 
 float は**自身の** `margin-block-start` で位置が決まります。その border-box の上端は「前の兄弟要素の bottom margin edge + 自身の margin-block-start」に置かれます。一方、隣のブロックは**そのブロック自身の** `margin-block-start` で位置が決まります。両者の上端が揃うのは、この 2 つのリード（上マージン）が**等しい**ときだけです。フロー戦略にはそれを保証する仕組みがありません。見出しは本文より意図的に大きなリードを持つため、見出しの横に float した図版はデフォルトでずれます。このずれは、見出しが罫線やボーダーを描くまで目に見えません。
 
-<CssPreview client:load
+<CssPreview
   title="Flow Spacing Misaligns a Float Beside a Heading"
   html={`
 <div class="demo">
@@ -108,7 +106,7 @@ float は**自身の** `margin-block-start` で位置が決まります。その
 
 これは隣の要素を前のブロックの下端まで引き上げますが、float はリード 1 つ分だけ下に残ったままです。結果、テキストは画像より**上**から始まります。ある本番サイトでは、まさにこのルールが「これで揃う」というコードコメント付きで出荷されていました。
 
-<CssPreview client:load
+<CssPreview
   title="Anti-Pattern — Zeroing the Neighbour's Lead Puts Text Above the Image"
   html={`
 <div class="demo">
@@ -215,7 +213,7 @@ float は**自身の** `margin-block-start` で位置が決まります。その
 `em` はそれを使う要素のフォントサイズ基準で解決されます。`14px` の float と `16.8px` の `h3` では同じ `2em` が異なるピクセル値になるため、「修正」後もリードは等しくなりません。このページの例のように、リードの値は `rem` か固定単位のトークンで定義してください。
 :::
 
-<CssPreview client:load
+<CssPreview
   title="Fix — The Float Takes the Heading's Lead"
   html={`
 <div class="demo">
@@ -318,7 +316,7 @@ float は**自身の** `margin-block-start` で位置が決まります。その
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Fix — Float Adopts Lead Plus the Heading's Inset"
   html={`
 <div class="demo">
@@ -419,7 +417,7 @@ float は**自身の** `margin-block-start` で位置が決まります。その
 
 より根本的な不変条件は、フロースペーシングのコンテナ内では**どの子要素も末尾マージンを持つべきではない**ということです。内側の視覚的な余白が必要なら、代わりに `padding-block-end` を使います。
 
-<CssPreview client:load
+<CssPreview
   title="Fix — Zero the Trailing Margin Before a Float"
   html={`
 <div class="demo">
@@ -523,7 +521,7 @@ float は**自身の** `margin-block-start` で位置が決まります。その
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Float Corrections Scoped to the Breakpoint — Resize to Compare"
   html={`
 <article class="prose">

@@ -3,8 +3,6 @@ title: スクロール駆動アニメーション
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 プログレスバー、パララックス背景、要素のリビールアニメーションなどのスクロール連動エフェクトは、従来JavaScriptの `scroll` イベントリスナーやIntersection Observerのコールバックを必要としていました。これらのアプローチはメインスレッドで実行され、負荷がかかるとカクつきの原因になり、複雑さも増します。AIエージェントはCSSネイティブのScroll-Driven Animations APIをほとんど提案しませんが、このAPIはJavaScriptゼロでスクロール位置に連動したパフォーマンスの高いコンポジタースレッドアニメーションを提供します。
@@ -18,7 +16,7 @@ CSS Scroll-Driven Animations を使用すると、`@keyframes` アニメーシ�
 
 どちらのタイムラインも標準の `@keyframes` 構文を使用し、`transform` と `opacity` をアニメーションする場合はコンポジタースレッドで実行されるため、スムーズな60fpsのパフォーマンスが保証されます。
 
-<CssPreview client:load
+<CssPreview
   title="スクロール駆動のフェードイン — プレビュー内でスクロールしてください"
   height={400}
   html={`

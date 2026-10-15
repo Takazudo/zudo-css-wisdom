@@ -3,8 +3,6 @@ title: View Transitions
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Creating smooth animated transitions between page states or during navigation has traditionally required complex JavaScript animation libraries, manual DOM manipulation, or framework-specific solutions like React Transition Group. Page navigations (both SPA and MPA) result in abrupt content swaps with no visual continuity. AI agents default to JavaScript-heavy animation approaches and almost never suggest the View Transitions API.
@@ -250,7 +248,7 @@ Same-document transitions have broad support. Cross-document transitions are sup
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="View Transition CSS Pattern (Static Example)"
   html={`
     <div class="demo">

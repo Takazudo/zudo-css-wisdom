@@ -3,8 +3,6 @@ title: currentColor Patterns
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 AI agents tend to hard-code color values for every property — separate hex values for `color`, `border-color`, `box-shadow`, `outline`, and SVG `fill` — even when all of them should match the element's text color. This creates maintenance headaches: changing a component's color means updating multiple declarations. Worse, when parent components change text color (e.g., in hover states or theme switches), the borders, icons, and shadows don't follow along because they're pinned to a specific hex value.
@@ -47,7 +45,7 @@ AI agents tend to hard-code color values for every property — separate hex val
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="currentColor — Change Parent Color to Update Everything"
   html={`    <div class="cc-demo">
       <div class="card" style="color: #4f46e5;">

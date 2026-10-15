@@ -4,8 +4,6 @@ description: ブレークポイントではなく clamp() を使い、最小値�
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 従来のレスポンシブデザインは離散的なブレークポイントに依存しています。特定のビューポート幅で固定値を設定し、その間で急激に変化します。これにより不自然な遷移が生じ、管理するために複数のメディアクエリが必要になります。AIエージェントは通常、フルイドスケーリングを使わず、硬直したブレークポイントベースの値（例：モバイルで `font-size: 1rem`、デスクトップで `font-size: 1.5rem`）を生成してしまい、コード量が増え、洗練されていない体験になります。
@@ -23,7 +21,7 @@ font-size: clamp(1rem, 0.5rem + 1.5vw, 2rem);
 - **Preferred**: フルイドな中間値で、通常 `vw` と `rem` ベースを組み合わせます。
 - **Maximum**: 値が取りうる最大サイズです。
 
-<CssPreview client:load
+<CssPreview
   title="clamp() によるフルイドサイジング — ビューポートボタンでスムーズなスケーリングを確認"
   html={`
     <div class="fluid-demo">

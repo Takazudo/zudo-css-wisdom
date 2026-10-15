@@ -3,9 +3,6 @@ title: Filter Effects
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 AI agents underuse CSS filters, often resorting to image editing tools or JavaScript for effects that CSS `filter` handles natively. When filters are used, agents confuse `filter: drop-shadow()` with `box-shadow`, apply `blur()` to elements when they mean `backdrop-filter: blur()`, and forget that multiple filter functions can be chained in a single declaration. The critical difference between `drop-shadow()` and `box-shadow` — shape-awareness — is almost never considered.
@@ -232,7 +229,7 @@ Note: The `filter` must be on the element itself. If the shadow is cut by the cl
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Filter Effects Gallery"
   html={`    <div class="demo"><div class="item"><div class="box original"></div><span>Original</span></div><div class="item"><div class="box blur"></div><span>blur(4px)</span></div><div class="item"><div class="box brightness"></div><span>brightness(1.5)</span></div><div class="item"><div class="box contrast"></div><span>contrast(1.8)</span></div><div class="item"><div class="box saturate"></div><span>saturate(2)</span></div><div class="item"><div class="box hue-rotate"></div><span>hue-rotate(90deg)</span></div></div>`}
   css={`
@@ -273,7 +270,7 @@ Note: The `filter` must be on the element itself. If the shadow is cut by the cl
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="drop-shadow vs box-shadow on Irregular Shape"
   html={`    <div class="demo"><div class="col"><div class="triangle-wrapper box-shadow-demo"><div class="triangle"></div></div><span>box-shadow (rectangular)</span></div><div class="col"><div class="triangle-wrapper drop-shadow-demo"><div class="triangle"></div></div><span>drop-shadow (shape-aware)</span></div></div>`}
   css={`
@@ -346,7 +343,7 @@ Tailwind provides utility classes for common CSS filter functions: `blur-*`, `br
 
 ### Filter Effects Gallery
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Filter Effects Gallery"
   html={`    <div class="flex flex-wrap gap-3 justify-center items-center min-h-[230px] bg-slate-900 p-4">
       <div class="flex flex-col items-center gap-1.5">
@@ -386,7 +383,7 @@ Tailwind provides utility classes for common CSS filter functions: `blur-*`, `br
 
 ### Hover Filter Effects
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Hover Filter Effects"
   html={`    <div class="flex gap-6 justify-center items-center min-h-[200px] bg-slate-100 p-6">
       <div class="flex flex-col items-center gap-2">

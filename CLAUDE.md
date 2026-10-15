@@ -1,12 +1,12 @@
 # zcss — zudo-css-wisdom
 
-CSS best practices documentation site, built with zudo-doc (zfb stack, MDX, Tailwind CSS v4).
+CSS best practices documentation site, built with zudo-doc (zfb stack, MDX, zudo-react and Wind).
 
 **Live site**: https://zudo-css-wisdom.takazudomodular.com/
 
 ## Commands
 
-Package manager: **pnpm** (Node.js >= 20).
+Package manager: **pnpm** (Node.js 24, >=24 <25).
 
 ```bash
 pnpm dev              # Dev server → http://localhost:8811/
@@ -203,7 +203,7 @@ Adding a new header nav item requires editing `zfb.config.ts`.
 
 ## Design Token System
 
-Theming is **fully default** (zudo-doc's package theme, currently `@takazudo/zudo-doc@^5.2.1`) -- this repo does not configure a custom palette or color scheme; tokens ship from `@takazudo/zudo-doc/theme.css`. See the `zfb.config.ts` file-header comment for why the earlier custom color schemes + webfonts were dropped.
+Theming is **fully default** (zudo-doc's package theme, currently `@takazudo/zudo-doc@^7.0.0`) -- this repo does not configure a custom palette or color scheme; tokens ship from `@takazudo/zudo-doc/theme.css`. See the `zfb.config.ts` file-header comment for why the earlier custom color schemes + webfonts were dropped.
 
 ### Color Rules
 

@@ -4,8 +4,6 @@ description: Scale sizes smoothly between a minimum and maximum using clamp() in
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Traditional responsive design relies on discrete breakpoints: fixed values at specific viewport widths with abrupt jumps between them. This creates jarring transitions and requires multiple media queries to manage. AI agents typically generate rigid breakpoint-based values (e.g., `font-size: 1rem` on mobile, `font-size: 1.5rem` on desktop) instead of using fluid scaling, resulting in more code and a less polished experience.
@@ -23,7 +21,7 @@ font-size: clamp(1rem, 0.5rem + 1.5vw, 2rem);
 - **Preferred**: The fluid middle value, typically using `vw` combined with a `rem` base.
 - **Maximum**: The largest the value will ever be.
 
-<CssPreview client:load
+<CssPreview
   title="Fluid Sizing with clamp() — Use viewport buttons to see smooth scaling"
   html={`
     <div class="fluid-demo">

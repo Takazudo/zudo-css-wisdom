@@ -3,8 +3,6 @@ title: Noto Sans Webフォントガイド
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 Noto Sans（特に日本語コンテンツ向けのNoto Sans JP）を読み込む際、AIエージェントはいくつかの典型的なミスを犯しがちです。実際には2〜3ウェイトしか使わないのに9ウェイトすべてを読み込む、`font-display: swap`を省略する、サブセット化しないなど、その結果としてメガバイト単位のフォントデータがページレンダリングをブロックしてしまいます。日本語の場合、デフォルトのNoto Sans JPファイルは数MBにもなり、サブセット化なしではページ上で最も大きなアセットになることすらあります。
@@ -149,7 +147,7 @@ h6 {
 
 ### フォントウェイト階層のパターン
 
-<CssPreview client:load
+<CssPreview
   title="Light本文（300） + Regular見出し（400）"
   html={`    <article class="article">
       <h1 class="article__title">見出し：Noto Sans JP で読みやすいタイポグラフィ</h1>
@@ -191,7 +189,7 @@ h6 {
     }`}
   height={380} />
 
-<CssPreview client:load
+<CssPreview
   title="Regular本文（400） + Medium見出し（500）"
   html={`    <article class="article">
       <h1 class="article__title">見出し：Noto Sans JP で読みやすいタイポグラフィ</h1>
@@ -235,7 +233,7 @@ h6 {
 
 ### 全ウェイトのウェイト比較
 
-<CssPreview client:load
+<CssPreview
   title="Noto Sans JP — 利用可能なすべてのウェイト"
   html={`    <div class="weight-showcase">
       <div class="weight-row">
@@ -312,7 +310,7 @@ h6 {
 
 ### CSS変数を使ったフォントスタック管理
 
-<CssPreview client:load
+<CssPreview
   title="CSS変数フォントスタック — テーマ切り替えが容易"
   html={`    <div class="theme-demo">
       <div class="theme-demo__card theme-demo__card--sans">

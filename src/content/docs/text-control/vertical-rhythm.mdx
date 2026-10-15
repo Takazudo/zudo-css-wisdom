@@ -3,8 +3,6 @@ title: Vertical Rhythm
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 AI-generated layouts frequently look "off" despite using reasonable font sizes and colors. The root cause is inconsistent vertical spacing — margins, padding, and line-heights are set with arbitrary values that bear no mathematical relationship to each other. A heading with `margin-bottom: 12px` followed by a paragraph with `margin-top: 20px` followed by a list with `margin-bottom: 15px` creates visual noise. Humans perceive this inconsistency even without being able to articulate why the layout feels wrong.
@@ -75,7 +73,7 @@ blockquote {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Consistent Vertical Rhythm vs Inconsistent Spacing"
   html={`    <div class="vr-demo">
       <div class="vr-column">

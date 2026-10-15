@@ -3,8 +3,6 @@ title: Layered Natural Shadows
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Shadows are one of the most important depth cues in UI design, yet AI agents almost always generate a single, flat `box-shadow` declaration. A single shadow looks artificial because real-world shadows are not uniform blurs. When an object sits on a surface, it casts a tight, dark contact shadow near its base and a softer, lighter shadow that spreads further. A single `box-shadow` cannot reproduce this layered behavior.
@@ -150,7 +148,7 @@ Each layer doubles the previous offset and blur. The cumulative effect is a smoo
 
 ## Live Preview
 
-<CssPreview client:load
+<CssPreview
   title="Flat Shadow vs Layered Shadow"
   html={`
     <div class="demo">

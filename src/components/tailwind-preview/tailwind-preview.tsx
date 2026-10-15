@@ -1,5 +1,3 @@
-/** @jsxRuntime automatic */
-/** @jsxImportSource preact */
 // Interactive Tailwind demo — a thin wrapper over the package HtmlPreview.
 //
 // Injects the Tailwind Play CDN as an external script (zudo-doc 4.2.0's
@@ -8,7 +6,7 @@
 // The package auto-derives the iframe sandbox (allow-scripts allow-same-origin)
 // and the async measure delay from the presence of an external script.
 
-import type { VNode } from "preact";
+import type { Child } from "@takazudo/zfb/zudo-react";
 import { HtmlPreviewWrapper } from "@takazudo/zudo-doc/html-preview-wrapper";
 
 export interface TailwindPreviewProps {
@@ -36,21 +34,19 @@ export default function TailwindPreview({
   height,
   defaultOpen,
   plugins,
-}: TailwindPreviewProps): VNode {
+}: TailwindPreviewProps): Child {
   const cdn =
     "https://cdn.tailwindcss.com" +
     (plugins && plugins.length > 0 ? `?plugins=${plugins.join(",")}` : "");
   return (
     <HtmlPreviewWrapper
       html={html}
-      css={css}
-      title={title}
-      height={height}
-      defaultOpen={defaultOpen}
+      {...(css === undefined ? {} : { css })}
+      {...(title === undefined ? {} : { title })}
+      {...(height === undefined ? {} : { height })}
+      {...(defaultOpen === undefined ? {} : { defaultOpen })}
       externalScripts={[cdn]}
       preflight={false}
     />
   );
 }
-
-TailwindPreview.displayName = "TailwindPreview";

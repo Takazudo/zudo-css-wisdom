@@ -3,8 +3,6 @@ title: マルチネームスペーストークン戦略
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 小さなウェブサイトから始まったとします — 記事ページを持つブログです。デザインチームは単一のネームスペースの下にトークンを作成します。
@@ -59,7 +57,7 @@ import CssPreview from '@/components/CssPreview';
 
 サイトにさらにコンテキスト（マーケティングのランディングページ、メールテンプレート、埋め込みウィジェットなど）が加わるにつれて、この問題は悪化していきます。単一のネームスペースがあらゆるデザインコンテキストに対応しようとした結果、トークンセットはバリエーションが膨れ上がったリストになってしまいます。
 
-<CssPreview client:load
+<CssPreview
   title="単一ネームスペース: コンテキストが増えるほど膨れ上がるトークン"
   height={360}
   html={`    <div class="bloat-demo">
@@ -232,7 +230,7 @@ styles/
 @import "./tokens-myadmin.css";
 ```
 
-<CssPreview client:load
+<CssPreview
   title="分離されたネームスペース: 各コンテキストが独自の絞り込まれたトークンセットを持つ"
   height={380}
   html={`    <div class="sep-demo">
@@ -396,7 +394,7 @@ styles/
 
 同じページの構造を、2つの異なるトークンネームスペースでレンダリングした例です。記事用トークンは余裕のある読みやすいスペーシングを生み出します。管理画面用トークンは高密度で効率的なレイアウトを生み出します。
 
-<CssPreview client:load
+<CssPreview
   title="記事コンテキスト (myweb-) vs 管理画面コンテキスト (myadmin-)"
   height={420}
   html={`    <div class="ctx-demo">
@@ -571,7 +569,7 @@ styles/
 
 すべてのページのバリエーションに専用のネームスペースが必要なわけではありません。分割が意味を持つのは、スペーシングのリズム、フォントサイズのスケール、密度といったデザインルールが、コンテキスト間で根本的に異なる場合です。
 
-<CssPreview client:load
+<CssPreview
   title="同一ネームスペース vs 別ネームスペース: 分割すべきタイミング"
   height={320}
   html={`    <div class="split-demo">
@@ -698,7 +696,7 @@ styles/
 
 各ネームスペースは独自の Tailwind ユーティリティクラスのセットを生成します。特定のコンテキストで作業する開発者は、そのコンテキストのネームスペースプレフィックスだけを使います。
 
-<CssPreview client:load
+<CssPreview
   title="Tailwind ユーティリティクラスにおけるネームスペースプレフィックス"
   height={300}
   html={`    <div class="usage-demo">

@@ -3,8 +3,6 @@ title: タイトトークン戦略
 sidebar_position: 6
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 Tailwind CSS はデフォルトで膨大なトークンセットを提供しています。しかも v4 以降、spacing スケールは固定されたリストですらありません。スペーシング系のユーティリティは `--spacing` という単一の変数から計算されます — `padding: calc(var(--spacing) * <number>)` で、`--spacing` のデフォルトは `0.25rem` です。任意の数値の倍数がそのまま有効で、`p-4` はもちろん `p-13`、`p-17`、`gap-21` も設定ファイルを触ることなく使えます。（v3 では約33ステップの固定スケールでしたが、v4 でこの上限はなくなりました。）この上限のないスペーシングの軸にカラー、フォントサイズ、border-radius などのカテゴリを掛け合わせれば、利用可能なユーティリティの空間は事実上無限です。
@@ -197,7 +195,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
 
 以下のデモは、同じカードレイアウトを2通りの方法で構築しています。左のカードはタイトなセマンティックトークンアプローチを使用し、右のカードは任意の数値スペーシング値を使用しています。あらゆる値が許可されている場合にどのように不整合が生じるかをシミュレートしています。
 
-<CssPreview client:load
+<CssPreview
   title="セマンティックトークン vs 任意の値"
   html={`    <div class="demo-container">
       <div class="demo-column">
@@ -325,7 +323,7 @@ Tailwind CSS v4でタイトトークン戦略を実現する方法は2つあり�
 
 ### デモ：セマンティックスペーシングを使ったページレイアウト
 
-<CssPreview client:load
+<CssPreview
   title="タイトトークンを使ったページレイアウト"
   html={`    <div class="page">
       <header class="page-header">

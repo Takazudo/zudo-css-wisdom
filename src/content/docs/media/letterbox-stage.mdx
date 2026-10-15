@@ -4,8 +4,6 @@ description: Fit a fixed-aspect stage inside a bounded box with bars on the corr
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 A 16:9 slide, a video player, a game canvas — a fixed-aspect stage must fit inside an arbitrary bounded box, shrinking to whichever axis runs out first and leaving bars on the other axis. The obvious pattern is width-driven and does not do this:
@@ -58,7 +56,7 @@ The demo frame uses a fixed 220px height because the preview iframe itself is an
 
 Switch the viewport buttons: at Mobile the frame is narrower than 16:9, the stage is width-driven, and everything looks correct — this is why narrow-viewport tests pass. At Tablet and Full the frame is wider than 16:9: the stage should shrink to a 391px-wide letterboxed box, but instead it keeps full width, squashes to the frame height, and the circle becomes an ellipse.
 
-<CssPreview client:load
+<CssPreview
   title="Broken: width-driven stage in a height-bounded frame"
   html={`    <div class="frame">
       <div class="stage">
@@ -107,7 +105,7 @@ Switch the viewport buttons: at Mobile the frame is narrower than 16:9, the stag
 
 Same markup, same base `.stage` rules — the frame adds the `frame--contain` modifier and the container-scoped width rule. Now the viewport buttons show the bars flipping axis: at Mobile the width axis runs out first and the bars sit above and below; at Tablet and Full the height axis runs out first and the bars sit on the sides. The circle stays round everywhere.
 
-<CssPreview client:load
+<CssPreview
   title="Fixed: size container + min() letterbox"
   html={`    <div class="frame frame--contain">
       <div class="stage">
@@ -169,7 +167,7 @@ Two details of the rule:
 
 `container-type: size` makes the element's size independent of its contents. On a wrapper with `height: auto`, that collapses the wrapper to zero height — the content still renders, overflowing a zero-height box.
 
-<CssPreview client:load
+<CssPreview
   title="Hazard: container-type: size collapses auto-height wrappers"
   html={`    <div class="collapse-demo">
       <div class="collapse-demo__col">
@@ -275,7 +273,7 @@ Default to the pure-CSS letterbox. Reach for transform-scale when the embedder n
 
 A letterboxed stage changes size with its frame, so content inside it should scale with the stage, not the viewport. Make the stage an inline-size container and size its content in `cqi` units — see [Container Queries](../responsive/container-queries.mdx).
 
-<CssPreview client:load
+<CssPreview
   title="Interior fluidity: cqi units scale content with the stage"
   html={`    <div class="frame frame--contain">
       <div class="stage stage--fluid">

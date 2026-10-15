@@ -3,8 +3,6 @@ title: バリアブルフォント
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 従来のWebタイポグラフィでは、ウェイト、幅、スタイルの組み合わせごとに別々のフォントファイルを読み込む必要がありました。一般的なプロジェクトでは、本文テキストだけでレギュラー、ボールド、イタリック、ボールドイタリックの4ファイルを読み込みます。AIエージェントは複数の静的フォントウェイト（300、400、500、600、700）をそれぞれ別の`@font-face`宣言で参照するCSSを生成しがちで、5つ以上のHTTPリクエストと大幅に増大したダウンロードサイズを招きます。バリアブルフォント（Variable Fonts）は、バリエーションの全範囲を1つのファイルにまとめることでこの問題を解決します。
@@ -52,7 +50,7 @@ h1 {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="バリアブルフォントのウェイト範囲 — きめ細かなウェイト制御"
   html={`<div class="vf-demo">
     <div class="weight-row"><span class="label">100 Thin</span><span class="sample" style="font-weight:100">The quick brown fox</span></div>

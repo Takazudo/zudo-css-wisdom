@@ -3,9 +3,6 @@ title: Dark Mode Strategies
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 AI agents frequently implement dark mode by duplicating entire stylesheets or by using JavaScript to toggle classes that override every color declaration. The resulting code is verbose, fragile, and difficult to maintain. Common mistakes include inverting colors naively (white becomes black, brand colors stay the same), not adjusting perceived brightness of text and surfaces, and creating harsh contrast that causes eye strain in dark mode.
@@ -75,7 +72,7 @@ This single line makes form controls, scrollbars, and other browser-styled eleme
 
 The first argument is used in light mode, the second in dark mode. No media query needed.
 
-<CssPreview client:load
+<CssPreview
   title="Light vs Dark Theme — Side-by-Side Comparison"
   html={`    <div class="theme-demo">
       <div class="panel light-theme">
@@ -320,7 +317,7 @@ For user-controlled theme switching (overriding OS preference):
 
 Tailwind's `dark:` variant makes dark mode styling straightforward. With the `class` strategy, adding a `dark` class to a parent element activates all `dark:` utilities within it.
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: dark: Variant — Side-by-Side"
   html={`    <script>tailwind.config = { darkMode: 'class' }</script>
     <div class="grid grid-cols-2">

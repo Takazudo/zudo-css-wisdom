@@ -3,8 +3,6 @@ title: ブレンドモード
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 AIエージェントは、デザインが明らかにブレンドモード（blend mode）を求めている場合でも、CSSブレンドモードに手を伸ばすことがほとんどありません。画像の上のテキストにはブレンドモードではなく不透明なオーバーレイ `div` を使い、画像の色調補正には `background-blend-mode` の方がシンプルなのに `filter` で行います。ブレンドモードを使う場合でも、`isolation` プロパティを忘れて、DOM上位の関係ない背景と意図せずブレンドしてしまうことがよくあります。
@@ -225,7 +223,7 @@ CSSには2つのブレンドモードプロパティがあります。
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="mix-blend-mode: カラフルな背景上のテキスト"
   html={`<div class="demo"><div class="blend-container"><h1 class="blend-text">BLEND</h1></div></div>`}
   css={`
@@ -255,7 +253,7 @@ CSSには2つのブレンドモードプロパティがあります。
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="background-blend-mode: デュオトーンエフェクト"
   html={`<div class="demo"><div class="duotone"><span class="label">luminosity blend</span></div><div class="no-blend"><span class="label">no blend (normal)</span></div></div>`}
   css={`
@@ -296,7 +294,7 @@ CSSには2つのブレンドモードプロパティがあります。
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="isolation プロパティのデモ"
   html={`<div class="demo"><div class="card no-isolate"><div class="overlay"></div><p>Without isolation — blend leaks to page background</p></div><div class="card with-isolate"><div class="overlay"></div><p>With isolation: isolate — blend contained to card</p></div></div>`}
   css={`

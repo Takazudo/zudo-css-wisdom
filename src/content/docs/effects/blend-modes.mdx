@@ -3,8 +3,6 @@ title: Blend Modes
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 AI agents rarely reach for CSS blend modes, even when the design clearly calls for them. Text over images gets a solid overlay `div` instead of a blend mode. Image tinting is done with `filter` when `background-blend-mode` would be simpler. When blend modes are used, AI often forgets the `isolation` property and accidentally blends elements with unrelated backgrounds further up the DOM.
@@ -225,7 +223,7 @@ Without `isolation: isolate`, blend modes propagate up the DOM and blend with al
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="mix-blend-mode: Text Over Colorful Background"
   html={`<div class="demo"><div class="blend-container"><h1 class="blend-text">BLEND</h1></div></div>`}
   css={`
@@ -255,7 +253,7 @@ Without `isolation: isolate`, blend modes propagate up the DOM and blend with al
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="background-blend-mode: Duotone Effect"
   html={`<div class="demo"><div class="duotone"><span class="label">luminosity blend</span></div><div class="no-blend"><span class="label">no blend (normal)</span></div></div>`}
   css={`
@@ -296,7 +294,7 @@ Without `isolation: isolate`, blend modes propagate up the DOM and blend with al
     `}
   height={250} />
 
-<CssPreview client:load
+<CssPreview
   title="Isolation Property Demo"
   html={`<div class="demo"><div class="card no-isolate"><div class="overlay"></div><p>Without isolation — blend leaks to page background</p></div><div class="card with-isolate"><div class="overlay"></div><p>With isolation: isolate — blend contained to card</p></div></div>`}
   css={`

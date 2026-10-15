@@ -3,9 +3,6 @@ title: Text Overflow and Line Clamping
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 Truncating text to fit constrained UI areas — cards, list items, navigation — is a common requirement. AI agents often reach for JavaScript-based solutions or generate incomplete CSS that only handles single-line truncation. Multi-line clamping, in particular, requires specific property combinations that are easy to get wrong. The legacy `-webkit-line-clamp` approach has three required co-dependent properties, and omitting any one of them causes silent failure.
@@ -62,7 +59,7 @@ All four properties are required for this pattern to work. This syntax, despite 
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Text Overflow — Single-line Ellipsis and Multi-line Clamping"
   html={`    <div class="overflow-demo">
       <div class="demo-card">
@@ -237,7 +234,7 @@ For maximum compatibility, combine both approaches:
 
 Tailwind provides `truncate` for single-line ellipsis and `line-clamp-*` utilities for multi-line clamping.
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: truncate and line-clamp"
   html={`    <div class="grid grid-cols-3 gap-4 p-6">
       <div class="bg-indigo-50 rounded-lg p-4">

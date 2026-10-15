@@ -3,9 +3,6 @@ title: CSS Grid Patterns
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 CSS Grid is the most powerful layout system in CSS, but AI agents often underutilize it or apply it incorrectly. Common mistakes include confusing `auto-fill` with `auto-fit`, using fixed column counts instead of responsive patterns, avoiding `grid-template-areas` when it would dramatically improve readability, and reaching for JavaScript or media queries when `minmax()` handles responsiveness natively.
@@ -45,7 +42,7 @@ When 3 items are in a container wide enough for 5 columns:
 
 **Use `auto-fill`** when you want to maintain consistent column widths regardless of item count, such as form fields or data entry layouts.
 
-<CssPreview client:load
+<CssPreview
   title="Grid: auto-fill vs auto-fit Comparison"
   html={`    <div class="label">auto-fill (empty tracks preserved):</div>
     <div class="grid-fill">
@@ -109,7 +106,7 @@ When 3 items are in a container wide enough for 5 columns:
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Grid: Responsive Card Grid with minmax()"
   html={`    <div class="card-grid">
       <div class="card">Card 1</div>
@@ -178,7 +175,7 @@ Grid areas make complex layouts readable and maintainable.
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Grid: Named Grid Areas Layout"
   html={`    <div class="page-layout">
       <header class="header">Header</header>
@@ -308,7 +305,7 @@ Tailwind provides grid utilities with responsive breakpoint prefixes. While CSS 
 
 ### Responsive Card Grid
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Responsive Grid (resize to see reflow)"
   html={`    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-2">
       <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center">Card 1</div>
@@ -321,7 +318,7 @@ Tailwind provides grid utilities with responsive breakpoint prefixes. While CSS 
 
 ### Column Spanning
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Grid with col-span"
   html={`    <div class="grid grid-cols-3 gap-3 p-2">
       <div class="col-span-2 bg-blue-500 text-white p-4 rounded-lg text-center">Spans 2 columns</div>

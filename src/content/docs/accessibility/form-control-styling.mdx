@@ -3,8 +3,6 @@ title: Form Control Styling
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Form elements — checkboxes, radio buttons, range sliders, textareas — have historically been the hardest parts of the web to style. Their rendering is deeply tied to the operating system, and browsers give CSS limited control over their appearance. As a result, developers reach for JavaScript libraries, custom toggle components built from `<div>` elements, or complex CSS hacks involving hidden inputs with sibling selectors. These workarounds bloat the bundle, break native accessibility, and diverge from the underlying HTML semantics.
@@ -24,7 +22,7 @@ Four modern CSS properties replace most JavaScript-based form customization:
 
 Use `accent-color` as your first tool — it requires zero custom CSS beyond a single property and preserves full accessibility. Only reach for `appearance: none` when you need a design that goes beyond what `accent-color` can express. When you do use `appearance: none`, always restore it inside `@media (forced-colors: active)` so the control remains visible in Windows High Contrast mode.
 
-<CssPreview client:load
+<CssPreview
   title="accent-color on Native Controls"
   height={320}
   html={`
@@ -96,7 +94,7 @@ Use `accent-color` as your first tool — it requires zero custom CSS beyond a s
 
 One line of CSS — `accent-color: hsl(262 80% 50%)` — themes every native control in the container. The browser automatically adjusts the checkmark and radio dot colors for contrast against the accent background.
 
-<CssPreview client:load
+<CssPreview
   title="Custom Checkbox with appearance: none"
   height={200}
   html={`
@@ -183,7 +181,7 @@ One line of CSS — `accent-color: hsl(262 80% 50%)` — themes every native con
 
 The `appearance: none` declaration strips the native checkbox rendering, then CSS rebuilds it: a border for the box, a `clip-path` polygon for the checkmark on `::before`, and `transform: scale()` for the animation between unchecked and checked states. The `@media (forced-colors: active)` block restores `appearance: auto` so the checkbox remains functional in Windows High Contrast mode.
 
-<CssPreview client:load
+<CssPreview
   title="Custom Radio Buttons with Smooth Transitions"
   height={200}
   html={`
@@ -279,7 +277,7 @@ The `appearance: none` declaration strips the native checkbox rendering, then CS
 
 Custom radios follow the same pattern as checkboxes: `appearance: none` strips the native rendering, a `::before` pseudo-element draws the inner dot, and `transform: scale()` smoothly animates the selection. The circular `border-radius: 50%` and smaller inner dot preserve the conventional radio button visual language so users immediately recognize the control.
 
-<CssPreview client:load
+<CssPreview
   title="Auto-Expanding Textarea with field-sizing"
   height={280}
   html={`
@@ -352,7 +350,7 @@ The `field-sizing: content` property eliminates the need for JavaScript auto-res
 
 **Browser support note:** `field-sizing` is supported in Chrome 123+ and Edge 123+ (released March 2024). Firefox and Safari do not yet support it. Use it as a progressive enhancement — the textarea falls back to its default fixed size in unsupported browsers.
 
-<CssPreview client:load
+<CssPreview
   title="Coordinated Form Theme"
   height={400}
   html={`

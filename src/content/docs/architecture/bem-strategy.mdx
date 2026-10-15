@@ -3,8 +3,6 @@ title: BEM Strategy
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 :::note[Historical Context]
 
 BEM is a **traditional CSS naming convention** from an era before CSS scoping was widely available. It was invented to simulate the "scope" that other programming languages take for granted — preventing class name collisions in plain, global CSS.
@@ -69,7 +67,7 @@ Examples:
 
 A complete card component using BEM naming. The featured modifier changes the card's appearance while maintaining the same structure.
 
-<CssPreview client:load
+<CssPreview
   title="BEM: Card Component"
   html={`    <div class="card-grid">
       <div class="card">
@@ -153,7 +151,7 @@ A complete card component using BEM naming. The featured modifier changes the ca
 
 A nav component where the active state is expressed as a modifier, not a separate class like `.active`.
 
-<CssPreview client:load
+<CssPreview
   title="BEM: Navigation Component"
   html={`    <nav class="nav">
       <a class="nav__item nav__item--active" href="#">Home</a>
@@ -196,7 +194,7 @@ A nav component where the active state is expressed as a modifier, not a separat
 
 A form using BEM with an error state modifier on the input. The error styling is scoped to the element through naming, not through parent selectors.
 
-<CssPreview client:load
+<CssPreview
   title="BEM: Form Component"
   html={`    <form class="form">
       <div class="form__group">
@@ -338,7 +336,7 @@ CSS nesting (now supported in all major browsers) makes BEM even more ergonomic.
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="BEM with CSS Nesting"
   html={`    <div class="alert">
       <span class="alert__icon">ℹ️</span>

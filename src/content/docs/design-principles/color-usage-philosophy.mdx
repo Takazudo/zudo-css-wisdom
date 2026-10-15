@@ -4,8 +4,6 @@ description: A palette defines which colors are legal. The accent budget defines
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Color token systems constrain vocabulary, not dosage. A tight token setup — see [Tight Token Strategy](../design-tokens/tight-token-strategy/index.mdx) and [Design Token Lint](../design-tokens/design-token-lint.mdx) — guarantees that every color on the page is a legal token. It cannot guarantee that the page reads as the intended brand, because tone is not a property of any single color. It is the **ratio** of neutral area to accent area, and no lint rule sees ratios.
@@ -20,7 +18,7 @@ Treat accent as a **budget**: a scarce resource attached to an explicit list of 
 
 The classic 60-30-10 rule (see [Color Palette Strategy](../color/color-palette-strategy.mdx)) allocates 60% dominant neutral, 30% secondary, 10% accent. Read that 10% as a **ceiling, not a target**. Restrained, editorial, and dark-catalog brands run much leaner — closer to 90-9-1, where accent is a few points of light on a neutral field. A page that actually spends 10% of its area on accent is a loud page.
 
-<CssPreview client:load
+<CssPreview
   title="Same Palette, Two Budgets — Accent as Decoration vs Accent as Signal"
   html={`
 <div class="budget-demo">
@@ -226,7 +224,7 @@ Not all accent usage costs the same. Rank treatments by how much visual area the
 
 A filled accent background is the strongest move available, so it carries the tightest limit: **at most one filled-accent element per viewport**, and often zero — many restrained systems reserve fills for transient states (pressed, selected) and never rest on them. Large filled-accent regions — section headers, hero panels, whole cards — are budget violations by default.
 
-<CssPreview client:load
+<CssPreview
   title="The Cost Ladder — Each Rung Spends More of the Budget"
   html={`
 <div class="ladder-demo">
@@ -334,7 +332,7 @@ The whitelist controls *where*; the budget controls *how much at once*. Before s
 
 The squint test from [Spacing Philosophy](./spacing-philosophy.mdx) has a color analog: blur the page and look at what remains. Accent should survive as a few isolated points of light on a neutral field. If the blur shows an accent *wash*, the budget is blown even if every individual usage felt justified.
 
-<CssPreview client:load
+<CssPreview
   title="The Squint Test — Blurred, One Page Is a Wash, the Other Is a Point"
   html={`
 <div class="squint-demo">
