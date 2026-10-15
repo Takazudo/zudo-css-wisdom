@@ -3,15 +3,13 @@ title: CSS-Only Pattern Library
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 A comprehensive collection of CSS-only decorative background patterns built entirely with gradients. Every pattern below tiles seamlessly using `background-size` and `background-repeat`, requires zero images, and can be customized through CSS custom properties.
 
 ## Diagonal Stripes
 
 `repeating-linear-gradient` at 45deg creates classic diagonal stripes. Two hard color stops at the same position produce an instant transition between colors. The repeating variant tiles the pattern automatically.
 
-<CssPreview client:load
+<CssPreview
   title="Diagonal Stripes"
   height={220}
   html={`<div class="diagonal-stripes"></div>`}
@@ -37,7 +35,7 @@ A comprehensive collection of CSS-only decorative background patterns built enti
 
 A single `repeating-linear-gradient` draws evenly spaced horizontal lines on a white background, mimicking ruled notebook paper. The trick is using a transparent-to-transparent span with a thin colored slice for each rule line.
 
-<CssPreview client:load
+<CssPreview
   title="Notebook Paper"
   height={260}
   html={`<div class="notebook">
@@ -76,7 +74,7 @@ A single `repeating-linear-gradient` draws evenly spaced horizontal lines on a w
 
 Two offset `radial-gradient` layers create an evenly spaced dot pattern. The second layer is shifted by half the tile size in both directions so dots fall between the gaps of the first layer.
 
-<CssPreview client:load
+<CssPreview
   title="Polka Dots"
   height={220}
   html={`<div class="polka-dots"></div>`}
@@ -112,7 +110,7 @@ Two offset `radial-gradient` layers create an evenly spaced dot pattern. The sec
 
 `conic-gradient` with four hard stops at 25% intervals produces a two-color quadrant in each tile. When repeated via `background-size`, the quadrants align into a classic checkerboard.
 
-<CssPreview client:load
+<CssPreview
   title="Checkerboard"
   height={220}
   html={`<div class="checkerboard"></div>`}
@@ -138,7 +136,7 @@ Two offset `radial-gradient` layers create an evenly spaced dot pattern. The sec
 
 Two `linear-gradient` triangles placed side by side create a zigzag edge. By applying them as a background on a pseudo-element, you get a decorative sawtooth border without any extra markup.
 
-<CssPreview client:load
+<CssPreview
   title="Zigzag Edge"
   height={260}
   html={`<div class="zigzag-card">
@@ -189,7 +187,7 @@ Two `linear-gradient` triangles placed side by side create a zigzag edge. By app
 
 Layered `radial-gradient` and `linear-gradient` simulate a carbon fiber weave. A subtle radial dot grid sits on top of a striped linear gradient, all over a dark base color.
 
-<CssPreview client:load
+<CssPreview
   title="Carbon Fiber"
   height={220}
   html={`<div class="carbon-fiber"></div>`}
@@ -237,7 +235,7 @@ Layered `radial-gradient` and `linear-gradient` simulate a carbon fiber weave. A
 
 Two layered `linear-gradient` passes — one horizontal, one vertical — draw thin lines that intersect to form a grid. Adjusting the custom properties changes line weight, spacing, and color.
 
-<CssPreview client:load
+<CssPreview
   title="Graph Paper"
   height={220}
   html={`<div class="graph-paper"></div>`}
@@ -272,7 +270,7 @@ Two layered `linear-gradient` passes — one horizontal, one vertical — draw t
 
 Two `linear-gradient` layers rotated to opposite diagonal angles create overlapping diamond shapes. A third gradient adds the classic argyle "stitch" lines between diamonds.
 
-<CssPreview client:load
+<CssPreview
   title="Argyle Pattern"
   height={220}
   html={`<div class="argyle"></div>`}

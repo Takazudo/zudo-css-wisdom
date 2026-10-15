@@ -4,8 +4,6 @@ sidebar_position: 6
 description: スライドなど固定コンポジションのステージ向け pure-cqi タイプスケール — rem 優位ルールを破るべき場面。
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 スライド、埋め込みプレゼンテーションステージ、固定アスペクト比のプレビューカード — これらは**固定コンポジション**のサーフェスです。デザインはひとつの基準サイズ（例: 1280×720）で作られ、どのサイズで表示されてもその構図の忠実な縮小・拡大であるべきです。ステージ幅の 6.85% で置かれたテキストは、どのサイズでも 6.85% のまま — PowerPoint、reveal.js、Marp の挙動です。
@@ -71,7 +69,7 @@ rem 優位ルールは WCAG 1.4.4 のために存在します。ブラウザの*
 | ステージ `font-size: Ncqi` + `em` スケール | ✓ 単一の共有フロアまで | ✗ | ノブは1つだが、1つのフロアが全サイズを同時に壊す |
 | 固定 px キャンバスの `transform: scale()` | ✓（ヘアラインまで全部） | ✗ | DOM ネイティブなサイズ指定を放棄。テキストがぼやけうる |
 
-<CssPreview client:load
+<CssPreview
   title="rem-dominant vs pure-cqi type in a slide stage — drag the stage narrower"
   html={`
     <div class="stage-demo">

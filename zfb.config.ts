@@ -2,7 +2,7 @@ import { defineConfig } from "zfb/config";
 import { zudoDoc } from "@takazudo/zudo-doc/config";
 import { defaultTranslations } from "@takazudo/zudo-doc/i18n-defaults";
 
-// Single-entry v4 config. `zudoDoc()` returns a complete ZfbConfig and shallow-
+// Single-entry v7 config. `zudoDoc()` returns a complete ZfbConfig and shallow-
 // merges these fields over the package defaults, so only NON-default values are
 // set here. Nested objects (metaTags / footer / bodyFootUtilArea) replace the
 // default wholesale, so each is given in full. Theming is fully default — the
@@ -274,6 +274,13 @@ The \`css-wisdom\` Claude Code skill indexes every CSS article. Once installed, 
     // Host module supplying the custom MDX demo components (CssPreview /
     // TailwindPreview) via `chromeBindings.mdxExtras`.
     chromeBindingsModule: "src/chrome-bindings.ts",
+    // Demo payloads belong to isolated iframe documents. Their CSS is authored
+    // per preview (or compiled by the Tailwind CDN), never by host Wind.
+    wind: {
+      sources: {
+        ignoreAttributes: ["html", "css"],
+      },
+    },
     // Pinned dev/preview port (CLAUDE.md + local setup assume 8811).
     port: 8811,
     // Cloudflare Workers adapter — required for the deploy (dist/_worker.js).

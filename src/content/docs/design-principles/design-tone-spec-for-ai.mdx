@@ -4,8 +4,6 @@ description: A token table without adjacent usage rules reads to a generative ag
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Design systems document what exists — tokens, scales, components — and leave how much and when to taste. Human designers absorb the "how much" by looking at the product. A generative agent writing UI code does not look at the product; it reads the spec, and every dimension the spec leaves open is filled by the agent's training prior. The prior is not neutral: it over-represents accent-saturated, rounded, shadow-elevated dashboard UIs. So an underspecified tone drifts, always in the same direction.
@@ -84,7 +82,7 @@ One failure mode is self-inflicted: **make sure your examples model the restrain
 
 The highest-leverage contrastive pair is the hover rule, because hover multiplies by the number of links on the page:
 
-<CssPreview client:load
+<CssPreview
   title="Hover Is a Multiplier — Accent Hover vs Neutral Inversion (hover the links)"
   html={`
 <div class="hover-demo">
@@ -210,7 +208,7 @@ Non-negotiables:
 
 The demo below renders one component twice from the same palette. The left column is what a vague spec ("modern, clean, use orange sparingly") produced; the right column is what the budgeted spec above produces. The spec, not the palette, is the design.
 
-<CssPreview client:load
+<CssPreview
   title="The Spec Is the Design — Vague Prose vs Budgeted Rules"
   html={`
 <div class="spec-demo">

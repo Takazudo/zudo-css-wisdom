@@ -3,8 +3,6 @@ title: Cascade Layers
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 CSS specificity wars are one of the most common sources of bugs and frustration. Developers resort to overly specific selectors, `!important`, or naming conventions like BEM to manage specificity conflicts. When integrating third-party CSS (design systems, component libraries, resets), controlling which styles take precedence becomes increasingly difficult. AI agents often generate CSS that creates specificity conflicts or uses `!important` as a fix.
@@ -238,7 +236,7 @@ Global support exceeds 96%.
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="Layer Order Determines Winner"
   html={`
     <div class="demo">
@@ -306,7 +304,7 @@ Global support exceeds 96%.
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="Layer Priority Beats Specificity"
   html={`
     <nav>

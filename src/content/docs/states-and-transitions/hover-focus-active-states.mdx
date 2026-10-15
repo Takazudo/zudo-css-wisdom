@@ -3,9 +3,6 @@ title: Hover, Focus, and Active States
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## The Problem
 
 Interactive elements need visual feedback for hover, focus, and active states. AI agents commonly add `:hover` styles that create sticky hover states on touch devices, omit `:focus` and `:focus-visible` styling (breaking keyboard accessibility), and apply identical styles to all three states when they should be distinct. The result is an interface that works with a mouse but frustrates touch users and keyboard navigators.
@@ -21,7 +18,7 @@ Style each interaction state with purpose, use `@media (hover: hover)` to scope 
 - **`:focus-visible`** — The element is focused **and** the browser determines a visible indicator is appropriate (typically keyboard navigation). Mouse clicks on buttons do not trigger `:focus-visible`.
 - **`:active`** — The element is being activated (mouse button held down, finger pressing on touch).
 
-<CssPreview client:load
+<CssPreview
   title="Button States — Hover and Tab to see states"
   html={`
     <div class="demo">
@@ -317,7 +314,7 @@ For form inputs, using `:focus` (not `:focus-visible`) is usually correct becaus
 
 Tailwind provides `hover:`, `focus:`, `focus-visible:`, and `active:` variant prefixes that map directly to CSS pseudo-classes.
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Interactive State Variants"
   html={`    <div class="flex flex-wrap gap-4 items-center p-6">
       <button class="px-5 py-2.5 rounded-md text-sm font-semibold bg-blue-500 text-white

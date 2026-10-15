@@ -3,9 +3,6 @@ title: ボーダーテクニック
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 AIエージェントは通常 `border: 1px solid #ccc` で済ませ、CSSが提供するより豊富なボーダー機能を探ることはほとんどありません。グラデーションボーダー、ダブルボーダー効果、アウトラインのテクニック、`border-radius` と `overflow: hidden` の相互作用は、日常的に見落とされるか誤って実装されます。最大の落とし穴は `border-image` と `border-radius` の組み合わせです。これらは互換性がなく、AIエージェントが両方を組み合わせると壊れたコードを生成します。
@@ -183,7 +180,7 @@ CSSは基本的な `border` ショートハンドを超えた、複数のボー�
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="border-image によるグラデーションボーダー"
   html={`    <div class="demo"><div class="gradient-border-straight"><p>Gradient border using border-image. Works on straight edges only — no border-radius.</p></div></div>`}
   css={`
@@ -210,7 +207,7 @@ CSSは基本的な `border` ショートハンドを超えた、複数のボー�
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="background-clip によるグラデーションボーダー（角丸）"
   html={`    <div class="demo"><div class="gradient-border-rounded"><p>Rounded gradient border using the background-clip technique.</p></div></div>`}
   css={`
@@ -240,7 +237,7 @@ CSSは基本的な `border` ショートハンドを超えた、複数のボー�
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="box-shadow によるダブルボーダー"
   html={`    <div class="demo"><div class="double-border"><p>Double border using box-shadow spread</p></div></div>`}
   css={`
@@ -269,7 +266,7 @@ CSSは基本的な `border` ショートハンドを超えた、複数のボー�
     `}
   height={200} />
 
-<CssPreview client:load
+<CssPreview
   title="outline-offset によるリングエフェクト"
   html={`    <div class="demo"><div class="ring-box"><p>Ring effect with outline-offset</p></div></div>`}
   css={`
@@ -322,7 +319,7 @@ Tailwindはボーダーエフェクト用に `border-*`、`ring-*`、`outline-*`
 
 ### ボーダーとリングエフェクト
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: ボーダーとリングエフェクト"
   html={`    <div class="flex flex-wrap gap-8 justify-center items-center min-h-[220px] bg-slate-50 p-8">
       <div class="flex flex-col items-center gap-2">
@@ -342,7 +339,7 @@ Tailwindはボーダーエフェクト用に `border-*`、`ring-*`、`outline-*`
 
 ### Divide ユーティリティ
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: Divide ユーティリティ"
   html={`    <div class="flex justify-center items-center min-h-[200px] bg-slate-50 p-6">
       <div class="w-72 bg-white rounded-xl border border-slate-200 divide-y divide-slate-200">
@@ -356,7 +353,7 @@ Tailwindはボーダーエフェクト用に `border-*`、`ring-*`、`outline-*`
 
 ### フォーカスリングパターン
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: フォーカスリングパターン"
   html={`    <div class="flex gap-4 justify-center items-center min-h-[160px] bg-slate-100 p-6">
       <button class="bg-blue-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-100">

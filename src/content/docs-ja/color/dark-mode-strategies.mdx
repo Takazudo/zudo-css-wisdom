@@ -3,9 +3,6 @@ title: ダークモード戦略
 sidebar_position: 4
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 AIエージェントはダークモードを実装する際、スタイルシート全体を複製したり、JavaScriptを使ってすべての色宣言をオーバーライドするクラスを切り替えたりすることが多いです。結果として、冗長で壊れやすく、保守が難しいコードになります。よくあるミスとして、色を素朴に反転させる（白が黒になり、ブランドカラーはそのまま）、テキストとサーフェスの知覚的な明るさを調整しない、ダークモードで眼精疲労を引き起こすきついコントラストを作るなどがあります。
@@ -75,7 +72,7 @@ AIエージェントはダークモードを実装する際、スタイルシー
 
 最初の引数がライトモードで使われ、2番目がダークモードで使われます。メディアクエリは不要です。
 
-<CssPreview client:load
+<CssPreview
   title="ライト vs ダークテーマ — 横並び比較"
   html={`    <div class="theme-demo">
       <div class="panel light-theme">
@@ -320,7 +317,7 @@ AIエージェントはダークモードを実装する際、スタイルシー
 
 Tailwind の `dark:` バリアントにより、ダークモードのスタイリングが簡単になります。`class` ストラテジーでは、親要素に `dark` クラスを追加すると、その中のすべての `dark:` ユーティリティがアクティブになります。
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: dark: バリアント — 横並び"
   html={`    <script>tailwind.config = { darkMode: 'class' }</script>
     <div class="grid grid-cols-2">

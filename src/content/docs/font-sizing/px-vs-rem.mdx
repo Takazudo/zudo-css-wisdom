@@ -4,8 +4,6 @@ sidebar_position: 1
 description: What rem still buys after Internet Explorer — the browser default font size preference, which dimensions should follow it, and where px is the right unit.
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 The classic argument for `rem` was Internet Explorer: IE could not enlarge text set in `px`, so relative units were the only way a user could resize text. IE is gone. Every current browser page-zooms `px` and `rem` identically, which leads to a common conclusion — "px is fine now, and `16px` reads more directly than `1rem`."
@@ -33,7 +31,7 @@ Leave the root font size alone — `html { font-size: 100% }` or nothing. `rem` 
 
 This demo simulates the browser setting by changing the root font size — the same mechanism Chrome's "Font size" preference uses. Both columns are authored at the same visual size. Only the `rem` column responds.
 
-<CssPreview client:load
+<CssPreview
   title="Default font size 16 / 20 / 24px — px text ignores it, rem text follows it"
   html={`
     <div class="fs-sim">
@@ -132,7 +130,7 @@ How many users change the default? The only measured general-population figure i
 
 Scaling text without scaling the space around it produces cramped components; scaling everything produces device-dependent border thickness and oversized shadows and radii. The demo puts three cards under the same simulated preference.
 
-<CssPreview client:load
+<CssPreview
   title="All px vs all rem vs mixed — simulate a 24px default font size"
   html={`
     <div class="unit-sim">
@@ -288,7 +286,7 @@ body { font-size: 1.6rem; }  /* back to 16px */
 
 Because `62.5%` is still relative, this does not break the user preference — a 20px default produces a 12.5px root and 20px body text. It is discouraged for a different reason: it redefines `1rem` for everything that did not opt in. Third-party widgets, browser-extension UI, and any unstyled `1rem` text render at 10px.
 
-<CssPreview client:load
+<CssPreview
   title="html { font-size: 62.5% } shrinks every 1rem value that did not compensate"
   html={`
     <div class="trick-sim">

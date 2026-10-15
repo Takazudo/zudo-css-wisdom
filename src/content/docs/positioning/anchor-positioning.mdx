@@ -3,8 +3,6 @@ title: Anchor Positioning
 sidebar_position: 5
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Positioning elements relative to other elements — tooltips, popovers, dropdown menus, labels — has always required JavaScript. Libraries like Floating UI (Popper.js) calculate positions, handle viewport overflow, and reposition on scroll/resize. This adds bundle size, complexity, and frame-rate concerns. AI agents consistently recommend JavaScript positioning libraries when pure CSS anchor positioning would be more performant and maintainable.
@@ -253,7 +251,7 @@ As of late 2025, anchor positioning is available in all major browsers. For olde
 
 ## Live Previews
 
-<CssPreview client:load
+<CssPreview
   title="CSS Anchor Positioning — Tooltip Pattern"
   html={`
     <div class="demo">

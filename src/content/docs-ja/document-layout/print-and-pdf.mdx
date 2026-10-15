@@ -4,8 +4,6 @@ description: 実際のプリンタとPDFビューアで壊れない印刷スタ�
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 印刷は第2のレンダーターゲットであり、スクリーン用CSSは印刷と積極的に衝突します。スクロール前提のビューポート、アニメーション、操作用UIを前提に組んだレイアウトは、印刷に敵対する挙動をひとつずつ明示的に無効化しない限り、壊れたPDFを生成します。以下はすべて実プロジェクトで起きた失敗です：
@@ -186,7 +184,7 @@ ChromiumのPDFバックエンド（Skia）は `box-shadow` のぼかしをPDFの
 
 スクリーン上ではシンプルなカードならほぼ同一にレンダリングされます。だからこそこの差し替えは安全です：
 
-<CssPreview client:load
+<CssPreview
   title="box-shadow と filter: drop-shadow() — スクリーンではほぼ同一"
   html={`
     <div class="shadow-compare">

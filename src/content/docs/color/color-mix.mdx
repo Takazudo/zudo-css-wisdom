@@ -3,8 +3,6 @@ title: color-mix()
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Creating tints, shades, and semi-transparent color variants in CSS traditionally requires manually calculating each color value. AI agents frequently hard-code every shade as a separate hex or rgb value (e.g., generating `#3366cc`, `#5588dd`, `#99bbee` independently), making palettes brittle and difficult to maintain. When the base brand color changes, every derived value must be recalculated. CSS preprocessors like Sass solved this with `lighten()` and `darken()`, but native CSS had no equivalent — until `color-mix()`.
@@ -62,7 +60,7 @@ The color space parameter determines how the interpolation is calculated. Using 
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="color-mix() — Tints, Shades, and Transparent Variants"
   html={`    <div class="mix-demo">
       <div class="section">

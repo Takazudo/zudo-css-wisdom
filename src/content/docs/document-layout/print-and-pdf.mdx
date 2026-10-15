@@ -4,8 +4,6 @@ description: Print stylesheets that survive real printers and PDF viewers — @p
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Print is a second render target, and screen CSS actively fights it. Layouts built for scrolling viewports, animations, and interactive chrome produce broken PDFs unless every print-hostile behavior is explicitly neutralized. These failures come from real projects:
@@ -186,7 +184,7 @@ This is a **targeted workaround, not a default**. `drop-shadow()` follows the el
 
 On screen the two render nearly identically for a simple card, which is what makes the swap safe:
 
-<CssPreview client:load
+<CssPreview
   title="box-shadow vs filter: drop-shadow() — near-identical on screen"
   html={`
     <div class="shadow-compare">

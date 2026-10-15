@@ -3,8 +3,6 @@ title: クリップパスとマスク
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 AIエージェントは `clip-path` やCSSマスクをほとんど使わず、デザインが斜めのエッジ、円形のリビール、フェードするボーダーを明らかに求めている場合でも矩形のレイアウトにデフォルトで落ち着きます。非矩形の形状を試みる場合、画像、SVG、または `overflow: hidden` と回転した擬似要素を使った追加のラッパー div に頼ります。これらはネイティブのCSS解決策よりもはるかに複雑で壊れやすい方法です。
@@ -234,7 +232,7 @@ JavaScriptと組み合わせて `mousemove` で `--x` と `--y` カスタムプ�
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="clip-path polygon（斜めセクション）"
   html={`<div class="wrapper"><section class="hero"><h1>Angled Hero Section</h1><p>clip-path: polygon() creates the diagonal edge</p></section><section class="content"><p>Content flows beneath the angled edge.</p></section></div>`}
   css={`
@@ -272,7 +270,7 @@ JavaScriptと組み合わせて `mousemove` で `--x` と `--y` カスタムプ�
     `}
   height={260} />
 
-<CssPreview client:load
+<CssPreview
   title="clip-path による円形シェイプ"
   html={`<div class="demo"><div class="circle-clip"></div><div class="circle-clip hex"></div><div class="circle-clip diamond"></div></div>`}
   css={`
@@ -302,7 +300,7 @@ JavaScriptと組み合わせて `mousemove` で `--x` と `--y` カスタムプ�
     `}
   height={220} />
 
-<CssPreview client:load
+<CssPreview
   title="グラデーションマスクによるフェードアウト効果"
   html={`<div class="demo"><div class="fade-box"><p>This content gradually fades out at the bottom using a CSS mask with a linear gradient. The mask transitions from fully opaque (black) to transparent, creating a smooth fade effect without any images.</p><p>This second paragraph is partially hidden by the fade, demonstrating how mask-image works with gradient values.</p></div></div>`}
   css={`

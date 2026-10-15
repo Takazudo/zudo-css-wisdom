@@ -3,8 +3,6 @@ title: Stacking Context
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Stacking context is the most misunderstood concept in CSS. AI agents routinely escalate `z-index` values to absurd numbers (99999) without understanding why elements still appear behind others. The root cause is almost always that elements live in different stacking contexts, and no amount of z-index increase can break out of a parent's stacking context.
@@ -61,7 +59,7 @@ The following properties create a new stacking context on an element:
 
 In this example, `.dropdown` has `z-index: 99999` but still renders behind `.main-content`. This happens because `.sidebar` creates a stacking context with `z-index: 1`. The dropdown is trapped inside that stacking context. From the perspective of `.main-content` (z-index: 2), the entire `.sidebar` group has z-index 1.
 
-<CssPreview client:load
+<CssPreview
   title="Stacking Context: z-index Bug (Broken)"
   html={`    <div class="container">
       <div class="sidebar">
@@ -131,7 +129,7 @@ In this example, `.dropdown` has `z-index: 99999` but still renders behind `.mai
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Stacking Context: z-index Bug (Fixed)"
   html={`    <div class="container">
       <div class="sidebar">
@@ -208,7 +206,7 @@ In this example, `.dropdown` has `z-index: 99999` but still renders behind `.mai
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Stacking Context: isolation: isolate"
   html={`    <div class="demo-area">
       <div class="card">

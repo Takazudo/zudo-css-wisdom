@@ -3,8 +3,6 @@ title: Japanese Font Family Specification
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Specifying `font-family` for Japanese websites is significantly more complex than for Latin-script sites. Simply writing `sans-serif` produces poor results — browsers fall back to system defaults that vary widely by OS and may render Japanese characters as ugly bitmapped fonts on older systems. There are several compounding challenges:
@@ -91,7 +89,7 @@ font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Yu Gothic', sans-serif;
 
 ### Recommended Stack in Action
 
-<CssPreview client:load
+<CssPreview
   title="Recommended Japanese Font Stack — Japanese and Latin Mixed Text"
   height={280}
   html={`    <div class="font-demo">
@@ -135,7 +133,7 @@ font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Yu Gothic', sans-serif;
 
 Japanese fonts ship with their own Latin glyphs. Listing a Japanese font before your Latin font causes all ASCII characters to be rendered in the Japanese font's Latin variant — typically wider, with different spacing and stroke contrast. Always list Latin fonts first.
 
-<CssPreview client:load
+<CssPreview
   title="Latin Font Ordering — Japanese Font First vs Latin Font First"
   height={320}
   html={`    <div class="ordering-demo">
@@ -228,7 +226,7 @@ Japanese fonts ship with their own Latin glyphs. Listing a Japanese font before 
 
 Japanese fonts support the same `font-weight` scale as Latin fonts, but behavior varies by OS font and weight availability. Hiragino Sans offers 10 weights (W0–W9), while Hiragino Kaku Gothic ProN only has 2 (W3, W6).
 
-<CssPreview client:load
+<CssPreview
   title="Font Weight Scale — Japanese Text at Different Weights"
   height={360}
   html={`    <div class="weight-demo">
@@ -289,7 +287,7 @@ Japanese fonts support the same `font-weight` scale as Latin fonts, but behavior
 
 This demo shows the difference between a comprehensive system stack and just relying on `sans-serif`. On most modern desktop browsers the result may look similar, but on Linux systems without good CJK font configuration, `sans-serif` can fall back to bitmap or poorly-shaped fonts.
 
-<CssPreview client:load
+<CssPreview
   title="Comprehensive Stack vs sans-serif Only"
   height={260}
   html={`    <div class="stack-compare">

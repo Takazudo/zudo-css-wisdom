@@ -3,8 +3,6 @@ title: CSS Modules 戦略
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 CSS はデフォルトでグローバル名前空間で動作します。記述したすべてのクラス名がどこからでもアクセスできるため、あるスタイルシートが別のスタイルを意図せず上書きする可能性があります。プロジェクトが成長すると、名前の衝突は避けられなくなります。2人の開発者が独立して `.title` クラスを作成したり、新機能の `.container` が既存のものと競合したりします。使われていない CSS も蓄積されていきます。コードベース全体を検索して未使用であることを確認しないと、安全にクラスを削除できないからです。
@@ -31,7 +29,7 @@ function Button() {
 
 CSS Modules ファイルを記述すると、ビルドツールが各クラス名をユニークなハッシュ付きバージョンに変換します。記述する元の名前は可読性のためのもので、ブラウザが見るのは生成された名前だけです。
 
-<CssPreview client:load
+<CssPreview
   title="変換前後: クラス名の変換"
   html={`    <div class="scope">
       <h4 class="scope__heading">What you write (authored CSS)</h4>
@@ -128,7 +126,7 @@ function Button({ variant = 'primary', children }) {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="CSS Modules: スタイルバリアントを持つコンポーネント"
   html={`    <div class="button-demo">
       <div class="button-demo__group">
@@ -204,7 +202,7 @@ function Button({ variant = 'primary', children }) {
 
 CSS Modules の最大の利点は、異なるファイルで同じクラス名を使っても、生成される名前が異なることです。2つのコンポーネントがどちらも `.title` を使っても、衝突は起きません。
 
-<CssPreview client:load
+<CssPreview
   title="同じクラス名、異なるコンポーネント — 衝突なし"
   html={`    <div class="collision-demo">
       <div class="collision-demo__panel">
@@ -313,7 +311,7 @@ CSS Modules は `composes` キーワードをサポートしており、同じ�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="CSS Modules: composes によるスタイルの再利用"
   html={`    <div class="compose-demo">
       <div class="compose-demo__section">
@@ -429,7 +427,7 @@ CSS Modules は `composes` キーワードをサポートしており、同じ�
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="CSS Modules: ローカルセレクタ vs グローバルセレクタ"
   html={`    <div class="global-demo">
       <div class="global-demo__row">

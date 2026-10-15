@@ -1,36 +1,29 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@takazudo/zudo-doc/tsconfig.base.json",
+  "include": [
+    "src",
+    "pages",
+    "zfb.config.ts",
+    "zfb-shim.d.ts"
+  ],
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "allowJs": true,
-    "jsx": "preserve",
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "useUnknownInCatchVariables": true,
-    "alwaysStrict": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "#doc-history-meta": [".zfb/doc-history-meta.json"],
-      "react": ["./node_modules/preact/compat/"],
-      "react/jsx-runtime": ["./node_modules/preact/jsx-runtime"],
-      "react-dom": ["./node_modules/preact/compat/"]
+      "@/*": [
+        "./src/*"
+      ],
+      "#doc-history-meta": [
+        "./.zfb/doc-history-meta.json"
+      ]
     }
   },
-  "exclude": ["dist", "e2e/fixtures", "packages", "pages", "worktrees", "vendor", "src/**/__tests__", "scripts/__tests__", "vitest.config.ts"]
+  "exclude": [
+    "dist",
+    "e2e/fixtures",
+    "packages",
+    "worktrees",
+    "vendor",
+    "src/**/__tests__",
+    "scripts/__tests__",
+    "vitest.config.ts"
+  ]
 }

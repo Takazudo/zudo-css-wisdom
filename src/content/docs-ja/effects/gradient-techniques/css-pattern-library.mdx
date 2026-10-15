@@ -3,15 +3,13 @@ title: CSSのみのパターンライブラリ
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 グラデーションのみで構築されたCSS装飾背景パターンの包括的なコレクションです。以下のすべてのパターンは `background-size` と `background-repeat` を使ってシームレスにタイリングし、画像は一切不要で、CSSカスタムプロパティでカスタマイズできます。
 
 ## 斜めストライプ
 
 45度の `repeating-linear-gradient` で、クラシックな斜めストライプを作成します。同じ位置にある2つのハードカラーストップが、色間の瞬時のトランジションを生みます。リピーティングバリアントがパターンを自動的にタイリングします。
 
-<CssPreview client:load
+<CssPreview
   title="斜めストライプ"
   height={220}
   html={`<div class="diagonal-stripes"></div>`}
@@ -37,7 +35,7 @@ import CssPreview from '@/components/CssPreview';
 
 単一の `repeating-linear-gradient` が、白い背景上に均等に配置された横線を描きます。罫線入りノートを模倣しています。トリックは、透明から透明へのスパンと、各罫線のための薄い色付きスライスを使うことです。
 
-<CssPreview client:load
+<CssPreview
   title="ノートパッド"
   height={260}
   html={`<div class="notebook">
@@ -76,7 +74,7 @@ import CssPreview from '@/components/CssPreview';
 
 2つのオフセットされた `radial-gradient` レイヤーが、均等に配置されたドットパターンを作成します。2番目のレイヤーは両方向にタイルサイズの半分だけずらされているため、ドットが最初のレイヤーのギャップの間に入ります。
 
-<CssPreview client:load
+<CssPreview
   title="水玉模様"
   height={220}
   html={`<div class="polka-dots"></div>`}
@@ -112,7 +110,7 @@ import CssPreview from '@/components/CssPreview';
 
 25%間隔で4つのハードストップを持つ `conic-gradient` が、各タイルに2色の象限を生成します。`background-size` で繰り返すと、象限がクラシックなチェッカーボードに揃います。
 
-<CssPreview client:load
+<CssPreview
   title="チェッカーボード"
   height={220}
   html={`<div class="checkerboard"></div>`}
@@ -138,7 +136,7 @@ import CssPreview from '@/components/CssPreview';
 
 2つの `linear-gradient` の三角形を並べて配置すると、ジグザグエッジが作成されます。擬似要素の背景として適用することで、追加のマークアップなしに装飾的なノコギリ歯ボーダーが得られます。
 
-<CssPreview client:load
+<CssPreview
   title="ジグザグエッジ"
   height={260}
   html={`<div class="zigzag-card">
@@ -189,7 +187,7 @@ import CssPreview from '@/components/CssPreview';
 
 レイヤードされた `radial-gradient` と `linear-gradient` がカーボンファイバーの織り模様をシミュレートします。繊細な放射状のドットグリッドがストライプの線形グラデーションの上に重なり、すべてがダークなベースカラーの上に配置されます。
 
-<CssPreview client:load
+<CssPreview
   title="カーボンファイバー"
   height={220}
   html={`<div class="carbon-fiber"></div>`}
@@ -237,7 +235,7 @@ import CssPreview from '@/components/CssPreview';
 
 2つのレイヤーの `linear-gradient` パス — 1つは水平、もう1つは垂直 — が細い線を描き、交差してグリッドを形成します。カスタムプロパティを調整することで、線の太さ、間隔、色を変更できます。
 
-<CssPreview client:load
+<CssPreview
   title="方眼紙"
   height={220}
   html={`<div class="graph-paper"></div>`}
@@ -272,7 +270,7 @@ import CssPreview from '@/components/CssPreview';
 
 反対方向の対角角度に回転した2つの `linear-gradient` レイヤーが、重なり合うダイヤモンド形状を作成します。3番目のグラデーションがダイヤモンド間のクラシックなアーガイル「ステッチ」ラインを追加します。
 
-<CssPreview client:load
+<CssPreview
   title="アーガイルパターン"
   height={220}
   html={`<div class="argyle"></div>`}

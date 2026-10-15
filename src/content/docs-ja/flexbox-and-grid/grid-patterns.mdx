@@ -3,9 +3,6 @@ title: CSS Grid パターン
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-import TailwindPreview from '@/components/TailwindPreview';
-
 ## 問題
 
 CSS Gridは最も強力なCSSレイアウトシステムですが、AIエージェントはしばしば活用しきれなかったり、誤った使い方をしたりします。よくあるミスとしては、`auto-fill` と `auto-fit` の混同、レスポンシブパターンではなく固定のカラム数を使う、可読性が大幅に向上するのに `grid-template-areas` を避ける、`minmax()` がネイティブでレスポンシブに対応できるのにJavaScriptやメディアクエリに頼る、などがあります。
@@ -45,7 +42,7 @@ CSS Gridは二次元のレイアウトシステムです。ページレベルの
 
 **`auto-fill` を使う場面：** アイテム数に関係なくカラム幅を一定に保ちたい場合（フォームフィールドやデータ入力レイアウトなど）。
 
-<CssPreview client:load
+<CssPreview
   title="Grid: auto-fill vs auto-fit の比較"
   html={`    <div class="label">auto-fill (empty tracks preserved):</div>
     <div class="grid-fill">
@@ -109,7 +106,7 @@ CSS Gridは二次元のレイアウトシステムです。ページレベルの
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Grid: minmax() を使ったレスポンシブカードグリッド"
   html={`    <div class="card-grid">
       <div class="card">Card 1</div>
@@ -178,7 +175,7 @@ CSS Gridは二次元のレイアウトシステムです。ページレベルの
 </div>
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Grid: 名前付きグリッドエリアレイアウト"
   html={`    <div class="page-layout">
       <header class="header">Header</header>
@@ -308,7 +305,7 @@ Tailwindはレスポンシブブレークポイントプレフィックス付き
 
 ### レスポンシブカードグリッド
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: レスポンシブグリッド（リサイズして確認）"
   html={`    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-2">
       <div class="bg-violet-500 text-white py-5 px-4 rounded-lg text-center">Card 1</div>
@@ -321,7 +318,7 @@ Tailwindはレスポンシブブレークポイントプレフィックス付き
 
 ### カラムのスパン
 
-<TailwindPreview client:load
+<TailwindPreview
   title="Tailwind: col-span を使ったグリッド"
   html={`    <div class="grid grid-cols-3 gap-3 p-2">
       <div class="col-span-2 bg-blue-500 text-white p-4 rounded-lg text-center">Spans 2 columns</div>

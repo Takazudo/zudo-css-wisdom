@@ -3,8 +3,6 @@ title: Scroll-Driven Animations
 sidebar_position: 2
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Scroll-linked effects like progress bars, parallax backgrounds, and element reveal animations have traditionally required JavaScript `scroll` event listeners or Intersection Observer callbacks. These approaches run on the main thread, can cause jank under load, and add complexity. AI agents almost never suggest the CSS-native scroll-driven animations API, even though it provides performant, compositor-thread animations tied to scroll position with zero JavaScript.
@@ -18,7 +16,7 @@ CSS Scroll-Driven Animations allow you to connect a `@keyframes` animation to sc
 
 Both timelines use the standard `@keyframes` syntax and run on the compositor thread when animating `transform` and `opacity`, ensuring smooth 60fps performance.
 
-<CssPreview client:load
+<CssPreview
   title="Scroll-Driven Fade-In — Scroll down inside the preview"
   height={400}
   html={`

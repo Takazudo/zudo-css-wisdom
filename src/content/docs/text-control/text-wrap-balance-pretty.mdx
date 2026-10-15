@@ -3,8 +3,6 @@ title: "Text Wrap: balance and pretty"
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## The Problem
 
 Headings and short text blocks often end up with awkward last lines — a single orphaned word dangling on its own line, creating an uneven visual shape. Developers traditionally worked around this with manual `&nbsp;` characters, explicit `<br>` tags, or JavaScript-based solutions that measure text width and reflow content. These approaches are brittle: they break at different viewport sizes, different font sizes, and in different languages. Now CSS handles this natively with the `text-wrap` property.
@@ -75,7 +73,7 @@ blockquote {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Balance vs No Balance — Heading Comparison"
   height={300}
   html={`    <div class="comparison">
@@ -125,7 +123,7 @@ blockquote {
       text-wrap: balance;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="Pretty for Body Text — Orphan Prevention"
   height={320}
   html={`    <div class="comparison">
@@ -175,7 +173,7 @@ blockquote {
       text-wrap: pretty;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="Balance Line Limit — Short vs Long Text"
   height={420}
   html={`    <div class="limit-demo">
@@ -218,7 +216,7 @@ blockquote {
       text-wrap: balance;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="Practical Typography System — Headings + Body Text"
   height={420}
   html={`    <article class="article">
@@ -265,7 +263,7 @@ blockquote {
       text-wrap: pretty;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="Progressive Enhancement — Graceful Degradation"
   height={250}
   html={`    <div class="enhancement-demo">
@@ -309,7 +307,7 @@ blockquote {
 
 In alphabetic languages, the browser uses spaces and punctuation to identify word boundaries when redistributing line breaks. Japanese has no spaces between words — every character position is a valid break point. When `text-wrap: balance` tries to equalize line lengths, it splits text at arbitrary character positions, producing breaks that cut through the middle of natural phrases. The result is a heading where the first line ends mid-phrase, leaving a conspicuously large gap on the right.
 
-<CssPreview client:load
+<CssPreview
   title="text-wrap: balance — English Works, Japanese Breaks"
   height={380}
   html={`    <div class="lang-comparison">
@@ -410,7 +408,7 @@ h3 {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="word-break: auto-phrase — Japanese Phrase-Aware Balancing (Chrome 119+)"
   height={300}
   html={`    <div class="autophrase-demo">
@@ -488,7 +486,7 @@ h3 {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="Locale-Scoped Pattern — Reset for Japanese, Balance for English"
   height={340}
   html={`    <div class="locale-demo">

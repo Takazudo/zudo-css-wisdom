@@ -3,8 +3,6 @@ title: "text-wrap: balanceとpretty"
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 見出しや短いテキストブロックは、最終行に1つの単語だけが取り残される（オーファン）ような、不自然な行分割になることがよくあります。開発者は従来、手動の`&nbsp;`文字、明示的な`<br>`タグ、またはテキスト幅を計測してリフローするJavaScriptベースの対策で回避してきました。これらのアプローチは脆弱で、ビューポートサイズ、フォントサイズ、言語が異なると壊れます。現在ではCSSが`text-wrap`プロパティでこの問題をネイティブに処理します。
@@ -75,7 +73,7 @@ blockquote {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="balance vs バランスなし — 見出しの比較"
   height={300}
   html={`    <div class="comparison">
@@ -125,7 +123,7 @@ blockquote {
       text-wrap: balance;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="本文テキストのpretty — オーファン防止"
   height={320}
   html={`    <div class="comparison">
@@ -175,7 +173,7 @@ blockquote {
       text-wrap: pretty;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="balanceの行数制限 — 短いテキスト vs 長いテキスト"
   height={420}
   html={`    <div class="limit-demo">
@@ -218,7 +216,7 @@ blockquote {
       text-wrap: balance;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="実践的なタイポグラフィシステム — 見出し + 本文テキスト"
   height={420}
   html={`    <article class="article">
@@ -265,7 +263,7 @@ blockquote {
       text-wrap: pretty;
     }`} />
 
-<CssPreview client:load
+<CssPreview
   title="プログレッシブエンハンスメント — グレースフルデグラデーション"
   height={250}
   html={`    <div class="enhancement-demo">
@@ -309,7 +307,7 @@ blockquote {
 
 アルファベット言語では、ブラウザはスペースや句読点を使って改行位置を分散させる際の単語境界を識別します。日本語には単語間のスペースがなく、すべての文字位置が有効な改行ポイントになります。`text-wrap: balance`が行の長さを均等にしようとする際、自然な文節の途中で任意の文字位置に改行が入ってしまいます。その結果、見出しの最初の行が文節の途中で終わり、右側に目立つ大きな空白が生じます。
 
-<CssPreview client:load
+<CssPreview
   title="text-wrap: balance — 英語はうまく動作、日本語は崩れる"
   height={380}
   html={`    <div class="lang-comparison">
@@ -410,7 +408,7 @@ h3 {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="word-break: auto-phrase — 日本語の文節を考慮したバランシング（Chrome 119+）"
   height={300}
   html={`    <div class="autophrase-demo">
@@ -488,7 +486,7 @@ h3 {
 }
 ```
 
-<CssPreview client:load
+<CssPreview
   title="ロケールスコープパターン — 日本語はリセット、英語はbalance"
   height={340}
   html={`    <div class="locale-demo">

@@ -3,8 +3,6 @@ title: 日本語フォントファミリーの指定
 sidebar_position: 3
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 日本語Webサイトの`font-family`指定は、ラテン文字サイトと比べて格段に複雑です。`sans-serif`と書くだけでは不十分で、ブラウザはOSによって大きく異なるシステムのデフォルトにフォールバックし、古いOSではビットマップフォントで日本語が表示されることもあります。主な課題は以下の通りです：
@@ -91,7 +89,7 @@ font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Yu Gothic', sans-serif;
 
 ### 推奨スタックの動作確認
 
-<CssPreview client:load
+<CssPreview
   title="推奨日本語フォントスタック — 日本語と欧文の混在テキスト"
   height={280}
   html={`    <div class="font-demo">
@@ -135,7 +133,7 @@ font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Yu Gothic', sans-serif;
 
 日本語フォントには独自のラテングリフが含まれています。日本語フォントを欧文フォントより前に指定すると、すべてのASCII文字が日本語フォントのラテン字形でレンダリングされます。これは一般的に幅が広く、スペーシングやストロークコントラストも異なります。欧文フォントは必ず先頭に置いてください。
 
-<CssPreview client:load
+<CssPreview
   title="欧文フォントの順序 — 日本語フォント先頭 vs 欧文フォント先頭"
   height={320}
   html={`    <div class="ordering-demo">
@@ -228,7 +226,7 @@ font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Yu Gothic', sans-serif;
 
 日本語フォントは欧文フォントと同じ`font-weight`スケールをサポートしますが、動作はOSのフォントと利用可能なウェイトによって異なります。ヒラギノSansは10段階のウェイト（W0〜W9）を提供しますが、ヒラギノ角ゴシックProNは2段階（W3、W6）のみです。
 
-<CssPreview client:load
+<CssPreview
   title="フォントウェイトスケール — 異なるウェイトでの日本語テキスト"
   height={360}
   html={`    <div class="weight-demo">
@@ -289,7 +287,7 @@ font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Yu Gothic', sans-serif;
 
 このデモは、包括的なシステムスタックと`sans-serif`だけに頼った場合の違いを示します。ほとんどのモダンデスクトップブラウザでは結果が似て見えることもありますが、CJKフォントの設定が不十分なLinuxシステムでは、`sans-serif`がビットマップや形の悪いフォントにフォールバックすることがあります。
 
-<CssPreview client:load
+<CssPreview
   title="包括的なスタック vs sans-serifのみ"
   height={260}
   html={`    <div class="stack-compare">

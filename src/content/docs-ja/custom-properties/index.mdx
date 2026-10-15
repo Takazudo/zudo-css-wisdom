@@ -5,8 +5,6 @@ sidebar_position: 20
 description: 単純な var() の置き換えにとどまらないカスタムプロパティ：スペーストグルトリック、フォールバックチェーン、コンポーネントのスタイリング API、@property による型付きプロパティ。
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 カスタムプロパティは、色に一度名前を付けて使い回すだけのものではありません。このページではスペーストグル、フォールバックチェーン、コンポーネントのスタイリング API といった応用的な仕組みを扱い、以下のページではそれぞれをパターンカタログ、完全なテーマレシピ、`@property` で登録する型付きプロパティへとさらに掘り下げます。
 
 <CategoryNav category="custom-properties" />
@@ -212,7 +210,7 @@ h2 { --min-size: 1.25; --max-size: 2; }
 
 ## ライブプレビュー
 
-<CssPreview client:load
+<CssPreview
   title="スペーストグルトリック"
   html={`
     <div class="cards">
@@ -284,7 +282,7 @@ h2 { --min-size: 1.25; --max-size: 2; }
     }
     `} />
 
-<CssPreview client:load
+<CssPreview
   title="コンポーネントのカスタムプロパティAPI"
   html={`
     <div class="demo">

@@ -3,8 +3,6 @@ title: フォント読み込み戦略
 sidebar_position: 1
 ---
 
-import CssPreview from '@/components/CssPreview';
-
 ## 問題
 
 Webフォントは、レイアウトシフト（CLS）やパフォーマンス低下の主要な原因です。ブラウザがカスタムフォントをダウンロードする際、待機中に何を表示するかを決める必要があります — 不可視テキスト（FOIT: Flash of Invisible Text）か、フォールバックスタイルのテキスト（FOUT: Flash of Unstyled Text）です。AIエージェントは通常、`@font-face`宣言やGoogle Fontsの`<link>`タグを追加するだけで読み込み動作を無視します。その結果、フォント読み込み時に目に見えるレイアウトシフトが発生したり、読み込み中にテキストが空白になったり、遅延可能なフォントに対して不要なネットワークリクエストが発生したりします。
@@ -66,7 +64,7 @@ Webフォントは、レイアウトシフト（CLS）やパフォーマンス�
 
 `crossorigin`属性は同一オリジンのフォントでも必須です — これがないとフォントが2回フェッチされます。
 
-<CssPreview client:load
+<CssPreview
   title="システムフォントスタック — ネイティブフォントでのレンダリング"
   html={`    <div class="font-demo">
       <div class="font-card">
