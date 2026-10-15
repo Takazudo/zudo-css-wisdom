@@ -274,6 +274,13 @@ The \`css-wisdom\` Claude Code skill indexes every CSS article. Once installed, 
     // Host module supplying the custom MDX demo components (CssPreview /
     // TailwindPreview) via `chromeBindings.mdxExtras`.
     chromeBindingsModule: "src/chrome-bindings.ts",
+    // Demo payloads belong to isolated iframe documents. Their CSS is authored
+    // per preview (or compiled by the Tailwind CDN), never by host Wind.
+    wind: {
+      sources: {
+        ignoreAttributes: ["html", "css"],
+      },
+    },
     // Pinned dev/preview port (CLAUDE.md + local setup assume 8811).
     port: 8811,
     // Cloudflare Workers adapter — required for the deploy (dist/_worker.js).
