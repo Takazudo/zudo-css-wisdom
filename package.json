@@ -30,10 +30,10 @@
     "setup:doc-skill:both": "node scripts/generate-css-wisdom.js && bash scripts/setup-doc-skill.sh --target both"
   },
   "dependencies": {
-    "@takazudo/zfb": "4.5.2",
-    "@takazudo/zfb-adapter-cloudflare": "4.5.2",
-    "@takazudo/zfb-md-wasm": "4.5.2",
-    "@takazudo/zfb-runtime": "4.5.2",
+    "@takazudo/zfb": "4.6.0",
+    "@takazudo/zfb-adapter-cloudflare": "4.6.0",
+    "@takazudo/zfb-md-wasm": "4.6.0",
+    "@takazudo/zfb-runtime": "4.6.0",
     "@takazudo/zudo-doc": "^7.0.0",
     "@takazudo/zudo-doc-history-server": "^7.0.0",
     "diff": "^8.0.3",
