@@ -1,4 +1,4 @@
-# Intentional host customizations against published create-zudo-doc 7.0.0.
+# Intentional host customizations against published create-zudo-doc 10.0.0.
 # Generator docHistory feature binds DocHistoryBoundary over host bindings.
 pages/docs/[[...slug]].tsx
 pages/[locale]/docs/[[...slug]].tsx

@@ -203,7 +203,7 @@ Adding a new header nav item requires editing `zfb.config.ts`.
 
 ## Design Token System
 
-Theming is **fully default** (zudo-doc's package theme, currently `@takazudo/zudo-doc@^7.0.0`) -- this repo does not configure a custom palette or color scheme; tokens ship from `@takazudo/zudo-doc/theme.css`. See the `zfb.config.ts` file-header comment for why the earlier custom color schemes + webfonts were dropped.
+Theming follows the zudo-doc 10 scaffold default. `themePack` is omitted in `zfb.config.ts`, which resolves to **Graphite** (`@takazudo/zudo-doc@^10.0.0`). The slug `default` is an alias for Graphite; Classic is `themePack: "classic"`. This repo does not configure a custom palette, color scheme, or `themePacks` list; tokens ship from `@takazudo/zudo-doc/theme.css` plus the Graphite pack stylesheet. See the `zfb.config.ts` file-header comment for why the earlier custom color schemes + webfonts were dropped.
 
 ### Color Rules
 
