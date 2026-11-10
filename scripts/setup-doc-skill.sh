@@ -48,7 +48,22 @@ if [ "$SKILL_NAME" != "$DEFAULT_SKILL_NAME" ]; then
   exit 1
 fi
 
-REPO_ROOT="$(git -C "$ROOT_DIR" worktree list | head -1 | awk '{print $1}')"
+# Porcelain worktree listing (create-zudo-doc 9.1.4+, #4705): the plain
+# `worktree list` is space-separated, so a checkout path containing a space
+# would be cut short. A bare main worktree has no checkout to link into.
+WORKTREE_PORCELAIN="$(git -C "$ROOT_DIR" worktree list --porcelain)"
+REPO_ROOT=""
+MAIN_WORKTREE_IS_BARE="false"
+while IFS= read -r porcelain_line; do
+  [ -z "$porcelain_line" ] && break
+  case "$porcelain_line" in
+    "worktree "*) REPO_ROOT="${porcelain_line#worktree }" ;;
+    bare) MAIN_WORKTREE_IS_BARE="true" ;;
+  esac
+done <<< "$WORKTREE_PORCELAIN"
+if [ "$MAIN_WORKTREE_IS_BARE" = "true" ] || [ -z "$REPO_ROOT" ]; then
+  REPO_ROOT="$(git -C "$ROOT_DIR" rev-parse --show-toplevel)"
+fi
 DOCS_DIR="$ROOT_DIR/src/content/docs"
 
 if [ ! -d "$DOCS_DIR" ]; then

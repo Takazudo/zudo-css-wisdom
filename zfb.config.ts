@@ -2,12 +2,16 @@ import { defineConfig } from "zfb/config";
 import { zudoDoc } from "@takazudo/zudo-doc/config";
 import { defaultTranslations } from "@takazudo/zudo-doc/i18n-defaults";
 
-// Single-entry v7 config. `zudoDoc()` returns a complete ZfbConfig and shallow-
+// Single-entry config. `zudoDoc()` returns a complete ZfbConfig and shallow-
 // merges these fields over the package defaults, so only NON-default values are
 // set here. Nested objects (metaTags / footer / bodyFootUtilArea) replace the
-// default wholesale, so each is given in full. Theming is fully default — the
-// custom color schemes + webfonts were dropped (tokens ship from
-// @takazudo/zudo-doc/theme.css). Custom MDX demo components (CssPreview /
+// default wholesale, so each is given in full. Theme pack follows the zudo-doc
+// 10 scaffold: `themePack` is omitted, which resolves to Graphite (the default
+// pack; the slug `default` is only an alias for it). Classic is
+// `themePack: "classic"`. Do not set `themePacks` to both `default` and
+// `graphite` — that pair fails the build as a duplicate. Custom color schemes
+// and webfonts stay off (tokens ship from @takazudo/zudo-doc/theme.css plus the
+// Graphite pack stylesheet). Custom MDX demo components (CssPreview /
 // TailwindPreview) are supplied via `chromeBindingsModule`.
 export default defineConfig(
   zudoDoc({
